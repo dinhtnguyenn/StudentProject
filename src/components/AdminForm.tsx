@@ -9,7 +9,8 @@ import {
 import SaveIcon from '@mui/icons-material/Save';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
-import SettingsIcon from '@mui/icons-material/Settings';
+import LogoutIcon from '@mui/icons-material/Logout';
+import LockIcon from '@mui/icons-material/Lock';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -115,25 +116,81 @@ export default function AdminForm() {
   const [tabIndex, setTabIndex] = useState(0);
   const muiTheme = useTheme();
 
-  // Settings State
-  const [showSettings, setShowSettings] = useState(false);
+  // Settings / Auth State
   const [githubToken, setGithubToken] = useState('');
   const [githubOwner, setGithubOwner] = useState('');
   const [githubRepo, setGithubRepo] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(true);
+
+  const verifyToken = async (token: string, owner: string, repo: string) => {
+    try {
+      const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+        headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (!res.ok) throw new Error('Token hoặc Repository không hợp lệ');
+      const data = await res.json();
+      if (!data.permissions?.push) throw new Error('Token không có quyền write (push) vào repository này');
+      return true;
+    } catch (err: any) {
+      throw new Error(err.message || 'Lỗi kết nối GitHub');
+    }
+  };
 
   useEffect(() => {
-    setGithubToken(localStorage.getItem('gh_token') || '');
-    setGithubOwner(localStorage.getItem('gh_owner') || '');
-    setGithubRepo(localStorage.getItem('gh_repo') || '');
+    const initAuth = async () => {
+      const token = localStorage.getItem('gh_token') || '';
+      const owner = localStorage.getItem('gh_owner') || '';
+      const repo = localStorage.getItem('gh_repo') || '';
+      setGithubToken(token);
+      setGithubOwner(owner);
+      setGithubRepo(repo);
+
+      if (token && owner && repo) {
+        try {
+          await verifyToken(token, owner, repo);
+          setIsAuthenticated(true);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+      setIsAuthenticating(false);
+    };
+    initAuth();
   }, []);
 
-  const saveSettings = () => {
-    localStorage.setItem('gh_token', githubToken.trim());
-    localStorage.setItem('gh_owner', githubOwner.trim());
-    localStorage.setItem('gh_repo', githubRepo.trim());
-    setStatus({ type: 'success', message: 'Đã lưu cấu hình GitHub!' });
-    setShowSettings(false);
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!githubToken || !githubOwner || !githubRepo) {
+      setStatus({ type: 'error', message: 'Vui lòng điền đủ thông tin' });
+      return;
+    }
+    setIsAuthenticating(true);
+    try {
+      await verifyToken(githubToken.trim(), githubOwner.trim(), githubRepo.trim());
+      localStorage.setItem('gh_token', githubToken.trim());
+      localStorage.setItem('gh_owner', githubOwner.trim());
+      localStorage.setItem('gh_repo', githubRepo.trim());
+      setIsAuthenticated(true);
+      setStatus({ type: 'success', message: 'Đăng nhập thành công!' });
+    } catch (err: any) {
+      setStatus({ type: 'error', message: err.message });
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('gh_token');
+    localStorage.removeItem('gh_owner');
+    localStorage.removeItem('gh_repo');
+    setGithubToken('');
+    setGithubOwner('');
+    setGithubRepo('');
+    setIsAuthenticated(false);
+    setStatus({ type: 'info', message: 'Đã đăng xuất khỏi hệ thống.' });
   };
 
   // UI State
@@ -206,7 +263,7 @@ export default function AdminForm() {
 
   // Initial Fetch
   useEffect(() => {
-    if (githubToken && githubOwner && githubRepo) {
+    if (isAuthenticated && githubToken && githubOwner && githubRepo) {
       setLoadingCategories(true);
       fetchFile(getCategoriesApiUrl())
         .then(res => { setCategoriesList(res.data); setOriginalCategories(res.data); setCategoriesSha(res.sha); })
@@ -219,7 +276,7 @@ export default function AdminForm() {
         .catch(err => console.error(err))
         .finally(() => setLoadingList(false));
     }
-  }, [githubToken, githubOwner, githubRepo]);
+  }, [isAuthenticated, githubToken, githubOwner, githubRepo]);
 
   // Prevent closing tab if unsaved changes exist
   useEffect(() => {
@@ -290,8 +347,8 @@ export default function AdminForm() {
   const handleSubmitProject = (e: React.FormEvent) => {
     e.preventDefault();
     if (!githubToken || !githubOwner || !githubRepo) {
-      setStatus({ type: 'error', message: 'Vui lòng cấu hình GitHub Token & Repo ở nút Settings góc trên.' });
-      setShowSettings(true);
+      setStatus({ type: 'error', message: 'Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.' });
+      setIsAuthenticated(false);
       return;
     }
 
@@ -407,6 +464,65 @@ export default function AdminForm() {
     }
   };
 
+  if (isAuthenticating) {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 2 }}>
+        <CircularProgress sx={{ color: 'primary.main' }} />
+        <Typography color="text.secondary" sx={{ fontWeight: 600 }}>Đang kiểm tra quyền truy cập...</Typography>
+      </Box>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <Box sx={{ maxWidth: 480, mx: 'auto', mt: 8, pb: 10, px: 2 }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <Box sx={{ textAlign: 'center', mb: 4 }}>
+            <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 2, px: 2, py: 0.75, borderRadius: 100, bgcolor: 'action.hover', color: 'primary.main' }}>
+              <LockIcon sx={{ fontSize: 18 }} />
+              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Khu vực Bảo mật</Typography>
+            </Box>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary', mb: 1 }}>
+              Đăng Nhập <span style={{ color: muiTheme.palette.primary.main }}>Hệ Thống</span>
+            </Typography>
+            <Typography color="text.secondary">Vui lòng cung cấp GitHub Token để tiếp tục.</Typography>
+          </Box>
+
+          <Paper elevation={0} sx={{ p: 4, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', boxShadow: '0 8px 30px rgba(0,0,0,0.04)' }}>
+            <form onSubmit={handleLogin}>
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12 }}>
+                  <TextField fullWidth label="GitHub Username" value={githubOwner} onChange={e => setGithubOwner(e.target.value)} required />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <TextField fullWidth label="Tên Repository" value={githubRepo} onChange={e => setGithubRepo(e.target.value)} required />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <TextField 
+                    fullWidth label="Personal Access Token" type={showPassword ? 'text' : 'password'} required
+                    value={githubToken} onChange={e => setGithubToken(e.target.value)}
+                    slotProps={{ input: { endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">{showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}</IconButton></InputAdornment>) } }}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <Button type="submit" variant="contained" size="large" fullWidth sx={{ mt: 1, borderRadius: 2, textTransform: 'none', fontWeight: 700, fontSize: '1rem', py: 1.5, background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', boxShadow: '0 6px 20px rgba(37, 99, 235, 0.4)' }}>
+                    Truy Cập Quản Trị
+                  </Button>
+                </Grid>
+              </Grid>
+            </form>
+          </Paper>
+        </motion.div>
+        
+        <Snackbar open={!!status} autoHideDuration={6000} onClose={() => setStatus(null)} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+          <Alert onClose={() => setStatus(null)} severity={status?.type} variant="filled" sx={{ width: '100%', borderRadius: 3 }}>
+            {status?.message}
+          </Alert>
+        </Snackbar>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ maxWidth: 720, mx: 'auto', pb: 10 }}>
       {/* Unsaved Changes Banner */}
@@ -433,29 +549,10 @@ export default function AdminForm() {
           <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary' }}>
             Quản Lý <span style={{ color: muiTheme.palette.primary.main }}>Hệ Thống</span>
           </Typography>
-          <IconButton onClick={() => setShowSettings(!showSettings)} sx={{ position: 'absolute', top: 0, right: 0, color: showSettings ? 'primary.main' : 'text.secondary' }}>
-            <SettingsIcon />
+          <IconButton onClick={handleLogout} sx={{ position: 'absolute', top: 0, right: 0, color: 'text.secondary', '&:hover': { color: 'error.main' } }} title="Đăng xuất">
+            <LogoutIcon />
           </IconButton>
         </Box>
-
-        {/* Settings Panel */}
-        <Collapse in={showSettings}>
-          <Paper elevation={0} sx={{ p: 3, mb: 3, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.default' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>Cấu hình GitHub API</Typography>
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, sm: 6 }}><TextField fullWidth size="small" label="GitHub Username" value={githubOwner} onChange={e => setGithubOwner(e.target.value)} /></Grid>
-              <Grid size={{ xs: 12, sm: 6 }}><TextField fullWidth size="small" label="Tên Repository" value={githubRepo} onChange={e => setGithubRepo(e.target.value)} /></Grid>
-              <Grid size={{ xs: 12 }}>
-                <TextField 
-                  fullWidth size="small" label="Personal Access Token" type={showPassword ? 'text' : 'password'}
-                  value={githubToken} onChange={e => setGithubToken(e.target.value)}
-                  slotProps={{ input: { endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">{showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}</IconButton></InputAdornment>) } }}
-                />
-              </Grid>
-              <Grid size={{ xs: 12 }}><Button variant="outlined" onClick={saveSettings} fullWidth sx={{ mt: 1, borderRadius: 2, textTransform: 'none', fontWeight: 700, borderWidth: 2, '&:hover': { borderWidth: 2 } }}>Lưu Cấu Hình</Button></Grid>
-            </Grid>
-          </Paper>
-        </Collapse>
 
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
           <Tabs value={tabIndex} onChange={(_, val) => setTabIndex(val)} variant="fullWidth">
@@ -472,7 +569,7 @@ export default function AdminForm() {
               <Paper elevation={0} sx={{ p: 3, mb: 3, border: `2px dashed ${muiTheme.palette.primary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
                 <Box sx={{ display: 'flex', gap: 1.5 }}>
                   <TextField fullWidth size="small" placeholder="Dán link YouTube để tự động điền..." value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleFetchYoutube())} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} />
-                  <Button variant="contained" onClick={handleFetchYoutube} disabled={fetching || !youtubeUrl.trim()} startIcon={fetching ? <CircularProgress size={18} color="inherit" /> : <AutoFixHighIcon />} sx={{ minWidth: 150, whiteSpace: 'nowrap', borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(99, 102, 241, 0.39)', background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
+                  <Button variant="contained" onClick={handleFetchYoutube} disabled={fetching || !youtubeUrl.trim()} startIcon={fetching ? <CircularProgress size={18} color="inherit" /> : <AutoFixHighIcon />} sx={{ minWidth: 150, whiteSpace: 'nowrap', borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.39)', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
                     {fetching ? 'Đang cào...' : 'Tự động điền'}
                   </Button>
                 </Box>
@@ -528,7 +625,7 @@ export default function AdminForm() {
                       <Button variant="outlined" size="large" onClick={resetForm} sx={{ py: 1.6, flex: 1, fontWeight: 700, borderRadius: 3, textTransform: 'none', borderWidth: 2, color: 'text.secondary', borderColor: 'divider', '&:hover': { borderColor: 'text.primary', color: 'text.primary', borderWidth: 2 } }}>Huỷ</Button>
                     )}
                     <motion.div style={{ flex: 2 }} whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.985 }}>
-                      <Button type="submit" variant="contained" size="large" startIcon={<SaveIcon />} fullWidth sx={{ py: 1.6, fontSize: '1rem', fontWeight: 700, borderRadius: 3, textTransform: 'none', boxShadow: '0 6px 20px rgba(99, 102, 241, 0.4)', background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
+                      <Button type="submit" variant="contained" size="large" startIcon={<SaveIcon />} fullWidth sx={{ py: 1.6, fontSize: '1rem', fontWeight: 700, borderRadius: 3, textTransform: 'none', boxShadow: '0 6px 20px rgba(37, 99, 235, 0.4)', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
                         {formData.id ? 'Cập Nhật Nháp' : 'Lưu Nháp Dự Án'}
                       </Button>
                     </motion.div>

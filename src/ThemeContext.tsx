@@ -36,9 +36,9 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
         palette: {
           mode,
           primary: {
-            main: '#0EA5E9',
-            light: '#38BDF8',
-            dark: '#0284C7',
+            main: '#2563EB',
+            light: '#60A5FA',
+            dark: '#1D4ED8',
           },
           secondary: {
             main: '#EC4899',
@@ -82,7 +82,7 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
               contained: {
                 boxShadow: 'none',
                 '&:hover': {
-                  boxShadow: '0 4px 12px rgba(14, 165, 233, 0.3)',
+                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
                 },
               },
             },
@@ -116,8 +116,8 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
                   '&:hover fieldset': {
                     borderColor: mode === 'light' ? '#CBD5E1' : '#64748B',
                   },
-                  '&.Mui-focused fieldset': {
-                    borderColor: '#0EA5E9',
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#2563EB',
                     borderWidth: 2,
                   },
                 },

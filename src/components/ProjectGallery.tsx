@@ -23,7 +23,7 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 260, damping: 20 } },
 };
 
-const defaultColor = { bg: '#EEF2FF', text: '#6366F1' };
+const defaultColor = { bg: '#EEF2FF', text: '#2563EB' };
 
 const getAvatarLetter = (name: string) => {
   if (!name) return '?';
@@ -163,8 +163,8 @@ export default function ProjectGallery() {
                     fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer',
                     ...(currentTab === cat
                       ? {
-                        background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
-                        color: '#FFF', border: 'none', boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)',
+                        background: 'linear-gradient(135deg, #2563EB, #1D4ED8)',
+                        color: '#FFF', border: 'none', boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)',
                       }
                       : {
                         borderColor: 'divider', color: 'text.secondary',
@@ -346,7 +346,7 @@ export default function ProjectGallery() {
                 {sharedProject.teamMembers.map((member, idx) => (
                   <Grid size={{ xs: 12 }} key={idx}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1, borderRadius: 2, '&:hover': { bgcolor: 'action.hover' } }}>
-                      <Avatar sx={{ width: 30, height: 30, fontSize: '0.75rem', fontWeight: 700, bgcolor: ['#6366F1', '#EC4899', '#F59E0B', '#10B981'][idx % 4] }}>
+                      <Avatar sx={{ width: 30, height: 30, fontSize: '0.75rem', fontWeight: 700, bgcolor: ['#2563EB', '#EC4899', '#F59E0B', '#10B981'][idx % 4] }}>
                         {getAvatarLetter(member)}
                       </Avatar>
                       <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary', fontSize: '0.825rem' }}>

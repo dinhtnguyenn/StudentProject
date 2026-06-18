@@ -32,7 +32,7 @@ function App() {
               sx={{ flexGrow: 1, cursor: 'pointer', fontWeight: 800, fontSize: '1.15rem' }}
               onClick={() => navigate('/')}
             >
-              Student<span style={{ color: '#0EA5E9' }}> Projects</span>
+              Student<span style={{ color: '#2563EB' }}> Projects</span>
             </Typography>
             <Button
               onClick={() => navigate('/')}
@@ -47,23 +47,21 @@ function App() {
             <IconButton onClick={toggleTheme} sx={{ color: 'text.secondary', ml: 1 }}>
               {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
             </IconButton>
-            {import.meta.env.DEV && (
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => navigate('/admin')}
-                sx={{
-                  ml: 1,
-                  background: 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)',
-                    boxShadow: '0 4px 14px 0 rgba(14, 165, 233, 0.39)',
-                  },
-                }}
-              >
-                Thêm Dự Án
-              </Button>
-            )}
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => navigate('/admin')}
+              sx={{
+                ml: 1,
+                background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                  boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.39)',
+                },
+              }}
+            >
+              Quản Trị
+            </Button>
           </Toolbar>
         </Container>
       </AppBar>

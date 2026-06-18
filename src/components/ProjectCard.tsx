@@ -25,7 +25,7 @@ const getYoutubeId = (url: string) => {
   return match && match[2].length === 11 ? match[2] : null;
 };
 
-const defaultColor = { bg: '#EEF2FF', text: '#6366F1' };
+const defaultColor = { bg: '#EEF2FF', text: '#2563EB' };
 
 const getAvatarLetter = (name: string) => {
   if (!name) return '?';
@@ -98,8 +98,8 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
               size="small" 
               sx={{ 
                 position: 'absolute', top: 12, right: 12, 
-                bgcolor: 'rgba(255, 255, 255, 0.8)', color: '#6366F1',
-                '&:hover': { bgcolor: '#FFFFFF' }, backdropFilter: 'blur(4px)'
+                bgcolor: 'rgba(255, 255, 255, 0.8)', color: '#2563EB',
+                '&:hover': { bgcolor: '#2563EB', color: '#FFF' }, backdropFilter: 'blur(4px)'
               }}
             >
               <ShareIcon fontSize="small" />
@@ -161,7 +161,7 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
                       width: 26, height: 26,
                       fontSize: '0.65rem',
                       fontWeight: 700,
-                      bgcolor: ['#6366F1', '#EC4899', '#F59E0B'][idx % 3],
+                      bgcolor: ['#2563EB', '#EC4899', '#F59E0B'][idx % 3],
                       border: '2px solid',
                       borderColor: 'background.paper',
                       ml: idx > 0 ? -0.8 : 0,
@@ -195,10 +195,10 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
                 onClick={() => setOpenVideo(true)}
                 sx={{
                   fontSize: '0.8rem',
-                  background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
+                  background: 'linear-gradient(135deg, #2563EB, #1D4ED8)',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
-                    boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)',
+                    background: 'linear-gradient(135deg, #2563EB, #1D4ED8)',
+                    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
                   },
                 }}
               >
@@ -288,6 +288,19 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
             }}
           />
 
+          {/* Video */}
+          {youtubeId && (
+            <Box sx={{ position: 'relative', pt: '56.25%', mb: 3, borderRadius: 3, overflow: 'hidden', border: '1px solid', borderColor: 'divider', bgcolor: 'background.default' }}>
+              <iframe
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+                src={`https://www.youtube.com/embed/${youtubeId}`}
+                title="YouTube video player"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            </Box>
+          )}
+
           {/* Team */}
           <Box sx={{ p: 2.5, borderRadius: 3, bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
@@ -300,7 +313,7 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
               {project.teamMembers.map((member, idx) => (
                 <Grid size={{ xs: 12 }} key={idx}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1, borderRadius: 2, '&:hover': { bgcolor: 'action.hover' } }}>
-                    <Avatar sx={{ width: 30, height: 30, fontSize: '0.75rem', fontWeight: 700, bgcolor: ['#6366F1', '#EC4899', '#F59E0B', '#10B981'][idx % 4] }}>
+                    <Avatar sx={{ width: 30, height: 30, fontSize: '0.75rem', fontWeight: 700, bgcolor: ['#2563EB', '#EC4899', '#F59E0B', '#10B981'][idx % 4] }}>
                       {getAvatarLetter(member)}
                     </Avatar>
                     <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary', fontSize: '0.825rem' }}>
