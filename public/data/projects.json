@@ -1,0 +1,32 @@
+[
+  {
+    "id": "1",
+    "name": "Hệ thống Quản lý Bầu cử",
+    "description": "Ứng dụng web giúp quản lý các cuộc bầu cử trong trường đại học một cách minh bạch và an toàn.",
+    "thumbnail": "https://images.unsplash.com/photo-1540910419892-4a36d2c3266c?q=80&w=3540&auto=format&fit=crop",
+    "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "category": "Web Application",
+    "teamMembers": ["Nguyễn Văn A", "Trần Thị B"],
+    "semester": "Học kỳ 1 - 2025/2026"
+  },
+  {
+    "id": "2",
+    "name": "Ứng dụng Đặt sân Cầu lông",
+    "description": "Mobile app giúp sinh viên và giảng viên dễ dàng đặt sân cầu lông trong khuôn viên trường.",
+    "thumbnail": "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?q=80&w=3540&auto=format&fit=crop",
+    "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "category": "Mobile App",
+    "teamMembers": ["Lê Văn C"],
+    "semester": "Học kỳ 2 - 2024/2025"
+  },
+  {
+    "id": "3",
+    "name": "Hệ thống Phân loại Rác Thông minh",
+    "description": "Sử dụng IoT và AI để tự động phân loại rác thải có thể tái chế.",
+    "thumbnail": "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?q=80&w=3540&auto=format&fit=crop",
+    "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "category": "IoT & AI",
+    "teamMembers": ["Phạm Đức D", "Hoàng Thị E", "Vũ Văn F"],
+    "semester": "Học kỳ 1 - 2025/2026"
+  }
+]
