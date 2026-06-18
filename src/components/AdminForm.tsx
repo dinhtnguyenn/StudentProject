@@ -19,8 +19,8 @@ import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { motion } from 'framer-motion';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import type { DragEndEvent } from '@dnd-kit/core';
