@@ -1,17 +1,5 @@
 [
   {
-    "id": "2",
-    "name": "Ứng dụng Đặt sân Cầu lông",
-    "description": "Mobile app giúp sinh viên và giảng viên dễ dàng đặt sân cầu lông trong khuôn viên trường.",
-    "thumbnail": "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?q=80&w=3540&auto=format&fit=crop",
-    "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    "category": "Mobile App",
-    "teamMembers": [
-      "Lê Văn C"
-    ],
-    "semester": "Học kỳ 2 - 2024/2025"
-  },
-  {
     "id": "3",
     "name": "Hệ thống Phân loại Rác Thông minh",
     "description": "Sử dụng IoT và AI để tự động phân loại rác thải có thể tái chế.",
