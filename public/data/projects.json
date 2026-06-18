@@ -2,7 +2,7 @@
   {
     "id": "1781790499064",
     "name": "Game Chiến trường huynh đệ / The Boys Battleground",
-    "description": "❤️ [Dự án tốt nghiệp] - Game Chiến trường huynh đệ / The Boys Battleground ❤️\nNhóm sinh viên thực hiện:\n✨ PS43552 - Võ Vĩnh Phúc\n✨ PS43428 - Hồ Tùng Diệp\n✨ PS43433 - Nguyễn Thành Quyên\n✨ PS43361 - Trần Trung Nghĩa\n✨ PS43370 - Nguyễn Anh Tuấn\n✨ PS39420 - Nguyễn Minh Mẫn\n---\nCảm ơn các bạn đã lựa chọn tớ giữa hàng ngàn hàng triệu nguồn thông tin bổ ích ngoài kia 💗\nĐừng quên nhấn LIKE 👍 và SUBSCRIBE ❤️ Fanpage, Instagram cũng như kênh Youtube để ủng hộ mình nhé.\nCó thể theo dõi tớ tại:\n✨Group hỏi đáp: https://www.facebook.com/groups/anhthayvadongbon\n✨Website: https://dinhnt.com/\n✨Youtube: https://www.youtube.com/c/anhThầy\n✨Tiktok: https://www.tiktok.com/@minhlaanhthayday\n✨Fanpage: https://www.facebook.com/dinhntcom\n✨Instagram: https://www.instagram.com/dinhnt_at",
+    "description": "<p></p>",
     "thumbnail": "https://img.youtube.com/vi/0w3tQrNNaGY/maxresdefault.jpg",
     "youtubeUrl": "https://youtu.be/0w3tQrNNaGY?si=5dw0hP30CbAoth65",
     "category": "Dự án tốt nghiệp",
@@ -14,6 +14,13 @@
       "PS43370 - Nguyễn Anh Tuấn",
       "PS39420 - Nguyễn Minh Mẫn"
     ],
-    "semester": "SPRING 2026"
+    "semester": "SPRING 2026",
+    "techTags": [
+      "Unity",
+      "Unity 3D",
+      "NetCode",
+      "Vivox",
+      "PlayFab"
+    ]
   }
 ]
