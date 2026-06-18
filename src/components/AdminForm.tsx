@@ -4,7 +4,7 @@ import {
   CircularProgress, Divider, Collapse, IconButton, InputAdornment,
   Tabs, Tab, List, ListItem, ListItemText, Avatar, ListItemAvatar,
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
-  FormControl, InputLabel, Select, MenuItem, Chip
+  FormControl, InputLabel, Select, MenuItem, Chip, Checkbox, FormControlLabel
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import EditNoteIcon from '@mui/icons-material/EditNote';
@@ -16,6 +16,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import { motion } from 'framer-motion';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import type { Category } from '../types/Category';
 
 // --- Types & Helpers ---
@@ -112,10 +114,18 @@ export default function AdminForm() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
 
+  // Bulk Delete Projects State
+  const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
+  const [bulkDeleteProjectsConfirm, setBulkDeleteProjectsConfirm] = useState(false);
+
   const [categoriesList, setCategoriesList] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
+
+  // Bulk Delete Categories State
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [bulkDeleteCategoriesConfirm, setBulkDeleteCategoriesConfirm] = useState(false);
 
   const getProjectsApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/projects.json`;
   const getCategoriesApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/categories.json`;
@@ -175,6 +185,10 @@ export default function AdminForm() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleQuillChange = (value: string) => {
+    setFormData({ ...formData, description: value });
   };
 
   const handleFetchYoutube = async () => {
@@ -278,6 +292,7 @@ export default function AdminForm() {
     setYoutubeUrl('');
   };
 
+  // --- Delete Project(s) Logic ---
   const confirmDeleteProject = async () => {
     if (!projectToDelete) return;
     setDeleteConfirmOpen(false);
@@ -296,6 +311,34 @@ export default function AdminForm() {
     }
   };
 
+  const confirmBulkDeleteProjectsAction = async () => {
+    if (selectedProjects.length === 0) return;
+    setBulkDeleteProjectsConfirm(false);
+    setLoadingList(true);
+    try {
+      const { data, sha } = await fetchFile(getProjectsApiUrl());
+      const newData = data.filter((p: any) => !selectedProjects.includes(p.id));
+      await commitFile(getProjectsApiUrl(), newData, sha, `Bulk delete ${selectedProjects.length} projects`);
+      setStatus({ type: 'success', message: `Đã xoá ${selectedProjects.length} dự án!` });
+      setProjectsList(newData);
+      setSelectedProjects([]);
+    } catch (err: any) {
+      setStatus({ type: 'error', message: err.message });
+    } finally {
+      setLoadingList(false);
+    }
+  };
+
+  const handleToggleProject = (id: string) => {
+    setSelectedProjects(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const handleToggleAllProjects = () => {
+    if (selectedProjects.length === projectsList.length) setSelectedProjects([]);
+    else setSelectedProjects(projectsList.map(p => p.id));
+  };
+
+  // --- Add/Delete Category Logic ---
   const handleAddCategory = async () => {
     if (!newCategoryName.trim() || !githubToken) return;
     setLoadingCategories(true);
@@ -331,6 +374,34 @@ export default function AdminForm() {
       setCategoryToDelete(null);
     }
   };
+
+  const confirmBulkDeleteCategoriesAction = async () => {
+    if (selectedCategories.length === 0) return;
+    setBulkDeleteCategoriesConfirm(false);
+    setLoadingCategories(true);
+    try {
+      const { data, sha } = await fetchFile(getCategoriesApiUrl());
+      const newData = data.filter((c: any) => !selectedCategories.includes(c.id));
+      await commitFile(getCategoriesApiUrl(), newData, sha, `Bulk delete ${selectedCategories.length} categories`);
+      setStatus({ type: 'success', message: `Đã xoá ${selectedCategories.length} loại dự án!` });
+      setCategoriesList(newData);
+      setSelectedCategories([]);
+    } catch (err: any) {
+      setStatus({ type: 'error', message: err.message });
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
+
+  const handleToggleCategory = (id: string) => {
+    setSelectedCategories(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const handleToggleAllCategories = () => {
+    if (selectedCategories.length === categoriesList.length) setSelectedCategories([]);
+    else setSelectedCategories(categoriesList.map(c => c.id));
+  };
+
 
   return (
     <Box sx={{ maxWidth: 720, mx: 'auto' }}>
@@ -421,7 +492,13 @@ export default function AdminForm() {
                     <TextField fullWidth label="Thành viên" name="teamMembers" value={formData.teamMembers} onChange={handleChange} multiline rows={4} required placeholder="Mỗi người 1 dòng&#10;Nguyễn Văn A&#10;Trần Thị B" />
                   </Grid>
                   <Grid size={{ xs: 12 }}>
-                    <TextField fullWidth label="Mô tả dự án" name="description" value={formData.description} onChange={handleChange} multiline rows={4} required />
+                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, color: '#475569' }}>Mô tả dự án (Không bắt buộc)</Typography>
+                    <Box sx={{
+                      '.ql-container': { borderBottomLeftRadius: 8, borderBottomRightRadius: 8, minHeight: 150, fontSize: '1rem', fontFamily: 'inherit' },
+                      '.ql-toolbar': { borderTopLeftRadius: 8, borderTopRightRadius: 8, bgcolor: '#F8FAFC' }
+                    }}>
+                      <ReactQuill theme="snow" value={formData.description} onChange={handleQuillChange} />
+                    </Box>
                   </Grid>
                   <Grid size={{ xs: 12 }} sx={{ mt: 1, display: 'flex', gap: 2 }}>
                     {formData.id && (
@@ -447,34 +524,54 @@ export default function AdminForm() {
             ) : projectsList.length === 0 ? (
               <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có dự án nào.</Typography></Box>
             ) : (
-              <List sx={{ p: 0 }}>
-                {projectsList.map((project, idx) => (
-                  <Box key={project.id}>
-                    {idx > 0 && <Divider />}
-                    <ListItem sx={{ py: 2 }}>
-                      <ListItemAvatar>
-                        <Avatar src={project.thumbnail} variant="rounded" sx={{ width: 64, height: 40, mr: 1, border: '1px solid #E2E8F0' }} />
-                      </ListItemAvatar>
-                      <ListItemText 
-                        primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A' }}>{project.name}</Typography>}
-                        secondary={<Typography variant="caption" sx={{ color: '#64748B' }}>{project.category} • {project.semester}</Typography>}
-                      />
-                      <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
-                        <IconButton size="small" onClick={() => {
-                          setFormData({
-                            id: project.id, name: project.name, description: project.description, thumbnail: project.thumbnail,
-                            youtubeUrl: project.youtubeUrl || '', category: project.category,
-                            teamMembers: Array.isArray(project.teamMembers) ? project.teamMembers.join('\n') : project.teamMembers,
-                            semester: project.semester,
-                          });
-                          setTabIndex(0);
-                        }} sx={{ color: '#6366F1', bgcolor: '#EEF2FF' }}><EditIcon fontSize="small" /></IconButton>
-                        <IconButton size="small" onClick={() => { setProjectToDelete(project.id); setDeleteConfirmOpen(true); }} sx={{ color: '#EF4444', bgcolor: '#FEF2F2' }}><DeleteIcon fontSize="small" /></IconButton>
-                      </Box>
-                    </ListItem>
-                  </Box>
-                ))}
-              </List>
+              <>
+                {/* Projects Bulk Action Header */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
+                  <FormControlLabel
+                    control={<Checkbox checked={selectedProjects.length > 0 && selectedProjects.length === projectsList.length} indeterminate={selectedProjects.length > 0 && selectedProjects.length < projectsList.length} onChange={handleToggleAllProjects} />}
+                    label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Chọn tất cả</Typography>}
+                    sx={{ ml: 0.5 }}
+                  />
+                  {selectedProjects.length > 0 && (
+                    <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteProjectsConfirm(true)} startIcon={<DeleteIcon />}>
+                      Xoá {selectedProjects.length} mục
+                    </Button>
+                  )}
+                </Box>
+                <List sx={{ p: 0 }}>
+                  {projectsList.map((project, idx) => (
+                    <Box key={project.id}>
+                      {idx > 0 && <Divider />}
+                      <ListItem sx={{ py: 2 }}>
+                        <Checkbox 
+                          checked={selectedProjects.includes(project.id)} 
+                          onChange={() => handleToggleProject(project.id)} 
+                          sx={{ mr: 1 }} 
+                        />
+                        <ListItemAvatar>
+                          <Avatar src={project.thumbnail} variant="rounded" sx={{ width: 64, height: 40, mr: 1, border: '1px solid #E2E8F0' }} />
+                        </ListItemAvatar>
+                        <ListItemText 
+                          primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A' }}>{project.name}</Typography>}
+                          secondary={<Typography variant="caption" sx={{ color: '#64748B' }}>{project.category} • {project.semester}</Typography>}
+                        />
+                        <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                          <IconButton size="small" onClick={() => {
+                            setFormData({
+                              id: project.id, name: project.name, description: project.description, thumbnail: project.thumbnail,
+                              youtubeUrl: project.youtubeUrl || '', category: project.category,
+                              teamMembers: Array.isArray(project.teamMembers) ? project.teamMembers.join('\n') : project.teamMembers,
+                              semester: project.semester,
+                            });
+                            setTabIndex(0);
+                          }} sx={{ color: '#6366F1', bgcolor: '#EEF2FF' }}><EditIcon fontSize="small" /></IconButton>
+                          <IconButton size="small" onClick={() => { setProjectToDelete(project.id); setDeleteConfirmOpen(true); }} sx={{ color: '#EF4444', bgcolor: '#FEF2F2' }}><DeleteIcon fontSize="small" /></IconButton>
+                        </Box>
+                      </ListItem>
+                    </Box>
+                  ))}
+                </List>
+              </>
             )}
           </Paper>
         )}
@@ -497,22 +594,42 @@ export default function AdminForm() {
               ) : categoriesList.length === 0 ? (
                 <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có loại dự án nào.</Typography></Box>
               ) : (
-                <List sx={{ p: 0 }}>
-                  {categoriesList.map((cat, idx) => (
-                    <Box key={cat.id}>
-                      {idx > 0 && <Divider />}
-                      <ListItem sx={{ py: 2 }}>
-                        <ListItemText 
-                          primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A' }}>{cat.name}</Typography>}
-                          secondary={<Chip label="Giao diện nhãn" size="small" sx={{ mt: 1, background: cat.bg, color: cat.text, fontWeight: 700 }} />}
-                        />
-                        <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
-                          <IconButton size="small" onClick={() => { setCategoryToDelete(cat.id); }} sx={{ color: '#EF4444', bgcolor: '#FEF2F2' }}><DeleteIcon fontSize="small" /></IconButton>
-                        </Box>
-                      </ListItem>
-                    </Box>
-                  ))}
-                </List>
+                <>
+                  {/* Categories Bulk Action Header */}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
+                    <FormControlLabel
+                      control={<Checkbox checked={selectedCategories.length > 0 && selectedCategories.length === categoriesList.length} indeterminate={selectedCategories.length > 0 && selectedCategories.length < categoriesList.length} onChange={handleToggleAllCategories} />}
+                      label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Chọn tất cả</Typography>}
+                      sx={{ ml: 0.5 }}
+                    />
+                    {selectedCategories.length > 0 && (
+                      <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteCategoriesConfirm(true)} startIcon={<DeleteIcon />}>
+                        Xoá {selectedCategories.length} mục
+                      </Button>
+                    )}
+                  </Box>
+                  <List sx={{ p: 0 }}>
+                    {categoriesList.map((cat, idx) => (
+                      <Box key={cat.id}>
+                        {idx > 0 && <Divider />}
+                        <ListItem sx={{ py: 2 }}>
+                          <Checkbox 
+                            checked={selectedCategories.includes(cat.id)} 
+                            onChange={() => handleToggleCategory(cat.id)} 
+                            sx={{ mr: 1 }} 
+                          />
+                          <ListItemText 
+                            primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A' }}>{cat.name}</Typography>}
+                            secondary={<Chip label="Giao diện nhãn" size="small" sx={{ mt: 1, background: cat.bg, color: cat.text, fontWeight: 700 }} />}
+                          />
+                          <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                            <IconButton size="small" onClick={() => { setCategoryToDelete(cat.id); }} sx={{ color: '#EF4444', bgcolor: '#FEF2F2' }}><DeleteIcon fontSize="small" /></IconButton>
+                          </Box>
+                        </ListItem>
+                      </Box>
+                    ))}
+                  </List>
+                </>
               )}
             </Paper>
           </Box>
@@ -530,12 +647,30 @@ export default function AdminForm() {
         </DialogActions>
       </Dialog>
 
+      <Dialog open={bulkDeleteProjectsConfirm} onClose={() => setBulkDeleteProjectsConfirm(false)}>
+        <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá nhiều dự án</DialogTitle>
+        <DialogContent><DialogContentText>Bạn đang xoá {selectedProjects.length} dự án cùng lúc. Bạn có chắc chắn không?</DialogContentText></DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setBulkDeleteProjectsConfirm(false)} color="inherit">Huỷ</Button>
+          <Button onClick={confirmBulkDeleteProjectsAction} variant="contained" color="error">Xoá Hàng Loạt</Button>
+        </DialogActions>
+      </Dialog>
+
       <Dialog open={!!categoryToDelete} onClose={() => setCategoryToDelete(null)}>
         <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá loại dự án</DialogTitle>
         <DialogContent><DialogContentText>Bạn có chắc chắn muốn xoá loại dự án này? Các dự án cũ dùng loại này sẽ mất màu hiển thị.</DialogContentText></DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setCategoryToDelete(null)} color="inherit">Huỷ</Button>
           <Button onClick={confirmDeleteCategoryHandler} variant="contained" color="error">Xoá Loại Dự Án</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={bulkDeleteCategoriesConfirm} onClose={() => setBulkDeleteCategoriesConfirm(false)}>
+        <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá nhiều loại dự án</DialogTitle>
+        <DialogContent><DialogContentText>Bạn đang xoá {selectedCategories.length} loại dự án cùng lúc. Điều này có thể làm mất màu hiển thị của nhiều dự án cũ. Bạn chắc chứ?</DialogContentText></DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setBulkDeleteCategoriesConfirm(false)} color="inherit">Huỷ</Button>
+          <Button onClick={confirmBulkDeleteCategoriesAction} variant="contained" color="error">Xoá Hàng Loạt</Button>
         </DialogActions>
       </Dialog>
 

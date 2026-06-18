@@ -89,17 +89,22 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
               <CalendarTodayIcon sx={{ fontSize: 14, mr: 0.5 }} />
               {project.semester}
             </Typography>
-            <Typography variant="body2" sx={{
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              lineHeight: 1.6,
-              color: '#64748B',
-              fontSize: '0.825rem',
-            }}>
-              {project.description}
-            </Typography>
+            <Box
+              dangerouslySetInnerHTML={{ __html: project.description }}
+              sx={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                color: '#475569',
+                lineHeight: 1.6,
+                mb: 2,
+                minHeight: '3.2em',
+                fontSize: '0.875rem',
+                '& p': { margin: 0 },
+                '& ul, & ol': { margin: 0, paddingLeft: 2 }
+              }}
+            />
 
             {/* Team preview */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
@@ -210,9 +215,17 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
           </Box>
 
           {/* Description */}
-          <Typography variant="body1" sx={{ mb: 3, lineHeight: 1.8, color: '#334155' }}>
-            {project.description}
-          </Typography>
+          <Box 
+            dangerouslySetInnerHTML={{ __html: project.description }}
+            sx={{ 
+              color: '#334155', 
+              lineHeight: 1.8, 
+              mb: 3, 
+              fontSize: '1rem',
+              '& p': { mb: 1.5, mt: 0 },
+              '& ul, & ol': { mb: 1.5, mt: 0, paddingLeft: 3 }
+            }}
+          />
 
           {/* Team */}
           <Box sx={{ p: 2.5, borderRadius: 3, background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
