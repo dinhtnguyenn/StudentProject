@@ -13,6 +13,7 @@ import CodeIcon from '@mui/icons-material/Code';
 import type { Project } from '../types/Project';
 import { motion } from 'framer-motion';
 import DOMPurify from 'dompurify';
+import CommentSection from './CommentSection';
 
 interface Props {
   project: Project;
@@ -328,6 +329,8 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
               ))}
             </Grid>
           </Box>
+
+          <CommentSection projectId={project.id} />
         </DialogContent>
         <DialogActions sx={{ p: 2.5, borderTop: '1px solid', borderColor: 'divider' }}>
           <Button onClick={() => setOpenDetail(false)} variant="outlined" sx={{ borderColor: 'divider', color: 'text.secondary', '&:hover': { borderColor: 'primary.main', color: 'primary.main' } }}>

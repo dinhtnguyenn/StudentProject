@@ -13,6 +13,7 @@ import type { Category } from '../types/Category';
 import { motion, AnimatePresence } from 'framer-motion';
 import DOMPurify from 'dompurify';
 import { useLocation, useNavigate } from 'react-router-dom';
+import CommentSection from './CommentSection';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -387,6 +388,8 @@ export default function ProjectGallery() {
                 ))}
               </Grid>
             </Box>
+
+            <CommentSection projectId={sharedProject.id} />
           </DialogContent>
         </Dialog>
       )}
