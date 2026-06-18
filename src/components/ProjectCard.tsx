@@ -43,7 +43,8 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
   const youtubeId = getYoutubeId(project.youtubeUrl);
   const colors = categoryColors[project.category] || defaultColor;
 
-  const handleShare = () => {
+  const handleShare = (e: React.MouseEvent) => {
+    e.stopPropagation();
     // Generate URL like: http://domain.com/#/?project=123
     const baseUrl = window.location.origin + window.location.pathname;
     const shareUrl = `${baseUrl}#/?project=${project.id}`;
@@ -69,8 +70,9 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
             transform: 'scale(1.05)',
           },
         }}>
-          {/* Image */}
-          <Box sx={{ overflow: 'hidden', position: 'relative' }}>
+          <Box onClick={() => setOpenDetail(true)} sx={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+            {/* Image */}
+            <Box sx={{ overflow: 'hidden', position: 'relative' }}>
             <CardMedia
               className="card-image"
               component="img"
@@ -176,6 +178,7 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
               </Typography>
             </Box>
           </CardContent>
+          </Box>
 
           {/* Actions */}
           <CardActions sx={{ px: 2.5, pb: 2.5, pt: 0.5, justifyContent: 'space-between' }}>
