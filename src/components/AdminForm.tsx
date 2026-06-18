@@ -1,15 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box, Typography, TextField, Button, Paper, Snackbar, Alert, Grid,
-  CircularProgress, Divider, Collapse,
+  CircularProgress, Divider, Collapse, IconButton, InputAdornment
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import YouTubeIcon from '@mui/icons-material/YouTube';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import SettingsIcon from '@mui/icons-material/Settings';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { motion } from 'framer-motion';
 
+// --- Types & Helpers ---
 interface YouTubeInfo {
   title: string;
   thumbnail: string;
@@ -18,7 +21,69 @@ interface YouTubeInfo {
   videoId: string;
 }
 
+const extractYoutubeId = (url: string): string | null => {
+  const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+};
+
+function parseTeamMembers(desc: string): string[] {
+  const members: string[] = [];
+  const lines = desc.split('\n').map(l => l.trim()).filter(Boolean);
+  const inlinePattern = /(?:th[àa]nh\s*vi[êe]n|team|nh[oó]m|members?)\s*[:：]\s*(.+)/i;
+  for (const line of lines) {
+    const match = line.match(inlinePattern);
+    if (match) {
+      const names = match[1].split(/[,;，、]/).map(n => n.trim()).filter(n => n.length > 1 && n.length < 50);
+      if (names.length > 0) return names;
+    }
+  }
+  const headerPattern = /^(?:th[àa]nh\s*vi[êe]n|team|nh[oó]m\s*th[ưự]c\s*hi[eệ]n|members?|sinh\s*vi[êe]n)/i;
+  for (let i = 0; i < lines.length; i++) {
+    if (headerPattern.test(lines[i])) {
+      for (let j = i + 1; j < lines.length; j++) {
+        const bulletMatch = lines[j].match(/^[\-\•\*\+▪→►]\s*(.+)/);
+        if (bulletMatch) {
+          const name = bulletMatch[1].replace(/\s*[-–—:：].*$/, '').trim();
+          if (name.length > 1 && name.length < 50) members.push(name);
+        } else if (lines[j].match(headerPattern) || lines[j] === '') {
+          break;
+        } else {
+          const name = lines[j].replace(/^\d+[.)]\s*/, '').replace(/\s*[-–—:：].*$/, '').trim();
+          if (name.length > 1 && name.length < 50 && !name.includes('http')) members.push(name);
+        }
+      }
+      if (members.length > 0) return members;
+    }
+  }
+  return members;
+}
+
+// --- Component ---
 export default function AdminForm() {
+  // Settings State
+  const [showSettings, setShowSettings] = useState(false);
+  const [githubToken, setGithubToken] = useState('');
+  const [githubOwner, setGithubOwner] = useState('');
+  const [githubRepo, setGithubRepo] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Load settings
+  useEffect(() => {
+    setGithubToken(localStorage.getItem('gh_token') || '');
+    setGithubOwner(localStorage.getItem('gh_owner') || '');
+    setGithubRepo(localStorage.getItem('gh_repo') || '');
+  }, []);
+
+  const saveSettings = () => {
+    localStorage.setItem('gh_token', githubToken.trim());
+    localStorage.setItem('gh_owner', githubOwner.trim());
+    localStorage.setItem('gh_repo', githubRepo.trim());
+    setStatus({ type: 'success', message: 'Đã lưu cấu hình GitHub!' });
+    setShowSettings(false);
+  };
+
+  // YouTube & Form State
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [fetching, setFetching] = useState(false);
   const [fetchedInfo, setFetchedInfo] = useState<YouTubeInfo | null>(null);
@@ -32,50 +97,84 @@ export default function AdminForm() {
     teamMembers: '',
     semester: '',
   });
+  const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Fetch YouTube info and auto-fill
   const handleFetchYoutube = async () => {
     if (!youtubeUrl.trim()) return;
     setFetching(true);
     setFetchedInfo(null);
 
     try {
-      const res = await fetch('/api/youtube-info', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: youtubeUrl.trim() }),
-      });
-      const data = await res.json();
+      const videoId = extractYoutubeId(youtubeUrl.trim());
+      if (!videoId) throw new Error('Link YouTube không hợp lệ');
 
-      if (!res.ok) {
-        setStatus({ type: 'error', message: data.error || 'Không thể lấy thông tin video.' });
-        setFetching(false);
-        return;
+      // 1. Fetch title via oEmbed
+      const oembedRes = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+      let title = '';
+      if (oembedRes.ok) {
+        const oembedData = await oembedRes.json();
+        title = oembedData.title || '';
       }
 
+      const thumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+
+      // 2. Fetch page HTML via CORS proxy to get description
+      // Using allorigins as a free public proxy
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}`;
+      const pageRes = await fetch(proxyUrl);
+      const proxyData = await pageRes.json();
+      const html = proxyData.contents;
+
+      let description = '';
+      let teamMembers: string[] = [];
+
+      const playerMatch = html.match(/var ytInitialPlayerResponse\s*=\s*(\{.+?\});/s)
+        || html.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\});/s);
+
+      if (playerMatch) {
+        try {
+          const playerData = JSON.parse(playerMatch[1]);
+          description = playerData?.videoDetails?.shortDescription || '';
+        } catch { /* ignore parse error */ }
+      }
+
+      if (!description) {
+        const metaMatch = html.match(/<meta\s+name="description"\s+content="([^"]*?)"\s*\/?>/i);
+        if (metaMatch) {
+          description = metaMatch[1]
+            .replace(/&#39;/g, "'")
+            .replace(/&quot;/g, '"')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>');
+        }
+      }
+
+      if (description) {
+        teamMembers = parseTeamMembers(description);
+      }
+
+      const data = { title, thumbnail, description, teamMembers, videoId };
       setFetchedInfo(data);
 
-      // Auto-fill form
       setFormData(prev => ({
         ...prev,
         name: data.title || prev.name,
         thumbnail: data.thumbnail || prev.thumbnail,
         youtubeUrl: youtubeUrl.trim(),
-        teamMembers: data.teamMembers?.length > 0
-          ? data.teamMembers.join(', ')
-          : prev.teamMembers,
+        teamMembers: data.teamMembers?.length > 0 ? data.teamMembers.join(', ') : prev.teamMembers,
         description: data.description || prev.description,
       }));
 
-      setStatus({ type: 'success', message: 'Đã tự động điền thông tin từ YouTube!' });
-    } catch (err) {
+      setStatus({ type: 'success', message: 'Đã lấy thông tin từ YouTube qua Proxy!' });
+    } catch (err: any) {
       console.error(err);
-      setStatus({ type: 'error', message: 'Lỗi kết nối. Hãy đảm bảo đang chạy npm run dev.' });
+      setStatus({ type: 'error', message: err.message || 'Không thể lấy thông tin video.' });
     } finally {
       setFetching(false);
     }
@@ -84,65 +183,144 @@ export default function AdminForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!githubToken || !githubOwner || !githubRepo) {
+      setStatus({ type: 'error', message: 'Vui lòng cấu hình GitHub Token & Repo ở nút Settings góc trên.' });
+      setShowSettings(true);
+      return;
+    }
+
+    setSaving(true);
     const newProject = {
       ...formData,
+      id: Date.now().toString(),
       teamMembers: formData.teamMembers.split(',').map(m => m.trim()).filter(m => m),
     };
 
     try {
-      const response = await fetch('/api/save-project', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newProject),
+      const filePath = 'public/data/projects.json';
+      const apiUrl = `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/${filePath}`;
+      
+      // 1. Get current file and SHA
+      const getRes = await fetch(apiUrl, {
+        headers: {
+          'Authorization': `token ${githubToken}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
+      
+      let data: any[] = [];
+      let sha = '';
+      
+      if (getRes.ok) {
+        const fileData = await getRes.json();
+        sha = fileData.sha;
+        // Content is base64 encoded
+        const decodedContent = decodeURIComponent(escape(atob(fileData.content)));
+        data = JSON.parse(decodedContent);
+      } else if (getRes.status !== 404) {
+        throw new Error('Không thể đọc file hiện tại từ GitHub. Hãy kiểm tra lại Token hoặc Repo.');
+      }
+
+      // 2. Append new project
+      data.push(newProject);
+      const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))));
+
+      // 3. Commit back
+      const putRes = await fetch(apiUrl, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${githubToken}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: `Add new project: ${newProject.name}`,
+          content: newContent,
+          sha: sha || undefined,
+          branch: 'main'
+        })
       });
 
-      if (response.ok) {
-        setStatus({ type: 'success', message: 'Lưu dự án thành công!' });
+      if (putRes.ok) {
+        setStatus({ type: 'success', message: 'Lưu dự án thành công! GitHub đang tự động Deploy lại website.' });
         setFormData({ name: '', description: '', thumbnail: '', youtubeUrl: '', category: '', teamMembers: '', semester: '' });
         setYoutubeUrl('');
         setFetchedInfo(null);
       } else {
-        const errorData = await response.json();
-        setStatus({ type: 'error', message: `Lỗi: ${errorData.error || 'Không thể lưu'}` });
+        const errorData = await putRes.json();
+        throw new Error(errorData.message || 'Lỗi khi commit lên GitHub');
       }
-    } catch (err) {
+
+    } catch (err: any) {
       console.error(err);
-      setStatus({ type: 'error', message: 'Hãy đảm bảo bạn đang chạy npm run dev trên máy cá nhân.' });
+      setStatus({ type: 'error', message: err.message || 'Lỗi không xác định.' });
+    } finally {
+      setSaving(false);
     }
   };
-
-  if (!import.meta.env.DEV) {
-    return (
-      <Box sx={{ textAlign: 'center', py: 10, px: 3, maxWidth: 600, mx: 'auto' }}>
-        <Paper elevation={0} sx={{ p: 5, borderRadius: 4, border: '1px solid #E2E8F0', background: '#FFFFFF' }}>
-          <EditNoteIcon sx={{ fontSize: 48, color: '#94A3B8', mb: 2 }} />
-          <Typography variant="h5" sx={{ fontWeight: 700, color: '#0F172A', mb: 2 }}>
-            Chức năng bị giới hạn
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            Chức năng quản trị dự án (lấy thông tin YouTube và lưu dự án) chỉ hoạt động trong môi trường phát triển (Local).
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Vui lòng chạy <code style={{ background: '#F1F5F9', padding: '4px 8px', borderRadius: 4, color: '#EC4899', fontWeight: 600 }}>npm run dev</code> trên máy tính cá nhân để sử dụng tính năng này.
-          </Typography>
-        </Paper>
-      </Box>
-    );
-  }
 
   return (
     <Box sx={{ maxWidth: 720, mx: 'auto' }}>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
-        {/* Header */}
-        <Box sx={{ mb: 4, textAlign: 'center' }}>
+        
+        {/* Header with Settings Toggle */}
+        <Box sx={{ mb: 4, textAlign: 'center', position: 'relative' }}>
           <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 2, px: 2, py: 0.75, borderRadius: 100, background: '#EEF2FF', color: '#6366F1' }}>
             <EditNoteIcon sx={{ fontSize: 18 }} />
-            <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Quản trị dự án</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Quản trị Serverless</Typography>
           </Box>
           <Typography variant="h4" sx={{ fontWeight: 800, color: '#0F172A' }}>
             Thêm Dự Án <span style={{ color: '#6366F1' }}>Mới</span>
           </Typography>
+          <IconButton 
+            onClick={() => setShowSettings(!showSettings)}
+            sx={{ position: 'absolute', top: 0, right: 0, color: showSettings ? '#6366F1' : '#94A3B8' }}
+          >
+            <SettingsIcon />
+          </IconButton>
         </Box>
+
+        {/* Settings Panel */}
+        <Collapse in={showSettings}>
+          <Paper elevation={0} sx={{ p: 3, mb: 3, border: '1px solid #E2E8F0', borderRadius: 4, background: '#F8FAFC' }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>Cấu hình GitHub API</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Ứng dụng dùng GitHub PAT (Personal Access Token) để lưu file trực tiếp lên kho chứa thay vì cần backend.
+              Token chỉ lưu trên trình duyệt của bạn.
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField fullWidth size="small" label="GitHub Username" value={githubOwner} onChange={e => setGithubOwner(e.target.value)} />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField fullWidth size="small" label="Tên Repository" value={githubRepo} onChange={e => setGithubRepo(e.target.value)} placeholder="VD: StudentProject" />
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <TextField 
+                  fullWidth size="small" label="Personal Access Token" 
+                  type={showPassword ? 'text' : 'password'}
+                  value={githubToken} onChange={e => setGithubToken(e.target.value)}
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">
+                            {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                          </IconButton>
+                        </InputAdornment>
+                      )
+                    }
+                  }}
+                />
+              </Grid>
+              <Grid size={{ xs: 12 }}>
+                <Button variant="outlined" onClick={saveSettings} fullWidth sx={{ mt: 1 }}>
+                  Lưu Cấu Hình
+                </Button>
+              </Grid>
+            </Grid>
+          </Paper>
+        </Collapse>
 
         {/* YouTube Auto-Fill Card */}
         <Paper elevation={0} sx={{
@@ -154,12 +332,9 @@ export default function AdminForm() {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
             <YouTubeIcon sx={{ color: '#EF4444', fontSize: 24 }} />
             <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#0F172A' }}>
-              Nhập nhanh từ YouTube
+              Nhập nhanh qua Proxy
             </Typography>
           </Box>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
-            Dán link video YouTube để tự động lấy tên dự án, hình ảnh thumbnail, và danh sách thành viên từ mô tả video.
-          </Typography>
           <Box sx={{ display: 'flex', gap: 1.5 }}>
             <TextField
               fullWidth
@@ -168,65 +343,27 @@ export default function AdminForm() {
               value={youtubeUrl}
               onChange={e => setYoutubeUrl(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleFetchYoutube())}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  background: '#FFFFFF',
-                },
-              }}
+              sx={{ '& .MuiOutlinedInput-root': { background: '#FFFFFF' } }}
             />
             <Button
               variant="contained"
               onClick={handleFetchYoutube}
               disabled={fetching || !youtubeUrl.trim()}
               startIcon={fetching ? <CircularProgress size={18} color="inherit" /> : <AutoFixHighIcon />}
-              sx={{
-                minWidth: 180,
-                whiteSpace: 'nowrap',
-                background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
-                },
-                '&.Mui-disabled': {
-                  background: '#CBD5E1',
-                  color: '#FFF',
-                },
-              }}
+              sx={{ minWidth: 180, whiteSpace: 'nowrap', background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}
             >
-              {fetching ? 'Đang lấy...' : 'Tự động điền'}
+              {fetching ? 'Đang cào...' : 'Tự động điền'}
             </Button>
           </Box>
 
-          {/* Preview fetched info */}
           <Collapse in={!!fetchedInfo}>
             {fetchedInfo && (
               <Box sx={{ mt: 2.5, p: 2, borderRadius: 3, background: '#FFFFFF', border: '1px solid #E2E8F0' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                  <CheckCircleIcon sx={{ color: '#10B981', fontSize: 20 }} />
-                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#10B981' }}>
-                    Đã lấy thông tin thành công
-                  </Typography>
-                </Box>
                 <Box sx={{ display: 'flex', gap: 2 }}>
-                  <Box
-                    component="img"
-                    src={fetchedInfo.thumbnail}
-                    alt="Thumbnail"
-                    sx={{ width: 120, height: 68, borderRadius: 2, objectFit: 'cover', flexShrink: 0, border: '1px solid #E2E8F0' }}
-                  />
+                  <Box component="img" src={fetchedInfo.thumbnail} alt="Thumbnail" sx={{ width: 120, height: 68, borderRadius: 2, objectFit: 'cover', flexShrink: 0 }} />
                   <Box sx={{ minWidth: 0 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', mb: 0.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {fetchedInfo.title}
-                    </Typography>
-                    {fetchedInfo.teamMembers.length > 0 && (
-                      <Typography variant="caption" color="text.secondary">
-                        👥 {fetchedInfo.teamMembers.join(', ')}
-                      </Typography>
-                    )}
-                    {fetchedInfo.teamMembers.length === 0 && (
-                      <Typography variant="caption" sx={{ color: '#F59E0B' }}>
-                        ⚠ Không tìm thấy thành viên trong mô tả. Hãy nhập thủ công.
-                      </Typography>
-                    )}
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: '#0F172A', mb: 0.5 }}>{fetchedInfo.title}</Typography>
+                    {fetchedInfo.teamMembers.length > 0 && <Typography variant="caption" color="text.secondary">👥 {fetchedInfo.teamMembers.join(', ')}</Typography>}
                   </Box>
                 </Box>
               </Box>
@@ -234,41 +371,32 @@ export default function AdminForm() {
           </Collapse>
         </Paper>
 
-        {/* Divider */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
           <Divider sx={{ flex: 1 }} />
-          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-            Thông tin dự án
-          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>Thông tin dự án</Typography>
           <Divider sx={{ flex: 1 }} />
         </Box>
 
-        {/* Form Card */}
-        <Paper elevation={0} sx={{
-          p: { xs: 3, md: 4.5 },
-          border: '1px solid #E2E8F0',
-          borderRadius: 4,
-          background: '#FFFFFF',
-        }}>
+        <Paper elevation={0} sx={{ p: { xs: 3, md: 4.5 }, border: '1px solid #E2E8F0', borderRadius: 4, background: '#FFFFFF' }}>
           <form onSubmit={handleSubmit}>
             <Grid container spacing={2.5}>
               <Grid size={{ xs: 12 }}>
                 <TextField fullWidth label="Tên dự án" name="name" value={formData.name} onChange={handleChange} required />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField fullWidth label="Loại dự án" name="category" value={formData.category} onChange={handleChange} required placeholder="VD: Web App, Mobile App" />
+                <TextField fullWidth label="Loại dự án" name="category" value={formData.category} onChange={handleChange} required />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField fullWidth label="Học kỳ" name="semester" value={formData.semester} onChange={handleChange} required placeholder="VD: Học kỳ 1 - 2025" />
+                <TextField fullWidth label="Học kỳ" name="semester" value={formData.semester} onChange={handleChange} required />
               </Grid>
               <Grid size={{ xs: 12 }}>
-                <TextField fullWidth label="Link ảnh Thumbnail" name="thumbnail" value={formData.thumbnail} onChange={handleChange} required placeholder="https://..." />
+                <TextField fullWidth label="Link ảnh Thumbnail" name="thumbnail" value={formData.thumbnail} onChange={handleChange} required />
               </Grid>
               <Grid size={{ xs: 12 }}>
-                <TextField fullWidth label="Link YouTube" name="youtubeUrl" value={formData.youtubeUrl} onChange={handleChange} placeholder="https://youtube.com/watch?v=..." />
+                <TextField fullWidth label="Link YouTube" name="youtubeUrl" value={formData.youtubeUrl} onChange={handleChange} />
               </Grid>
               <Grid size={{ xs: 12 }}>
-                <TextField fullWidth label="Thành viên" name="teamMembers" value={formData.teamMembers} onChange={handleChange} required placeholder="Nguyễn Văn A, Trần Thị B" helperText="Cách nhau bằng dấu phẩy. Tự động điền khi lấy từ YouTube." />
+                <TextField fullWidth label="Thành viên" name="teamMembers" value={formData.teamMembers} onChange={handleChange} required />
               </Grid>
               <Grid size={{ xs: 12 }}>
                 <TextField fullWidth label="Mô tả dự án" name="description" value={formData.description} onChange={handleChange} multiline rows={4} required />
@@ -276,31 +404,20 @@ export default function AdminForm() {
               <Grid size={{ xs: 12 }} sx={{ mt: 1 }}>
                 <motion.div whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.985 }}>
                   <Button
-                    type="submit" variant="contained" size="large" startIcon={<SaveIcon />} fullWidth
-                    sx={{
-                      py: 1.6,
-                      fontSize: '1rem',
-                      fontWeight: 700,
-                      background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-                      '&:hover': {
-                        background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
-                        boxShadow: '0 8px 24px rgba(99, 102, 241, 0.35)',
-                      },
-                    }}
+                    type="submit" variant="contained" size="large" startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />} 
+                    disabled={saving} fullWidth
+                    sx={{ py: 1.6, fontSize: '1rem', fontWeight: 700, background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}
                   >
-                    Lưu Dự Án
+                    {saving ? 'Đang Commit lên GitHub...' : 'Lưu Dự Án'}
                   </Button>
                 </motion.div>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2.5, textAlign: 'center' }}>
-                  Dữ liệu sẽ được lưu vào tệp cục bộ khi chạy ở chế độ Dev.
-                </Typography>
               </Grid>
             </Grid>
           </form>
         </Paper>
       </motion.div>
 
-      <Snackbar open={!!status} autoHideDuration={5000} onClose={() => setStatus(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+      <Snackbar open={!!status} autoHideDuration={6000} onClose={() => setStatus(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
         <Alert onClose={() => setStatus(null)} severity={status?.type} variant="filled" sx={{ width: '100%', borderRadius: 3 }}>
           {status?.message}
         </Alert>
