@@ -214,6 +214,8 @@ export default function AdminForm() {
   const [categoriesSha, setCategoriesSha] = useState('');
   const [loadingCategories, setLoadingCategories] = useState(false);
 
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
   // Draft State detection
   const isProjectsChanged = JSON.stringify(originalProjects) !== JSON.stringify(projectsList);
   const isCategoriesChanged = JSON.stringify(originalCategories) !== JSON.stringify(categoriesList);
@@ -267,13 +269,13 @@ export default function AdminForm() {
       setLoadingCategories(true);
       fetchFile(getCategoriesApiUrl())
         .then(res => { setCategoriesList(res.data); setOriginalCategories(res.data); setCategoriesSha(res.sha); })
-        .catch(err => console.error(err))
+        .catch(err => { console.error(err); setFetchError('Lỗi tải danh mục. Vui lòng không lưu để tránh mất dữ liệu!'); })
         .finally(() => setLoadingCategories(false));
 
       setLoadingList(true);
       fetchFile(getProjectsApiUrl())
         .then(res => { setProjectsList(res.data); setOriginalProjects(res.data); setProjectsSha(res.sha); })
-        .catch(err => console.error(err))
+        .catch(err => { console.error(err); setFetchError('Lỗi tải danh sách dự án. Vui lòng không lưu để tránh mất dữ liệu!'); })
         .finally(() => setLoadingList(false));
     }
   }, [isAuthenticated, githubToken, githubOwner, githubRepo]);
@@ -434,6 +436,10 @@ export default function AdminForm() {
 
   // Global Save
   const saveAllChangesToGithub = async () => {
+    if (fetchError) {
+      setStatus({ type: 'error', message: 'Hệ thống đang lỗi tải dữ liệu. Không thể lưu để bảo vệ dữ liệu cũ.' });
+      return;
+    }
     if (!githubToken || !githubOwner || !githubRepo) {
       setStatus({ type: 'error', message: 'Cấu hình GitHub chưa hợp lệ.' });
       return;
@@ -532,9 +538,14 @@ export default function AdminForm() {
             <WarningAmberIcon />
             <Typography variant="body2" sx={{ fontWeight: 700 }}>Bạn có thay đổi chưa lưu!</Typography>
           </Box>
-          <Button variant="contained" color="warning" onClick={saveAllChangesToGithub} disabled={isSavingAll} startIcon={isSavingAll ? <CircularProgress size={16} color="inherit" /> : <CloudUploadIcon />} sx={{ borderRadius: 100, fontWeight: 700, px: 3, '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
-            {isSavingAll ? 'Đang Gửi...' : 'Lưu Lên GitHub'}
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            {hasUnsavedChanges && (
+              <Button variant="outlined" color="secondary" onClick={() => { setProjectsList(originalProjects); setCategoriesList(originalCategories); }} sx={{ borderRadius: 100, fontWeight: 700 }}>Huỷ Thay Đổi</Button>
+            )}
+            <Button variant="contained" color="warning" onClick={saveAllChangesToGithub} disabled={isSavingAll || !!fetchError} startIcon={isSavingAll ? <CircularProgress size={16} color="inherit" /> : <CloudUploadIcon />} sx={{ borderRadius: 100, fontWeight: 700, px: 3, '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
+              {isSavingAll ? 'Đang Gửi...' : 'Lưu Lên GitHub'}
+            </Button>
+          </Box>
         </Paper>
       </Collapse>
 

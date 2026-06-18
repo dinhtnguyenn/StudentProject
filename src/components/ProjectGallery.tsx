@@ -11,6 +11,7 @@ import ProjectCard from './ProjectCard';
 import type { Project } from '../types/Project';
 import type { Category } from '../types/Category';
 import { motion, AnimatePresence } from 'framer-motion';
+import DOMPurify from 'dompurify';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const containerVariants = {
@@ -319,7 +320,7 @@ export default function ProjectGallery() {
             </Box>
 
             <Box 
-              dangerouslySetInnerHTML={{ __html: sharedProject.description }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(sharedProject.description) }}
               sx={{ color: 'text.primary', lineHeight: 1.8, mb: 3, fontSize: '1rem', '& p': { mb: 1.5, mt: 0 }, '& ul, & ol': { mb: 1.5, mt: 0, paddingLeft: 3 } }}
             />
 

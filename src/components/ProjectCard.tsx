@@ -12,6 +12,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import CodeIcon from '@mui/icons-material/Code';
 import type { Project } from '../types/Project';
 import { motion } from 'framer-motion';
+import DOMPurify from 'dompurify';
 
 interface Props {
   project: Project;
@@ -137,7 +138,7 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
             )}
 
             <Box
-              dangerouslySetInnerHTML={{ __html: project.description }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(project.description) }}
               sx={{
                 display: '-webkit-box',
                 WebkitLineClamp: 2,
@@ -280,7 +281,7 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
 
           {/* Description */}
           <Box 
-            dangerouslySetInnerHTML={{ __html: project.description }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(project.description) }}
             sx={{ 
               color: 'text.primary', 
               lineHeight: 1.8, 
