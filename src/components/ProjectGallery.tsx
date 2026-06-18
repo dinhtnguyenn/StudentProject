@@ -32,6 +32,13 @@ const getAvatarLetter = (name: string) => {
   return lastWord.charAt(0).toUpperCase();
 };
 
+const extractYoutubeId = (url: string): string | null => {
+  if (!url) return null;
+  const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+};
+
 export default function ProjectGallery() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -314,6 +321,18 @@ export default function ProjectGallery() {
               dangerouslySetInnerHTML={{ __html: sharedProject.description }}
               sx={{ color: 'text.primary', lineHeight: 1.8, mb: 3, fontSize: '1rem', '& p': { mb: 1.5, mt: 0 }, '& ul, & ol': { mb: 1.5, mt: 0, paddingLeft: 3 } }}
             />
+
+            {sharedProject.youtubeUrl && extractYoutubeId(sharedProject.youtubeUrl) && (
+              <Box sx={{ position: 'relative', pt: '56.25%', mb: 3, borderRadius: 3, overflow: 'hidden', border: '1px solid', borderColor: 'divider', bgcolor: 'background.default' }}>
+                <iframe
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+                  src={`https://www.youtube.com/embed/${extractYoutubeId(sharedProject.youtubeUrl)}`}
+                  title="YouTube video player"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </Box>
+            )}
 
             <Box sx={{ p: 2.5, borderRadius: 3, bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
