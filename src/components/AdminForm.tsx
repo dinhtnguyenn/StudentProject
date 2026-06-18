@@ -111,6 +111,25 @@ export default function AdminForm() {
     }
   };
 
+  if (!import.meta.env.DEV) {
+    return (
+      <Box sx={{ textAlign: 'center', py: 10, px: 3, maxWidth: 600, mx: 'auto' }}>
+        <Paper elevation={0} sx={{ p: 5, borderRadius: 4, border: '1px solid #E2E8F0', background: '#FFFFFF' }}>
+          <EditNoteIcon sx={{ fontSize: 48, color: '#94A3B8', mb: 2 }} />
+          <Typography variant="h5" sx={{ fontWeight: 700, color: '#0F172A', mb: 2 }}>
+            Chức năng bị giới hạn
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+            Chức năng quản trị dự án (lấy thông tin YouTube và lưu dự án) chỉ hoạt động trong môi trường phát triển (Local).
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Vui lòng chạy <code style={{ background: '#F1F5F9', padding: '4px 8px', borderRadius: 4, color: '#EC4899', fontWeight: 600 }}>npm run dev</code> trên máy tính cá nhân để sử dụng tính năng này.
+          </Typography>
+        </Paper>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ maxWidth: 720, mx: 'auto' }}>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>

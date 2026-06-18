@@ -39,21 +39,23 @@ function App() {
             >
               Khám phá
             </Button>
-            <Button 
-              variant="contained" 
-              startIcon={<AddIcon />}
-              onClick={() => navigate('/admin')}
-              sx={{ 
-                ml: 1,
-                background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-                '&:hover': { 
-                  background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
-                  boxShadow: '0 6px 20px rgba(99, 102, 241, 0.35)',
-                },
-              }}
-            >
-              Thêm Dự Án
-            </Button>
+            {import.meta.env.DEV && (
+              <Button 
+                variant="contained" 
+                startIcon={<AddIcon />}
+                onClick={() => navigate('/admin')}
+                sx={{ 
+                  ml: 1,
+                  background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+                  '&:hover': { 
+                    background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+                    boxShadow: '0 6px 20px rgba(99, 102, 241, 0.35)',
+                  },
+                }}
+              >
+                Thêm Dự Án
+              </Button>
+            )}
           </Toolbar>
         </Container>
       </AppBar>
