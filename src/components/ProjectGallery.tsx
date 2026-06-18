@@ -147,7 +147,8 @@ export default function ProjectGallery() {
 
       {/* Filter Bar */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }}>
-        <Box className="toolbar-panel" sx={{
+        <Box sx={{
+          bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: 4, boxShadow: 1,
           display: 'flex', flexDirection: 'column', gap: 2, p: 2, px: 3, mb: 5,
         }}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>

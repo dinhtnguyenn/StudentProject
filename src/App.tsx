@@ -32,7 +32,7 @@ function App() {
               sx={{ flexGrow: 1, cursor: 'pointer', fontWeight: 800, fontSize: '1.15rem' }}
               onClick={() => navigate('/')}
             >
-              Student<span style={{ color: '#6366F1' }}> Projects</span>
+              Student<span style={{ color: '#0EA5E9' }}> Projects</span>
             </Typography>
             <Button
               onClick={() => navigate('/')}
@@ -54,10 +54,10 @@ function App() {
                 onClick={() => navigate('/admin')}
                 sx={{
                   ml: 1,
-                  background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+                  background: 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
-                    boxShadow: '0 6px 20px rgba(99, 102, 241, 0.35)',
+                    background: 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 100%)',
+                    boxShadow: '0 4px 14px 0 rgba(14, 165, 233, 0.39)',
                   },
                 }}
               >
