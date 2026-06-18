@@ -16,9 +16,9 @@ export default function CommentSection({ projectId }: CommentSectionProps) {
       </Typography>
       <Giscus
         id="comments"
-        repo="dinhnguyen/StudentProject"
+        repo="dinhtnguyenn/StudentProject"
         repoId="R_kgDOS-Z9Dw"
-        category="Announcements"
+        category="General"
         categoryId="DIC_kwDOS-Z9D84C_a3a"
         mapping="specific"
         term={`Project: ${projectId}`}
