@@ -1,19 +1,17 @@
 import { useState } from 'react';
 import {
   Card, CardMedia, CardContent, Typography, CardActions, Button, Chip,
-  Box, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Grid, Avatar, Snackbar, Alert, useTheme
+  Box, Dialog, DialogTitle, DialogContent, IconButton, Avatar, Snackbar, Alert, useTheme
 } from '@mui/material';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import CloseIcon from '@mui/icons-material/Close';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import GroupsIcon from '@mui/icons-material/Groups';
 import ShareIcon from '@mui/icons-material/Share';
-import CodeIcon from '@mui/icons-material/Code';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import type { Project } from '../types/Project';
 import { motion } from 'framer-motion';
 import DOMPurify from 'dompurify';
-import CommentSection from './CommentSection';
+import ProjectDetailModal from './ProjectDetailModal';
 
 interface Props {
   project: Project;
@@ -233,111 +231,12 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
         </DialogContent>
       </Dialog>
 
-      {/* Detail Modal */}
-      <Dialog open={openDetail} onClose={() => setOpenDetail(false)} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
-          <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>
-            Chi tiết dự án
-          </Typography>
-          <Box>
-            <IconButton onClick={handleShare} size="small" sx={{ color: 'text.secondary', mr: 1 }}>
-              <ShareIcon />
-            </IconButton>
-            <IconButton onClick={() => setOpenDetail(false)} size="small" sx={{ color: 'text.secondary' }}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-        <DialogContent sx={{ pt: 2 }}>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary', mb: 2 }}>
-            {project.name}
-          </Typography>
-
-          {/* Tags */}
-          <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
-            <Chip
-              icon={<Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: colors.text, ml: 0.5 }} />}
-              label={project.category}
-              size="small"
-              sx={{ background: colors.bg, color: colors.text, fontWeight: 600 }}
-            />
-            <Chip
-              icon={<CalendarTodayIcon sx={{ fontSize: 14 }} />}
-              label={project.semester}
-              size="small"
-              variant="outlined"
-              sx={{ borderColor: 'divider', color: 'text.secondary', fontWeight: 500 }}
-            />
-            {project.techTags && project.techTags.map((tag, i) => (
-              <Chip
-                key={i}
-                icon={<CodeIcon sx={{ fontSize: 14 }} />}
-                label={tag}
-                size="small"
-                variant="outlined"
-                sx={{ borderColor: 'divider', color: 'text.secondary', fontWeight: 500 }}
-              />
-            ))}
-          </Box>
-
-          {/* Description */}
-          <Box 
-            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(project.description) }}
-            sx={{ 
-              color: 'text.primary', 
-              lineHeight: 1.8, 
-              mb: 3, 
-              fontSize: '1rem',
-              '& p': { mb: 1.5, mt: 0 },
-              '& ul, & ol': { mb: 1.5, mt: 0, paddingLeft: 3 }
-            }}
-          />
-
-          {/* Video */}
-          {youtubeId && (
-            <Box sx={{ position: 'relative', pt: '56.25%', mb: 3, borderRadius: 3, overflow: 'hidden', border: '1px solid', borderColor: 'divider', bgcolor: 'background.default' }}>
-              <iframe
-                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
-                src={`https://www.youtube.com/embed/${youtubeId}`}
-                title="YouTube video player"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
-            </Box>
-          )}
-
-          {/* Team */}
-          <Box sx={{ p: 2.5, borderRadius: 3, bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <GroupsIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-              <Typography variant="subtitle2" sx={{ color: 'text.primary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.75rem' }}>
-                Team thực hiện
-              </Typography>
-            </Box>
-            <Grid container spacing={1.5}>
-              {project.teamMembers.map((member, idx) => (
-                <Grid size={{ xs: 12 }} key={idx}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1, borderRadius: 2, '&:hover': { bgcolor: 'action.hover' } }}>
-                    <Avatar sx={{ width: 30, height: 30, fontSize: '0.75rem', fontWeight: 700, bgcolor: ['#2563EB', '#EC4899', '#F59E0B', '#10B981'][idx % 4] }}>
-                      {getAvatarLetter(member)}
-                    </Avatar>
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary', fontSize: '0.825rem' }}>
-                      {member}
-                    </Typography>
-                  </Box>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-
-          <CommentSection projectId={project.id} />
-        </DialogContent>
-        <DialogActions sx={{ p: 2.5, borderTop: '1px solid', borderColor: 'divider' }}>
-          <Button onClick={() => setOpenDetail(false)} variant="outlined" sx={{ borderColor: 'divider', color: 'text.secondary', '&:hover': { borderColor: 'primary.main', color: 'primary.main' } }}>
-            Đóng
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ProjectDetailModal 
+        project={project}
+        open={openDetail}
+        onClose={() => setOpenDetail(false)}
+        onShare={handleShare}
+      />
 
       <Snackbar open={shareSuccess} autoHideDuration={3000} onClose={() => setShareSuccess(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
         <Alert onClose={() => setShareSuccess(false)} severity="success" sx={{ width: '100%' }}>

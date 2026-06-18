@@ -1,19 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Typography, TextField, Box, CircularProgress, InputAdornment, Grid, Chip, Stack, FormControl, Select, MenuItem, InputLabel, Button, Dialog, DialogTitle, IconButton, DialogContent, Avatar, useTheme } from '@mui/material';
+import { Typography, TextField, Box, CircularProgress, InputAdornment, Grid, Chip, Stack, FormControl, Select, MenuItem, InputLabel, Button, useTheme } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
-import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
-import CloseIcon from '@mui/icons-material/Close';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import GroupsIcon from '@mui/icons-material/Groups';
-import CodeIcon from '@mui/icons-material/Code';
 import ProjectCard from './ProjectCard';
 import type { Project } from '../types/Project';
 import type { Category } from '../types/Category';
 import { motion, AnimatePresence } from 'framer-motion';
-import DOMPurify from 'dompurify';
 import { useLocation, useNavigate } from 'react-router-dom';
-import CommentSection from './CommentSection';
+import ProjectDetailModal from './ProjectDetailModal';
+import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -25,21 +20,6 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 260, damping: 20 } },
 };
 
-const defaultColor = { bg: '#EEF2FF', text: '#2563EB' };
-
-const getAvatarLetter = (name: string) => {
-  if (!name) return '?';
-  const words = name.trim().split(' ');
-  const lastWord = words[words.length - 1];
-  return lastWord.charAt(0).toUpperCase();
-};
-
-const extractYoutubeId = (url: string): string | null => {
-  if (!url) return null;
-  const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-  const match = url.match(regExp);
-  return (match && match[2].length === 11) ? match[2] : null;
-};
 
 export default function ProjectGallery() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -316,82 +296,11 @@ export default function ProjectGallery() {
 
       {/* Shared Project Modal */}
       {sharedProject && (
-        <Dialog open={true} onClose={closeSharedProject} maxWidth="sm" fullWidth>
-          <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
-            <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>
-              Chi tiết dự án
-            </Typography>
-            <IconButton onClick={closeSharedProject} size="small" sx={{ color: 'text.secondary' }}>
-              <CloseIcon />
-            </IconButton>
-          </DialogTitle>
-          <DialogContent sx={{ pt: 2 }}>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary', mb: 2 }}>
-              {sharedProject.name}
-            </Typography>
-
-            <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
-              <Chip
-                icon={<Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: categoryColors[sharedProject.category]?.text || defaultColor.text, ml: 0.5 }} />}
-                label={sharedProject.category}
-                size="small"
-                sx={{ background: categoryColors[sharedProject.category]?.bg || defaultColor.bg, color: categoryColors[sharedProject.category]?.text || defaultColor.text, fontWeight: 600 }}
-              />
-              <Chip
-                icon={<CalendarTodayIcon sx={{ fontSize: 14 }} />}
-                label={sharedProject.semester}
-                size="small"
-                variant="outlined"
-                sx={{ borderColor: 'divider', color: 'text.secondary', fontWeight: 500 }}
-              />
-              {sharedProject.techTags && sharedProject.techTags.map((tag, i) => (
-                <Chip key={i} icon={<CodeIcon sx={{ fontSize: 14 }} />} label={tag} size="small" variant="outlined" sx={{ borderColor: 'divider', color: 'text.secondary', fontWeight: 500 }} />
-              ))}
-            </Box>
-
-            <Box 
-              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(sharedProject.description) }}
-              sx={{ color: 'text.primary', lineHeight: 1.8, mb: 3, fontSize: '1rem', '& p': { mb: 1.5, mt: 0 }, '& ul, & ol': { mb: 1.5, mt: 0, paddingLeft: 3 } }}
-            />
-
-            {sharedProject.youtubeUrl && extractYoutubeId(sharedProject.youtubeUrl) && (
-              <Box sx={{ position: 'relative', pt: '56.25%', mb: 3, borderRadius: 3, overflow: 'hidden', border: '1px solid', borderColor: 'divider', bgcolor: 'background.default' }}>
-                <iframe
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
-                  src={`https://www.youtube.com/embed/${extractYoutubeId(sharedProject.youtubeUrl)}`}
-                  title="YouTube video player"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
-              </Box>
-            )}
-
-            <Box sx={{ p: 2.5, borderRadius: 3, bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <GroupsIcon sx={{ color: 'primary.main', fontSize: 20 }} />
-                <Typography variant="subtitle2" sx={{ color: 'text.primary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.75rem' }}>
-                  Team thực hiện
-                </Typography>
-              </Box>
-              <Grid container spacing={1.5}>
-                {sharedProject.teamMembers.map((member, idx) => (
-                  <Grid size={{ xs: 12 }} key={idx}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1, borderRadius: 2, '&:hover': { bgcolor: 'action.hover' } }}>
-                      <Avatar sx={{ width: 30, height: 30, fontSize: '0.75rem', fontWeight: 700, bgcolor: ['#2563EB', '#EC4899', '#F59E0B', '#10B981'][idx % 4] }}>
-                        {getAvatarLetter(member)}
-                      </Avatar>
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary', fontSize: '0.825rem' }}>
-                        {member}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                ))}
-              </Grid>
-            </Box>
-
-            <CommentSection projectId={sharedProject.id} />
-          </DialogContent>
-        </Dialog>
+        <ProjectDetailModal 
+          project={sharedProject}
+          open={true}
+          onClose={closeSharedProject}
+        />
       )}
     </Box>
   );
