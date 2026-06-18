@@ -12,7 +12,7 @@ export default function CommentSection({ projectId }: CommentSectionProps) {
   return (
     <Box sx={{ mt: 4, pt: 4, borderTop: '1px solid', borderColor: 'divider' }}>
       <Typography variant="h6" sx={{ fontWeight: 800, mb: 3, color: 'text.primary' }}>
-        Bình luận & Thảo luận
+        Bình luận
       </Typography>
       <Giscus
         id="comments"
