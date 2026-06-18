@@ -16,6 +16,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { motion } from 'framer-motion';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -68,10 +70,7 @@ function parseTeamMembers(desc: string): string[] {
 
 function generateCategoryColors() {
   const hue = Math.floor(Math.random() * 360);
-  return {
-    bg: `hsl(${hue}, 80%, 92%)`,
-    text: `hsl(${hue}, 85%, 35%)`
-  };
+  return { bg: `hsl(${hue}, 80%, 92%)`, text: `hsl(${hue}, 85%, 35%)` };
 }
 
 // --- Sortable Item Component ---
@@ -111,7 +110,7 @@ function SortableProjectItem({ project, idx, isSelected, onToggle, onEdit, onDel
   );
 }
 
-// --- Component ---
+// --- Main Component ---
 export default function AdminForm() {
   const [tabIndex, setTabIndex] = useState(0);
   const muiTheme = useTheme();
@@ -137,35 +136,39 @@ export default function AdminForm() {
     setShowSettings(false);
   };
 
-  // State
+  // UI State
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [fetching, setFetching] = useState(false);
+  const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
+  // Form State
   const [formData, setFormData] = useState({
-    id: '',
-    name: '',
-    description: '',
-    thumbnail: '',
-    youtubeUrl: '',
-    category: '',
-    teamMembers: '',
-    semester: '',
-    techTags: '',
+    id: '', name: '', description: '', thumbnail: '', youtubeUrl: '', category: '', teamMembers: '', semester: '', techTags: '',
   });
-  const [saving, setSaving] = useState(false);
-  const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+  // Data State
+  const [originalProjects, setOriginalProjects] = useState<any[]>([]);
   const [projectsList, setProjectsList] = useState<any[]>([]);
+  const [projectsSha, setProjectsSha] = useState('');
   const [loadingList, setLoadingList] = useState(false);
+
+  const [originalCategories, setOriginalCategories] = useState<Category[]>([]);
+  const [categoriesList, setCategoriesList] = useState<Category[]>([]);
+  const [categoriesSha, setCategoriesSha] = useState('');
+  const [loadingCategories, setLoadingCategories] = useState(false);
+
+  // Draft State detection
+  const isProjectsChanged = JSON.stringify(originalProjects) !== JSON.stringify(projectsList);
+  const isCategoriesChanged = JSON.stringify(originalCategories) !== JSON.stringify(categoriesList);
+  const hasUnsavedChanges = isProjectsChanged || isCategoriesChanged;
+  const [isSavingAll, setIsSavingAll] = useState(false);
+
+  // Modal States
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
-
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [bulkDeleteProjectsConfirm, setBulkDeleteProjectsConfirm] = useState(false);
-  const [isOrderChanged, setIsOrderChanged] = useState(false);
 
-  const [categoriesList, setCategoriesList] = useState<Category[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -190,51 +193,49 @@ export default function AdminForm() {
     const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(newContentArray, null, 2))));
     const putRes = await fetch(url, {
       method: 'PUT',
-      headers: {
-        'Authorization': `token ${githubToken}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Authorization': `token ${githubToken}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
       body: JSON.stringify({ message, content: newContent, sha: sha || undefined, branch: 'main' })
     });
     if (!putRes.ok) {
       const errorData = await putRes.json();
       throw new Error(errorData.message || 'Lỗi khi commit lên GitHub');
     }
+    const resData = await putRes.json();
+    return resData.content.sha; // return new sha
   };
 
+  // Initial Fetch
   useEffect(() => {
     if (githubToken && githubOwner && githubRepo) {
-      fetchFile(getCategoriesApiUrl()).then(res => setCategoriesList(res.data)).catch(err => console.error(err));
-    } else {
-      fetch(`${import.meta.env.BASE_URL}data/categories.json`)
-        .then(res => res.json())
-        .then(data => setCategoriesList(data || []))
-        .catch(err => console.error(err));
+      setLoadingCategories(true);
+      fetchFile(getCategoriesApiUrl())
+        .then(res => { setCategoriesList(res.data); setOriginalCategories(res.data); setCategoriesSha(res.sha); })
+        .catch(err => console.error(err))
+        .finally(() => setLoadingCategories(false));
+
+      setLoadingList(true);
+      fetchFile(getProjectsApiUrl())
+        .then(res => { setProjectsList(res.data); setOriginalProjects(res.data); setProjectsSha(res.sha); })
+        .catch(err => console.error(err))
+        .finally(() => setLoadingList(false));
     }
   }, [githubToken, githubOwner, githubRepo]);
 
+  // Prevent closing tab if unsaved changes exist
   useEffect(() => {
-    if (tabIndex === 1) {
-      if (!githubToken) { setStatus({ type: 'error', message: 'Vui lòng cấu hình GitHub Token trước.' }); return; }
-      setLoadingList(true);
-      fetchFile(getProjectsApiUrl())
-        .then(res => {
-          setProjectsList(res.data);
-          setIsOrderChanged(false);
-        })
-        .catch(err => setStatus({ type: 'error', message: err.message }))
-        .finally(() => setLoadingList(false));
-    }
-  }, [tabIndex]);
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleQuillChange = (value: string) => {
-    setFormData({ ...formData, description: value });
-  };
+  // Form Handlers
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleQuillChange = (value: string) => setFormData({ ...formData, description: value });
 
   const handleFetchYoutube = async () => {
     if (!youtubeUrl.trim()) return;
@@ -269,34 +270,24 @@ export default function AdminForm() {
 
       if (!description) {
         const metaMatch = html.match(/<meta\s+name="description"\s+content="([^"]*?)"\s*\/?>/i);
-        if (metaMatch) {
-          description = metaMatch[1].replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-        }
+        if (metaMatch) description = metaMatch[1].replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
       }
-
-      if (description) {
-        teamMembers = parseTeamMembers(description);
-      }
+      if (description) teamMembers = parseTeamMembers(description);
 
       setFormData(prev => ({
-        ...prev,
-        name: title || prev.name,
-        thumbnail: thumbnail || prev.thumbnail,
-        youtubeUrl: youtubeUrl.trim(),
-        teamMembers: teamMembers.length > 0 ? teamMembers.join('\n') : prev.teamMembers,
-        description: description || prev.description,
+        ...prev, name: title || prev.name, thumbnail: thumbnail || prev.thumbnail, youtubeUrl: youtubeUrl.trim(),
+        teamMembers: teamMembers.length > 0 ? teamMembers.join('\n') : prev.teamMembers, description: description || prev.description,
       }));
-
       setStatus({ type: 'success', message: 'Đã lấy thông tin từ YouTube qua Proxy!' });
     } catch (err: any) {
-      console.error(err);
       setStatus({ type: 'error', message: err.message || 'Không thể lấy thông tin video.' });
     } finally {
       setFetching(false);
     }
   };
 
-  const handleSubmitProject = async (e: React.FormEvent) => {
+  // Draft Actions (No direct commit)
+  const handleSubmitProject = (e: React.FormEvent) => {
     e.preventDefault();
     if (!githubToken || !githubOwner || !githubRepo) {
       setStatus({ type: 'error', message: 'Vui lòng cấu hình GitHub Token & Repo ở nút Settings góc trên.' });
@@ -304,7 +295,6 @@ export default function AdminForm() {
       return;
     }
 
-    setSaving(true);
     const isEdit = !!formData.id;
     const projectToSave = {
       ...formData,
@@ -313,19 +303,10 @@ export default function AdminForm() {
       techTags: formData.techTags.split(',').map(m => m.trim()).filter(m => m),
     };
 
-    try {
-      const { data, sha } = await fetchFile(getProjectsApiUrl());
-      const newData = isEdit ? data.map((p: any) => p.id === formData.id ? projectToSave : p) : [...data, projectToSave];
-      await commitFile(getProjectsApiUrl(), newData, sha, `${isEdit ? 'Update' : 'Add'} project: ${projectToSave.name}`);
-      
-      setStatus({ type: 'success', message: 'Lưu dự án thành công!' });
-      resetForm();
-    } catch (err: any) {
-      console.error(err);
-      setStatus({ type: 'error', message: err.message });
-    } finally {
-      setSaving(false);
-    }
+    setProjectsList(prev => isEdit ? prev.map(p => p.id === formData.id ? projectToSave : p) : [...prev, projectToSave]);
+    setStatus({ type: 'success', message: `Đã lưu nháp dự án ${isEdit ? '(Cập nhật)' : '(Mới)'}!` });
+    resetForm();
+    if (!isEdit) setTabIndex(1);
   };
 
   const resetForm = () => {
@@ -333,11 +314,8 @@ export default function AdminForm() {
     setYoutubeUrl('');
   };
 
-  // Drag & Drop
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-  );
+  // Projects Draft Actions
+  const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -345,137 +323,105 @@ export default function AdminForm() {
       setProjectsList((items) => {
         const oldIndex = items.findIndex(i => i.id === active.id);
         const newIndex = items.findIndex(i => i.id === over?.id);
-        setIsOrderChanged(true);
         return arrayMove(items, oldIndex, newIndex);
       });
     }
   };
 
-  const saveNewOrder = async () => {
-    setLoadingList(true);
-    try {
-      const { sha } = await fetchFile(getProjectsApiUrl());
-      await commitFile(getProjectsApiUrl(), projectsList, sha, `Reorder projects`);
-      setStatus({ type: 'success', message: 'Lưu thứ tự mới thành công!' });
-      setIsOrderChanged(false);
-    } catch (err: any) {
-      setStatus({ type: 'error', message: err.message });
-    } finally {
-      setLoadingList(false);
-    }
-  };
-
-  const confirmDeleteProject = async () => {
+  const confirmDeleteProject = () => {
     if (!projectToDelete) return;
+    setProjectsList(prev => prev.filter(p => p.id !== projectToDelete));
     setDeleteConfirmOpen(false);
-    setLoadingList(true);
-    try {
-      const { data, sha } = await fetchFile(getProjectsApiUrl());
-      const newData = data.filter((p: any) => p.id !== projectToDelete);
-      await commitFile(getProjectsApiUrl(), newData, sha, `Delete project`);
-      setStatus({ type: 'success', message: 'Xoá dự án thành công!' });
-      setProjectsList(newData);
-    } catch (err: any) {
-      setStatus({ type: 'error', message: err.message });
-    } finally {
-      setLoadingList(false);
-      setProjectToDelete(null);
-    }
+    setProjectToDelete(null);
+    setStatus({ type: 'info', message: 'Đã xoá dự án khỏi bản nháp.' });
   };
 
-  const confirmBulkDeleteProjectsAction = async () => {
+  const confirmBulkDeleteProjectsAction = () => {
     if (selectedProjects.length === 0) return;
+    setProjectsList(prev => prev.filter(p => !selectedProjects.includes(p.id)));
+    setSelectedProjects([]);
     setBulkDeleteProjectsConfirm(false);
-    setLoadingList(true);
-    try {
-      const { data, sha } = await fetchFile(getProjectsApiUrl());
-      const newData = data.filter((p: any) => !selectedProjects.includes(p.id));
-      await commitFile(getProjectsApiUrl(), newData, sha, `Bulk delete ${selectedProjects.length} projects`);
-      setStatus({ type: 'success', message: `Đã xoá ${selectedProjects.length} dự án!` });
-      setProjectsList(newData);
-      setSelectedProjects([]);
-    } catch (err: any) {
-      setStatus({ type: 'error', message: err.message });
-    } finally {
-      setLoadingList(false);
-    }
+    setStatus({ type: 'info', message: `Đã xoá nháp ${selectedProjects.length} dự án.` });
   };
 
-  const handleToggleProject = (id: string) => {
-    setSelectedProjects(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  const handleToggleProject = (id: string) => setSelectedProjects(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  const handleToggleAllProjects = () => setSelectedProjects(selectedProjects.length === projectsList.length ? [] : projectsList.map(p => p.id));
+
+  // Categories Draft Actions
+  const handleAddCategory = () => {
+    if (!newCategoryName.trim()) return;
+    const colors = generateCategoryColors();
+    const newCat: Category = { id: Date.now().toString(), name: newCategoryName.trim(), ...colors };
+    setCategoriesList(prev => [...prev, newCat]);
+    setNewCategoryName('');
+    setStatus({ type: 'success', message: 'Đã lưu nháp loại dự án mới!' });
   };
 
-  const handleToggleAllProjects = () => {
-    if (selectedProjects.length === projectsList.length) setSelectedProjects([]);
-    else setSelectedProjects(projectsList.map(p => p.id));
-  };
-
-  const handleAddCategory = async () => {
-    if (!newCategoryName.trim() || !githubToken) return;
-    setLoadingCategories(true);
-    try {
-      const { data, sha } = await fetchFile(getCategoriesApiUrl());
-      const colors = generateCategoryColors();
-      const newCat: Category = { id: Date.now().toString(), name: newCategoryName.trim(), ...colors };
-      const newData = [...data, newCat];
-      await commitFile(getCategoriesApiUrl(), newData, sha, `Add category: ${newCat.name}`);
-      setCategoriesList(newData);
-      setNewCategoryName('');
-      setStatus({ type: 'success', message: 'Thêm loại dự án thành công!' });
-    } catch (err: any) {
-      setStatus({ type: 'error', message: err.message });
-    } finally {
-      setLoadingCategories(false);
-    }
-  };
-
-  const confirmDeleteCategoryHandler = async () => {
+  const confirmDeleteCategoryHandler = () => {
     if (!categoryToDelete) return;
-    setLoadingCategories(true);
-    try {
-      const { data, sha } = await fetchFile(getCategoriesApiUrl());
-      const newData = data.filter((c: any) => c.id !== categoryToDelete);
-      await commitFile(getCategoriesApiUrl(), newData, sha, `Delete category`);
-      setCategoriesList(newData);
-      setStatus({ type: 'success', message: 'Xoá loại dự án thành công!' });
-    } catch (err: any) {
-      setStatus({ type: 'error', message: err.message });
-    } finally {
-      setLoadingCategories(false);
-      setCategoryToDelete(null);
-    }
+    setCategoriesList(prev => prev.filter(c => c.id !== categoryToDelete));
+    setCategoryToDelete(null);
+    setStatus({ type: 'info', message: 'Đã xoá loại dự án khỏi bản nháp.' });
   };
 
-  const confirmBulkDeleteCategoriesAction = async () => {
+  const confirmBulkDeleteCategoriesAction = () => {
     if (selectedCategories.length === 0) return;
+    setCategoriesList(prev => prev.filter(c => !selectedCategories.includes(c.id)));
+    setSelectedCategories([]);
     setBulkDeleteCategoriesConfirm(false);
-    setLoadingCategories(true);
+    setStatus({ type: 'info', message: `Đã xoá nháp ${selectedCategories.length} loại dự án.` });
+  };
+
+  const handleToggleCategory = (id: string) => setSelectedCategories(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  const handleToggleAllCategories = () => setSelectedCategories(selectedCategories.length === categoriesList.length ? [] : categoriesList.map(c => c.id));
+
+  // Global Save
+  const saveAllChangesToGithub = async () => {
+    if (!githubToken || !githubOwner || !githubRepo) {
+      setStatus({ type: 'error', message: 'Cấu hình GitHub chưa hợp lệ.' });
+      return;
+    }
+    setIsSavingAll(true);
+    let successCount = 0;
+
     try {
-      const { data, sha } = await fetchFile(getCategoriesApiUrl());
-      const newData = data.filter((c: any) => !selectedCategories.includes(c.id));
-      await commitFile(getCategoriesApiUrl(), newData, sha, `Bulk delete ${selectedCategories.length} categories`);
-      setStatus({ type: 'success', message: `Đã xoá ${selectedCategories.length} loại dự án!` });
-      setCategoriesList(newData);
-      setSelectedCategories([]);
+      if (isCategoriesChanged) {
+        const newSha = await commitFile(getCategoriesApiUrl(), categoriesList, categoriesSha, `Update categories (Bulk save)`);
+        setOriginalCategories(categoriesList);
+        setCategoriesSha(newSha);
+        successCount++;
+      }
+      if (isProjectsChanged) {
+        const newSha = await commitFile(getProjectsApiUrl(), projectsList, projectsSha, `Update projects (Bulk save)`);
+        setOriginalProjects(projectsList);
+        setProjectsSha(newSha);
+        successCount++;
+      }
+      
+      setStatus({ type: 'success', message: `Commit thành công ${successCount} file lên GitHub! Quá trình build sẽ tự động chạy.` });
     } catch (err: any) {
-      setStatus({ type: 'error', message: err.message });
+      console.error(err);
+      setStatus({ type: 'error', message: err.message || 'Lỗi khi commit lên GitHub' });
     } finally {
-      setLoadingCategories(false);
+      setIsSavingAll(false);
     }
   };
-
-  const handleToggleCategory = (id: string) => {
-    setSelectedCategories(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
-  };
-
-  const handleToggleAllCategories = () => {
-    if (selectedCategories.length === categoriesList.length) setSelectedCategories([]);
-    else setSelectedCategories(categoriesList.map(c => c.id));
-  };
-
 
   return (
-    <Box sx={{ maxWidth: 720, mx: 'auto' }}>
+    <Box sx={{ maxWidth: 720, mx: 'auto', pb: 10 }}>
+      {/* Unsaved Changes Banner */}
+      <Collapse in={hasUnsavedChanges}>
+        <Paper elevation={3} sx={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, display: 'flex', alignItems: 'center', gap: 2, p: 2, px: 3, borderRadius: 100, bgcolor: 'warning.light', color: 'warning.contrastText', border: '1px solid', borderColor: 'warning.main', minWidth: 320, justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <WarningAmberIcon />
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>Bạn có thay đổi chưa lưu!</Typography>
+          </Box>
+          <Button variant="contained" color="warning" onClick={saveAllChangesToGithub} disabled={isSavingAll} startIcon={isSavingAll ? <CircularProgress size={16} color="inherit" /> : <CloudUploadIcon />} sx={{ borderRadius: 100, fontWeight: 700, px: 3 }}>
+            {isSavingAll ? 'Đang Gửi...' : 'Lưu Lên GitHub'}
+          </Button>
+        </Paper>
+      </Collapse>
+
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
         
         {/* Header */}
@@ -582,8 +528,8 @@ export default function AdminForm() {
                       <Button variant="outlined" size="large" onClick={resetForm} sx={{ py: 1.6, flex: 1, fontWeight: 700 }}>Huỷ</Button>
                     )}
                     <motion.div style={{ flex: 2 }} whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.985 }}>
-                      <Button type="submit" variant="contained" size="large" startIcon={saving ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />} disabled={saving} fullWidth sx={{ py: 1.6, fontSize: '1rem', fontWeight: 700, background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}>
-                        {saving ? 'Đang Commit...' : (formData.id ? 'Cập Nhật Dự Án' : 'Lưu Dự Án')}
+                      <Button type="submit" variant="contained" size="large" startIcon={<SaveIcon />} fullWidth sx={{ py: 1.6, fontSize: '1rem', fontWeight: 700, background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}>
+                        {formData.id ? 'Cập Nhật Nháp' : 'Lưu Nháp Dự Án'}
                       </Button>
                     </motion.div>
                   </Grid>
@@ -602,7 +548,6 @@ export default function AdminForm() {
               <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có dự án nào.</Typography></Box>
             ) : (
               <>
-                {/* Projects Bulk Action & Reorder Header */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <FormControlLabel
@@ -610,9 +555,6 @@ export default function AdminForm() {
                       label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Chọn tất cả</Typography>}
                       sx={{ ml: 0.5 }}
                     />
-                    {isOrderChanged && (
-                      <Button variant="contained" size="small" onClick={saveNewOrder} sx={{ ml: 2 }}>Lưu thứ tự mới</Button>
-                    )}
                   </Box>
                   {selectedProjects.length > 0 && (
                     <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteProjectsConfirm(true)} startIcon={<DeleteIcon />}>
@@ -621,7 +563,6 @@ export default function AdminForm() {
                   )}
                 </Box>
                 
-                {/* DndContext for Drag and Drop */}
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                   <SortableContext items={projectsList.map(p => p.id)} strategy={verticalListSortingStrategy}>
                     <List sx={{ p: 0 }}>
@@ -660,8 +601,8 @@ export default function AdminForm() {
             <Paper elevation={0} sx={{ p: 3, mb: 3, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper' }}>
               <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
                 <TextField fullWidth size="small" label="Tên loại dự án mới" value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddCategory())} />
-                <Button variant="contained" onClick={handleAddCategory} disabled={loadingCategories || !newCategoryName.trim()} startIcon={loadingCategories ? <CircularProgress size={18} color="inherit" /> : <AddIcon />} sx={{ minWidth: 150, background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' }}>
-                  Thêm Loại
+                <Button variant="contained" onClick={handleAddCategory} disabled={!newCategoryName.trim()} startIcon={<AddIcon />} sx={{ minWidth: 150, background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' }}>
+                  Thêm Nháp
                 </Button>
               </Box>
             </Paper>
@@ -696,7 +637,7 @@ export default function AdminForm() {
                             secondary={<Chip label="Giao diện nhãn" size="small" sx={{ mt: 1, background: cat.bg, color: cat.text, fontWeight: 700 }} />}
                           />
                           <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
-                            <IconButton size="small" onClick={() => { setCategoryToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'error.light', opacity: 0.2 }}><DeleteIcon fontSize="small" /></IconButton>
+                            <IconButton size="small" onClick={() => { setCategoryToDelete(cat.id); setDeleteConfirmOpen(true); }} sx={{ color: 'error.main', bgcolor: 'error.light', opacity: 0.2 }}><DeleteIcon fontSize="small" /></IconButton>
                           </Box>
                         </ListItem>
                       </Box>
@@ -712,17 +653,17 @@ export default function AdminForm() {
 
       {/* Dialogs */}
       <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
-        <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá dự án</DialogTitle>
-        <DialogContent><DialogContentText>Bạn có chắc chắn muốn xoá dự án này không? Thao tác này sẽ cập nhật trực tiếp lên GitHub.</DialogContentText></DialogContent>
+        <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá dự án khỏi nháp</DialogTitle>
+        <DialogContent><DialogContentText>Dự án này sẽ bị xoá khỏi bản nháp hiện tại của bạn.</DialogContentText></DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setDeleteConfirmOpen(false)} color="inherit">Huỷ</Button>
-          <Button onClick={confirmDeleteProject} variant="contained" color="error">Xoá Dự Án</Button>
+          <Button onClick={confirmDeleteProject} variant="contained" color="error">Xoá</Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={bulkDeleteProjectsConfirm} onClose={() => setBulkDeleteProjectsConfirm(false)}>
         <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá nhiều dự án</DialogTitle>
-        <DialogContent><DialogContentText>Bạn đang xoá {selectedProjects.length} dự án cùng lúc. Bạn có chắc chắn không?</DialogContentText></DialogContent>
+        <DialogContent><DialogContentText>Xoá {selectedProjects.length} dự án khỏi bản nháp?</DialogContentText></DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setBulkDeleteProjectsConfirm(false)} color="inherit">Huỷ</Button>
           <Button onClick={confirmBulkDeleteProjectsAction} variant="contained" color="error">Xoá Hàng Loạt</Button>
@@ -731,23 +672,23 @@ export default function AdminForm() {
 
       <Dialog open={!!categoryToDelete} onClose={() => setCategoryToDelete(null)}>
         <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá loại dự án</DialogTitle>
-        <DialogContent><DialogContentText>Bạn có chắc chắn muốn xoá loại dự án này? Các dự án cũ dùng loại này sẽ mất màu hiển thị.</DialogContentText></DialogContent>
+        <DialogContent><DialogContentText>Xoá loại dự án này khỏi bản nháp?</DialogContentText></DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setCategoryToDelete(null)} color="inherit">Huỷ</Button>
-          <Button onClick={confirmDeleteCategoryHandler} variant="contained" color="error">Xoá Loại Dự Án</Button>
+          <Button onClick={confirmDeleteCategoryHandler} variant="contained" color="error">Xoá</Button>
         </DialogActions>
       </Dialog>
 
       <Dialog open={bulkDeleteCategoriesConfirm} onClose={() => setBulkDeleteCategoriesConfirm(false)}>
         <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá nhiều loại dự án</DialogTitle>
-        <DialogContent><DialogContentText>Bạn đang xoá {selectedCategories.length} loại dự án cùng lúc. Điều này có thể làm mất màu hiển thị của nhiều dự án cũ. Bạn chắc chứ?</DialogContentText></DialogContent>
+        <DialogContent><DialogContentText>Xoá {selectedCategories.length} loại dự án khỏi bản nháp?</DialogContentText></DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setBulkDeleteCategoriesConfirm(false)} color="inherit">Huỷ</Button>
           <Button onClick={confirmBulkDeleteCategoriesAction} variant="contained" color="error">Xoá Hàng Loạt</Button>
         </DialogActions>
       </Dialog>
 
-      <Snackbar open={!!status} autoHideDuration={6000} onClose={() => setStatus(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+      <Snackbar open={!!status} autoHideDuration={6000} onClose={() => setStatus(null)} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
         <Alert onClose={() => setStatus(null)} severity={status?.type} variant="filled" sx={{ width: '100%', borderRadius: 3 }}>
           {status?.message}
         </Alert>
