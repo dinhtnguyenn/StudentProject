@@ -84,7 +84,7 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
       </Box>
 
       {/* Main Content Area */}
-      <DialogContent sx={{ p: { xs: 3, md: 5 }, pt: { xs: 3, md: 5 } }}>
+      <DialogContent sx={{ p: { xs: 2, md: 5 }, pt: { xs: 2, md: 5 }, overflowX: 'hidden' }}>
         <Grid container spacing={5}>
           {/* LEFT COLUMN: Overview, Video, Comments */}
           <Grid size={{ xs: 12, md: 8 }}>
@@ -96,7 +96,7 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
               background: isLight ? 'linear-gradient(90deg, #1E293B, #2563EB)' : 'linear-gradient(90deg, #F8FAFC, #60A5FA)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              fontSize: { xs: '2rem', md: '2.5rem' }
+              fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' }
             }}>
               {project.name}
             </Typography>

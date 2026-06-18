@@ -26,10 +26,10 @@ function App() {
       }}>
         <Container maxWidth="lg">
           <Toolbar disableGutters sx={{ gap: 1 }}>
-            <AutoAwesomeIcon sx={{ color: 'primary.main', mr: 1, fontSize: 28 }} />
+            <AutoAwesomeIcon sx={{ color: 'primary.main', mr: { xs: 0.5, sm: 1 }, fontSize: { xs: 24, sm: 28 } }} />
             <Typography
               variant="h6" component="div"
-              sx={{ flexGrow: 1, cursor: 'pointer', fontWeight: 800, fontSize: '1.15rem' }}
+              sx={{ flexGrow: 1, cursor: 'pointer', fontWeight: 800, fontSize: { xs: '1rem', sm: '1.15rem' } }}
               onClick={() => navigate('/')}
             >
               Student<span style={{ color: '#2563EB' }}> Projects</span>
@@ -37,6 +37,7 @@ function App() {
             <Button
               onClick={() => navigate('/')}
               sx={{
+                display: { xs: 'none', sm: 'flex' },
                 color: location.pathname === '/' ? 'primary.main' : 'text.secondary',
                 fontWeight: location.pathname === '/' ? 700 : 500,
                 '&:hover': { background: theme.palette.action.hover },
@@ -49,18 +50,20 @@ function App() {
             </IconButton>
             <Button
               variant="contained"
-              startIcon={<DashboardIcon />}
-              onClick={() => navigate('/admin')}
               sx={{
                 ml: 1,
+                minWidth: { xs: '40px', sm: 'auto' },
+                px: { xs: 1, sm: 2 },
                 background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
                 '&:hover': {
                   background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
                   boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.39)',
                 },
               }}
+              onClick={() => navigate('/admin')}
             >
-              Quản Trị
+              <DashboardIcon sx={{ mr: { xs: 0, sm: 1 } }} />
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Quản Trị</Box>
             </Button>
           </Toolbar>
         </Container>

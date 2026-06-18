@@ -162,7 +162,7 @@ export default function ProjectGallery() {
           bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: 4, boxShadow: 1,
           display: 'flex', flexDirection: 'column', gap: 2, p: 2, px: 3, mb: 5,
         }}>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', md: 'center' }, gap: 2 }}>
             <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 0.5, flex: 1 }}>
               {categoryNames.map(cat => (
                 <Chip
@@ -186,8 +186,8 @@ export default function ProjectGallery() {
               ))}
             </Stack>
 
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              <FormControl size="small" sx={{ minWidth: 160 }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, width: { xs: '100%', md: 'auto' } }}>
+              <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 160 } }}>
                 <InputLabel>Học kỳ</InputLabel>
                 <Select
                   value={currentSemester}
