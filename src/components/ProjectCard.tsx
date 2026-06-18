@@ -225,7 +225,7 @@ export default function ProjectCard({ project }: Props) {
             </Box>
             <Grid container spacing={1.5}>
               {project.teamMembers.map((member, idx) => (
-                <Grid size={{ xs: 6 }} key={idx}>
+                <Grid size={{ xs: 12 }} key={idx}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1, borderRadius: 2, '&:hover': { background: '#EEF2FF' } }}>
                     <Avatar sx={{ width: 30, height: 30, fontSize: '0.75rem', fontWeight: 700, bgcolor: ['#6366F1', '#EC4899', '#F59E0B', '#10B981'][idx % 4] }}>
                       {member.charAt(0)}
