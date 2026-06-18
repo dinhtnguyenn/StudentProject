@@ -1,23 +1,5 @@
 [
   {
-    "id": "1",
-    "name": "Web Application",
-    "bg": "#DBEAFE",
-    "text": "#1D4ED8"
-  },
-  {
-    "id": "2",
-    "name": "Mobile App",
-    "bg": "#D1FAE5",
-    "text": "#047857"
-  },
-  {
-    "id": "3",
-    "name": "IoT & AI",
-    "bg": "#FEF3C7",
-    "text": "#B45309"
-  },
-  {
     "id": "1781792320640",
     "name": "Dự án tốt nghiệp",
     "bg": "hsl(266, 80%, 92%)",
