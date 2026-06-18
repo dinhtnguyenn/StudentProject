@@ -58,24 +58,39 @@ export default function ProjectGallery() {
   const muiTheme = useTheme();
 
   useEffect(() => {
-    let projectsUrl = `${import.meta.env.BASE_URL}data/projects.json`;
-    let categoriesUrl = `${import.meta.env.BASE_URL}data/categories.json`;
+    const localProjectsUrl = `${import.meta.env.BASE_URL}data/projects.json`;
+    const localCategoriesUrl = `${import.meta.env.BASE_URL}data/categories.json`;
 
-    // Nếu đang chạy trên GitHub Pages, tự động lấy dữ liệu raw để không cần chờ Build
+    // Hàm lấy dữ liệu với chiến lược "API First, Fallback Local"
+    const fetchWithFallback = async (apiUrl: string, localUrl: string) => {
+      try {
+        const res = await fetch(apiUrl);
+        if (!res.ok) throw new Error('API limit reached or error');
+        const json = await res.json();
+        // GitHub API trả về nội dung mã hoá Base64
+        const decoded = decodeURIComponent(escape(atob(json.content)));
+        return JSON.parse(decoded);
+      } catch (err) {
+        // Nếu API lỗi (Hết 60 lượt/giờ), tự động lùi về đọc file tĩnh (chậm 1 chút nhưng an toàn)
+        const localRes = await fetch(localUrl);
+        if (!localRes.ok) return [];
+        return localRes.json();
+      }
+    };
+
+    let pPromise = fetch(localProjectsUrl).then(res => res.json());
+    let cPromise = fetch(localCategoriesUrl).then(res => res.json()).catch(() => []);
+
     if (window.location.hostname.includes('.github.io')) {
       const owner = window.location.hostname.split('.')[0];
       const repo = window.location.pathname.split('/')[1];
       if (owner && repo) {
-        const t = Date.now(); // Bypass trình duyệt cache
-        projectsUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/public/data/projects.json?t=${t}`;
-        categoriesUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/public/data/categories.json?t=${t}`;
+        pPromise = fetchWithFallback(`https://api.github.com/repos/${owner}/${repo}/contents/public/data/projects.json`, localProjectsUrl);
+        cPromise = fetchWithFallback(`https://api.github.com/repos/${owner}/${repo}/contents/public/data/categories.json`, localCategoriesUrl);
       }
     }
 
-    Promise.all([
-      fetch(projectsUrl).then(res => res.json()),
-      fetch(categoriesUrl).then(res => res.json()).catch(() => [])
-    ])
+    Promise.all([pPromise, cPromise])
       .then(([projData, catData]) => {
         setProjects(projData || []);
         setCategories(catData || []);
