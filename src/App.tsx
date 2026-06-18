@@ -83,7 +83,7 @@ function App() {
         bgcolor: 'background.paper',
       }}>
         <Typography variant="body2" color="text.secondary">
-          © {new Date().getFullYear()} Một sản phẩm được xây dựng bởi DinhNT24
+          © {new Date().getFullYear()} | Một sản phẩm được xây dựng bởi DinhNT24
         </Typography>
       </Box>
     </Box>
