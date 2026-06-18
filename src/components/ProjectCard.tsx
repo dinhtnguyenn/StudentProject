@@ -13,6 +13,7 @@ import { motion } from 'framer-motion';
 
 interface Props {
   project: Project;
+  categoryColors?: Record<string, { bg: string; text: string }>;
 }
 
 const getYoutubeId = (url: string) => {
@@ -21,19 +22,13 @@ const getYoutubeId = (url: string) => {
   return match && match[2].length === 11 ? match[2] : null;
 };
 
-const categoryColors: Record<string, { bg: string; text: string }> = {
-  'Web Application': { bg: '#DBEAFE', text: '#1D4ED8' },
-  'Mobile App': { bg: '#D1FAE5', text: '#047857' },
-  'IoT & AI': { bg: '#FEF3C7', text: '#B45309' },
-};
+const defaultColor = { bg: '#EEF2FF', text: '#6366F1' };
 
-const getColor = (cat: string) => categoryColors[cat] || { bg: '#EEF2FF', text: '#6366F1' };
-
-export default function ProjectCard({ project }: Props) {
+export default function ProjectCard({ project, categoryColors = {} }: Props) {
   const [openVideo, setOpenVideo] = useState(false);
   const [openDetail, setOpenDetail] = useState(false);
   const youtubeId = getYoutubeId(project.youtubeUrl);
-  const colors = getColor(project.category);
+  const colors = categoryColors[project.category] || defaultColor;
 
   return (
     <>
@@ -89,6 +84,10 @@ export default function ProjectCard({ project }: Props) {
               mb: 1,
             }}>
               {project.name}
+            </Typography>
+            <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', mb: 1.5, color: '#64748B', fontWeight: 600 }}>
+              <CalendarTodayIcon sx={{ fontSize: 14, mr: 0.5 }} />
+              {project.semester}
             </Typography>
             <Typography variant="body2" sx={{
               display: '-webkit-box',
