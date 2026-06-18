@@ -2,7 +2,7 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import ProjectGallery from './components/ProjectGallery';
 import AdminForm from './components/AdminForm';
 import { AppBar, Toolbar, Typography, Button, Container, Box, IconButton, useTheme } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
@@ -49,7 +49,7 @@ function App() {
             </IconButton>
             <Button
               variant="contained"
-              startIcon={<AddIcon />}
+              startIcon={<DashboardIcon />}
               onClick={() => navigate('/admin')}
               sx={{
                 ml: 1,

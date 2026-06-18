@@ -98,7 +98,7 @@ function SortableProjectItem({ project, idx, isSelected, onToggle, onEdit, onDel
         <ListItemAvatar>
           <Avatar src={project.thumbnail} variant="rounded" sx={{ width: 64, height: 40, mr: 1, border: '1px solid', borderColor: 'divider' }} />
         </ListItemAvatar>
-        <ListItemText 
+        <ListItemText
           primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{project.name}</Typography>}
           secondary={<Typography variant="caption" sx={{ color: 'text.secondary' }}>{project.category} • {project.semester}</Typography>}
         />
@@ -121,7 +121,7 @@ export default function AdminForm() {
   const [githubOwner, setGithubOwner] = useState('');
   const [githubRepo, setGithubRepo] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(true);
 
@@ -454,7 +454,7 @@ export default function AdminForm() {
         setProjectsSha(newSha);
         successCount++;
       }
-      
+
       setStatus({ type: 'success', message: `Commit thành công ${successCount} file lên GitHub! Quá trình build sẽ tự động chạy.` });
     } catch (err: any) {
       console.error(err);
@@ -480,7 +480,7 @@ export default function AdminForm() {
           <Box sx={{ textAlign: 'center', mb: 4 }}>
             <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 2, px: 2, py: 0.75, borderRadius: 100, bgcolor: 'action.hover', color: 'primary.main' }}>
               <LockIcon sx={{ fontSize: 18 }} />
-              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Khu vực Bảo mật</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Dừng lại!!!</Typography>
             </Box>
             <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary', mb: 1 }}>
               Đăng Nhập <span style={{ color: muiTheme.palette.primary.main }}>Hệ Thống</span>
@@ -498,7 +498,7 @@ export default function AdminForm() {
                   <TextField fullWidth label="Tên Repository" value={githubRepo} onChange={e => setGithubRepo(e.target.value)} required />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
-                  <TextField 
+                  <TextField
                     fullWidth label="Personal Access Token" type={showPassword ? 'text' : 'password'} required
                     value={githubToken} onChange={e => setGithubToken(e.target.value)}
                     slotProps={{ input: { endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">{showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}</IconButton></InputAdornment>) } }}
@@ -513,7 +513,7 @@ export default function AdminForm() {
             </form>
           </Paper>
         </motion.div>
-        
+
         <Snackbar open={!!status} autoHideDuration={6000} onClose={() => setStatus(null)} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
           <Alert onClose={() => setStatus(null)} severity={status?.type} variant="filled" sx={{ width: '100%', borderRadius: 3 }}>
             {status?.message}
@@ -539,7 +539,7 @@ export default function AdminForm() {
       </Collapse>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
-        
+
         {/* Header */}
         <Box sx={{ mb: 4, textAlign: 'center', position: 'relative' }}>
           <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 2, px: 2, py: 0.75, borderRadius: 100, bgcolor: 'action.hover', color: 'primary.main' }}>
@@ -585,7 +585,7 @@ export default function AdminForm() {
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <FormControl fullWidth required>
                       <InputLabel>Loại dự án</InputLabel>
-                      <Select name="category" value={formData.category} label="Loại dự án" onChange={(e) => setFormData({...formData, category: e.target.value as string})}>
+                      <Select name="category" value={formData.category} label="Loại dự án" onChange={(e) => setFormData({ ...formData, category: e.target.value as string })}>
                         {categoriesList.map(cat => (
                           <MenuItem key={cat.id} value={cat.name}>{cat.name}</MenuItem>
                         ))}
@@ -659,15 +659,15 @@ export default function AdminForm() {
                     </Button>
                   )}
                 </Box>
-                
+
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                   <SortableContext items={projectsList.map(p => p.id)} strategy={verticalListSortingStrategy}>
                     <List sx={{ p: 0 }}>
                       {projectsList.map((project, idx) => (
-                        <SortableProjectItem 
-                          key={project.id} 
+                        <SortableProjectItem
+                          key={project.id}
                           id={project.id}
-                          project={project} 
+                          project={project}
                           idx={idx}
                           isSelected={selectedProjects.includes(project.id)}
                           onToggle={handleToggleProject}
@@ -729,7 +729,7 @@ export default function AdminForm() {
                         {idx > 0 && <Divider />}
                         <ListItem sx={{ py: 2 }}>
                           <Checkbox checked={selectedCategories.includes(cat.id)} onChange={() => handleToggleCategory(cat.id)} sx={{ mr: 1 }} />
-                          <ListItemText 
+                          <ListItemText
                             primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{cat.name}</Typography>}
                             secondary={<Chip label="Giao diện nhãn" size="small" sx={{ mt: 1, background: cat.bg, color: cat.text, fontWeight: 700 }} />}
                           />
