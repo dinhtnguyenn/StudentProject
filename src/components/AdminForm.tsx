@@ -416,7 +416,7 @@ export default function AdminForm() {
             <WarningAmberIcon />
             <Typography variant="body2" sx={{ fontWeight: 700 }}>Bạn có thay đổi chưa lưu!</Typography>
           </Box>
-          <Button variant="contained" color="warning" onClick={saveAllChangesToGithub} disabled={isSavingAll} startIcon={isSavingAll ? <CircularProgress size={16} color="inherit" /> : <CloudUploadIcon />} sx={{ borderRadius: 100, fontWeight: 700, px: 3 }}>
+          <Button variant="contained" color="warning" onClick={saveAllChangesToGithub} disabled={isSavingAll} startIcon={isSavingAll ? <CircularProgress size={16} color="inherit" /> : <CloudUploadIcon />} sx={{ borderRadius: 100, fontWeight: 700, px: 3, '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
             {isSavingAll ? 'Đang Gửi...' : 'Lưu Lên GitHub'}
           </Button>
         </Paper>
@@ -452,7 +452,7 @@ export default function AdminForm() {
                   slotProps={{ input: { endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">{showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}</IconButton></InputAdornment>) } }}
                 />
               </Grid>
-              <Grid size={{ xs: 12 }}><Button variant="outlined" onClick={saveSettings} fullWidth sx={{ mt: 1 }}>Lưu Cấu Hình</Button></Grid>
+              <Grid size={{ xs: 12 }}><Button variant="outlined" onClick={saveSettings} fullWidth sx={{ mt: 1, borderRadius: 2, textTransform: 'none', fontWeight: 700, borderWidth: 2, '&:hover': { borderWidth: 2 } }}>Lưu Cấu Hình</Button></Grid>
             </Grid>
           </Paper>
         </Collapse>
@@ -472,7 +472,7 @@ export default function AdminForm() {
               <Paper elevation={0} sx={{ p: 3, mb: 3, border: `2px dashed ${muiTheme.palette.primary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
                 <Box sx={{ display: 'flex', gap: 1.5 }}>
                   <TextField fullWidth size="small" placeholder="Dán link YouTube để tự động điền..." value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleFetchYoutube())} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} />
-                  <Button variant="contained" onClick={handleFetchYoutube} disabled={fetching || !youtubeUrl.trim()} startIcon={fetching ? <CircularProgress size={18} color="inherit" /> : <AutoFixHighIcon />} sx={{ minWidth: 150, whiteSpace: 'nowrap', background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}>
+                  <Button variant="contained" onClick={handleFetchYoutube} disabled={fetching || !youtubeUrl.trim()} startIcon={fetching ? <CircularProgress size={18} color="inherit" /> : <AutoFixHighIcon />} sx={{ minWidth: 150, whiteSpace: 'nowrap', borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(99, 102, 241, 0.39)', background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
                     {fetching ? 'Đang cào...' : 'Tự động điền'}
                   </Button>
                 </Box>
@@ -525,10 +525,10 @@ export default function AdminForm() {
                   </Grid>
                   <Grid size={{ xs: 12 }} sx={{ mt: 1, display: 'flex', gap: 2 }}>
                     {formData.id && (
-                      <Button variant="outlined" size="large" onClick={resetForm} sx={{ py: 1.6, flex: 1, fontWeight: 700 }}>Huỷ</Button>
+                      <Button variant="outlined" size="large" onClick={resetForm} sx={{ py: 1.6, flex: 1, fontWeight: 700, borderRadius: 3, textTransform: 'none', borderWidth: 2, color: 'text.secondary', borderColor: 'divider', '&:hover': { borderColor: 'text.primary', color: 'text.primary', borderWidth: 2 } }}>Huỷ</Button>
                     )}
                     <motion.div style={{ flex: 2 }} whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.985 }}>
-                      <Button type="submit" variant="contained" size="large" startIcon={<SaveIcon />} fullWidth sx={{ py: 1.6, fontSize: '1rem', fontWeight: 700, background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}>
+                      <Button type="submit" variant="contained" size="large" startIcon={<SaveIcon />} fullWidth sx={{ py: 1.6, fontSize: '1rem', fontWeight: 700, borderRadius: 3, textTransform: 'none', boxShadow: '0 6px 20px rgba(99, 102, 241, 0.4)', background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
                         {formData.id ? 'Cập Nhật Nháp' : 'Lưu Nháp Dự Án'}
                       </Button>
                     </motion.div>
@@ -557,7 +557,7 @@ export default function AdminForm() {
                     />
                   </Box>
                   {selectedProjects.length > 0 && (
-                    <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteProjectsConfirm(true)} startIcon={<DeleteIcon />}>
+                    <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteProjectsConfirm(true)} startIcon={<DeleteIcon />} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
                       Xoá {selectedProjects.length} mục
                     </Button>
                   )}
@@ -601,7 +601,7 @@ export default function AdminForm() {
             <Paper elevation={0} sx={{ p: 3, mb: 3, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper' }}>
               <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
                 <TextField fullWidth size="small" label="Tên loại dự án mới" value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddCategory())} />
-                <Button variant="contained" onClick={handleAddCategory} disabled={!newCategoryName.trim()} startIcon={<AddIcon />} sx={{ minWidth: 150, background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' }}>
+                <Button variant="contained" onClick={handleAddCategory} disabled={!newCategoryName.trim()} startIcon={<AddIcon />} sx={{ minWidth: 150, borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(16, 185, 129, 0.39)', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
                   Thêm Nháp
                 </Button>
               </Box>
@@ -621,7 +621,7 @@ export default function AdminForm() {
                       sx={{ ml: 0.5 }}
                     />
                     {selectedCategories.length > 0 && (
-                      <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteCategoriesConfirm(true)} startIcon={<DeleteIcon />}>
+                      <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteCategoriesConfirm(true)} startIcon={<DeleteIcon />} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
                         Xoá {selectedCategories.length} mục
                       </Button>
                     )}
@@ -652,39 +652,39 @@ export default function AdminForm() {
       </motion.div>
 
       {/* Dialogs */}
-      <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)}>
+      <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)} sx={{ '& .MuiDialog-paper': { borderRadius: 3 } }}>
         <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá dự án khỏi nháp</DialogTitle>
         <DialogContent><DialogContentText>Dự án này sẽ bị xoá khỏi bản nháp hiện tại của bạn.</DialogContentText></DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setDeleteConfirmOpen(false)} color="inherit">Huỷ</Button>
-          <Button onClick={confirmDeleteProject} variant="contained" color="error">Xoá</Button>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setDeleteConfirmOpen(false)} color="inherit" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Huỷ</Button>
+          <Button onClick={confirmDeleteProject} variant="contained" color="error" disableElevation sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Xoá</Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={bulkDeleteProjectsConfirm} onClose={() => setBulkDeleteProjectsConfirm(false)}>
+      <Dialog open={bulkDeleteProjectsConfirm} onClose={() => setBulkDeleteProjectsConfirm(false)} sx={{ '& .MuiDialog-paper': { borderRadius: 3 } }}>
         <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá nhiều dự án</DialogTitle>
         <DialogContent><DialogContentText>Xoá {selectedProjects.length} dự án khỏi bản nháp?</DialogContentText></DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setBulkDeleteProjectsConfirm(false)} color="inherit">Huỷ</Button>
-          <Button onClick={confirmBulkDeleteProjectsAction} variant="contained" color="error">Xoá Hàng Loạt</Button>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setBulkDeleteProjectsConfirm(false)} color="inherit" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Huỷ</Button>
+          <Button onClick={confirmBulkDeleteProjectsAction} variant="contained" color="error" disableElevation sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Xoá Hàng Loạt</Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={!!categoryToDelete} onClose={() => setCategoryToDelete(null)}>
+      <Dialog open={!!categoryToDelete} onClose={() => setCategoryToDelete(null)} sx={{ '& .MuiDialog-paper': { borderRadius: 3 } }}>
         <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá loại dự án</DialogTitle>
         <DialogContent><DialogContentText>Xoá loại dự án này khỏi bản nháp?</DialogContentText></DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setCategoryToDelete(null)} color="inherit">Huỷ</Button>
-          <Button onClick={confirmDeleteCategoryHandler} variant="contained" color="error">Xoá</Button>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setCategoryToDelete(null)} color="inherit" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Huỷ</Button>
+          <Button onClick={confirmDeleteCategoryHandler} variant="contained" color="error" disableElevation sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Xoá</Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={bulkDeleteCategoriesConfirm} onClose={() => setBulkDeleteCategoriesConfirm(false)}>
+      <Dialog open={bulkDeleteCategoriesConfirm} onClose={() => setBulkDeleteCategoriesConfirm(false)} sx={{ '& .MuiDialog-paper': { borderRadius: 3 } }}>
         <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá nhiều loại dự án</DialogTitle>
         <DialogContent><DialogContentText>Xoá {selectedCategories.length} loại dự án khỏi bản nháp?</DialogContentText></DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setBulkDeleteCategoriesConfirm(false)} color="inherit">Huỷ</Button>
-          <Button onClick={confirmBulkDeleteCategoriesAction} variant="contained" color="error">Xoá Hàng Loạt</Button>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setBulkDeleteCategoriesConfirm(false)} color="inherit" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Huỷ</Button>
+          <Button onClick={confirmBulkDeleteCategoriesAction} variant="contained" color="error" disableElevation sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Xoá Hàng Loạt</Button>
         </DialogActions>
       </Dialog>
 
