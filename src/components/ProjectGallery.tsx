@@ -57,7 +57,7 @@ export default function ProjectGallery() {
 
   const categoryNames = ['All', ...Array.from(new Set([...categories.map(c => c.name), ...projects.map(p => p.category)]))];
   const semesters = ['All', ...Array.from(new Set(projects.map(p => p.semester)))];
-  
+
   const categoryColors = categories.reduce((acc, cat) => {
     acc[cat.name] = { bg: cat.bg, text: cat.text };
     return acc;
@@ -79,22 +79,22 @@ export default function ProjectGallery() {
           <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 2, px: 2, py: 0.75, borderRadius: 100, background: '#EEF2FF', color: '#6366F1' }}>
             <RocketLaunchIcon sx={{ fontSize: 18 }} />
             <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>
-              Bộ sưu tập đồ án sinh viên
+              Bộ sưu tập
             </Typography>
           </Box>
           <Typography variant="h3" component="h1" sx={{ mb: 1.5, fontWeight: 800, color: 'text.primary' }}>
-            Đồ Án <span style={{ color: '#6366F1' }}>Xuất Sắc</span>
+            Dự Án <span style={{ color: '#6366F1' }}>Xuất Sắc</span>
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 560, mx: 'auto', lineHeight: 1.7 }}>
-            Khám phá những sản phẩm sáng tạo, giải pháp công nghệ ấn tượng được phát triển bởi sinh viên của chúng tôi.
+            Khám phá những dự án xuất sắc, giải pháp công nghệ ấn tượng được phát triển bởi sinh viên của tớ ❤️.
           </Typography>
         </Box>
       </motion.div>
 
       {/* Filter Bar */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }}>
-        <Box className="toolbar-panel" sx={{ 
-          display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', 
+        <Box className="toolbar-panel" sx={{
+          display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center',
           mb: 5, gap: 2, p: 2, px: 3,
         }}>
           {/* Category Chips */}
@@ -111,16 +111,16 @@ export default function ProjectGallery() {
                   cursor: 'pointer',
                   ...(currentTab === cat
                     ? {
-                        background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
-                        color: '#FFF',
-                        border: 'none',
-                        boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)',
-                      }
+                      background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
+                      color: '#FFF',
+                      border: 'none',
+                      boxShadow: '0 2px 8px rgba(99, 102, 241, 0.3)',
+                    }
                     : {
-                        borderColor: '#E2E8F0',
-                        color: '#64748B',
-                        '&:hover': { borderColor: '#6366F1', color: '#6366F1', background: '#F5F3FF' },
-                      }),
+                      borderColor: '#E2E8F0',
+                      color: '#64748B',
+                      '&:hover': { borderColor: '#6366F1', color: '#6366F1', background: '#F5F3FF' },
+                    }),
                 }}
               />
             ))}
