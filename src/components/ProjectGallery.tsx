@@ -27,7 +27,7 @@ export default function ProjectGallery() {
   const [currentTab, setCurrentTab] = useState('All');
 
   useEffect(() => {
-    fetch('/data/projects.json')
+    fetch(`${import.meta.env.BASE_URL}data/projects.json`)
       .then(res => res.json())
       .then(data => {
         setProjects(data || []);
