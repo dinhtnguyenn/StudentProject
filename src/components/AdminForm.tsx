@@ -4,7 +4,7 @@ import {
   CircularProgress, Divider, Collapse, IconButton, InputAdornment,
   Tabs, Tab, List, ListItem, ListItemText, Avatar, ListItemAvatar,
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
-  FormControl, InputLabel, Select, MenuItem, Chip, Checkbox, FormControlLabel
+  FormControl, InputLabel, Select, MenuItem, Chip, Checkbox, FormControlLabel, useTheme
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import EditNoteIcon from '@mui/icons-material/EditNote';
@@ -15,9 +15,16 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import { motion } from 'framer-motion';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import type { DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
 import type { Category } from '../types/Category';
 
 // --- Types & Helpers ---
@@ -67,9 +74,47 @@ function generateCategoryColors() {
   };
 }
 
+// --- Sortable Item Component ---
+function SortableProjectItem({ project, idx, isSelected, onToggle, onEdit, onDelete }: any) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: project.id });
+  const theme = useTheme();
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 100 : 1,
+    opacity: isDragging ? 0.8 : 1,
+    backgroundColor: isDragging ? theme.palette.action.hover : 'transparent',
+  };
+
+  return (
+    <Box ref={setNodeRef} style={style}>
+      {idx > 0 && <Divider />}
+      <ListItem sx={{ py: 2 }}>
+        <Box {...attributes} {...listeners} sx={{ cursor: 'grab', mr: 1, display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
+          <DragIndicatorIcon />
+        </Box>
+        <Checkbox checked={isSelected} onChange={() => onToggle(project.id)} sx={{ mr: 1 }} />
+        <ListItemAvatar>
+          <Avatar src={project.thumbnail} variant="rounded" sx={{ width: 64, height: 40, mr: 1, border: '1px solid', borderColor: 'divider' }} />
+        </ListItemAvatar>
+        <ListItemText 
+          primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{project.name}</Typography>}
+          secondary={<Typography variant="caption" sx={{ color: 'text.secondary' }}>{project.category} • {project.semester}</Typography>}
+        />
+        <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+          <IconButton size="small" onClick={() => onEdit(project)} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
+          <IconButton size="small" onClick={() => onDelete(project.id)} sx={{ color: 'error.main', bgcolor: 'error.light', opacity: 0.2 }}><DeleteIcon fontSize="small" /></IconButton>
+        </Box>
+      </ListItem>
+    </Box>
+  );
+}
+
 // --- Component ---
 export default function AdminForm() {
   const [tabIndex, setTabIndex] = useState(0);
+  const muiTheme = useTheme();
 
   // Settings State
   const [showSettings, setShowSettings] = useState(false);
@@ -105,6 +150,7 @@ export default function AdminForm() {
     category: '',
     teamMembers: '',
     semester: '',
+    techTags: '',
   });
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -114,16 +160,14 @@ export default function AdminForm() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
 
-  // Bulk Delete Projects State
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [bulkDeleteProjectsConfirm, setBulkDeleteProjectsConfirm] = useState(false);
+  const [isOrderChanged, setIsOrderChanged] = useState(false);
 
   const [categoriesList, setCategoriesList] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
-
-  // Bulk Delete Categories State
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [bulkDeleteCategoriesConfirm, setBulkDeleteCategoriesConfirm] = useState(false);
 
@@ -159,7 +203,6 @@ export default function AdminForm() {
     }
   };
 
-  // Load Categories on mount for Dropdown
   useEffect(() => {
     if (githubToken && githubOwner && githubRepo) {
       fetchFile(getCategoriesApiUrl()).then(res => setCategoriesList(res.data)).catch(err => console.error(err));
@@ -171,13 +214,15 @@ export default function AdminForm() {
     }
   }, [githubToken, githubOwner, githubRepo]);
 
-  // Load Projects when Tab 1 opens
   useEffect(() => {
     if (tabIndex === 1) {
       if (!githubToken) { setStatus({ type: 'error', message: 'Vui lòng cấu hình GitHub Token trước.' }); return; }
       setLoadingList(true);
       fetchFile(getProjectsApiUrl())
-        .then(res => setProjectsList(res.data))
+        .then(res => {
+          setProjectsList(res.data);
+          setIsOrderChanged(false);
+        })
         .catch(err => setStatus({ type: 'error', message: err.message }))
         .finally(() => setLoadingList(false));
     }
@@ -194,7 +239,6 @@ export default function AdminForm() {
   const handleFetchYoutube = async () => {
     if (!youtubeUrl.trim()) return;
     setFetching(true);
-
     try {
       const videoId = extractYoutubeId(youtubeUrl.trim());
       if (!videoId) throw new Error('Link YouTube không hợp lệ');
@@ -215,22 +259,18 @@ export default function AdminForm() {
       let description = '';
       let teamMembers: string[] = [];
 
-      const playerMatch = html.match(/var ytInitialPlayerResponse\s*=\s*(\{.+?\});/s)
-        || html.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\});/s);
-
+      const playerMatch = html.match(/var ytInitialPlayerResponse\s*=\s*(\{.+?\});/s) || html.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\});/s);
       if (playerMatch) {
         try {
           const playerData = JSON.parse(playerMatch[1]);
           description = playerData?.videoDetails?.shortDescription || '';
-        } catch { /* ignore */ }
+        } catch { }
       }
 
       if (!description) {
         const metaMatch = html.match(/<meta\s+name="description"\s+content="([^"]*?)"\s*\/?>/i);
         if (metaMatch) {
-          description = metaMatch[1]
-            .replace(/&#39;/g, "'").replace(/&quot;/g, '"')
-            .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+          description = metaMatch[1].replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
         }
       }
 
@@ -270,6 +310,7 @@ export default function AdminForm() {
       ...formData,
       id: isEdit ? formData.id : Date.now().toString(),
       teamMembers: formData.teamMembers.split('\n').map(m => m.trim()).filter(m => m),
+      techTags: formData.techTags.split(',').map(m => m.trim()).filter(m => m),
     };
 
     try {
@@ -288,11 +329,42 @@ export default function AdminForm() {
   };
 
   const resetForm = () => {
-    setFormData({ id: '', name: '', description: '', thumbnail: '', youtubeUrl: '', category: '', teamMembers: '', semester: '' });
+    setFormData({ id: '', name: '', description: '', thumbnail: '', youtubeUrl: '', category: '', teamMembers: '', semester: '', techTags: '' });
     setYoutubeUrl('');
   };
 
-  // --- Delete Project(s) Logic ---
+  // Drag & Drop
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (active.id !== over?.id) {
+      setProjectsList((items) => {
+        const oldIndex = items.findIndex(i => i.id === active.id);
+        const newIndex = items.findIndex(i => i.id === over?.id);
+        setIsOrderChanged(true);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
+  const saveNewOrder = async () => {
+    setLoadingList(true);
+    try {
+      const { sha } = await fetchFile(getProjectsApiUrl());
+      await commitFile(getProjectsApiUrl(), projectsList, sha, `Reorder projects`);
+      setStatus({ type: 'success', message: 'Lưu thứ tự mới thành công!' });
+      setIsOrderChanged(false);
+    } catch (err: any) {
+      setStatus({ type: 'error', message: err.message });
+    } finally {
+      setLoadingList(false);
+    }
+  };
+
   const confirmDeleteProject = async () => {
     if (!projectToDelete) return;
     setDeleteConfirmOpen(false);
@@ -338,7 +410,6 @@ export default function AdminForm() {
     else setSelectedProjects(projectsList.map(p => p.id));
   };
 
-  // --- Add/Delete Category Logic ---
   const handleAddCategory = async () => {
     if (!newCategoryName.trim() || !githubToken) return;
     setLoadingCategories(true);
@@ -409,21 +480,21 @@ export default function AdminForm() {
         
         {/* Header */}
         <Box sx={{ mb: 4, textAlign: 'center', position: 'relative' }}>
-          <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 2, px: 2, py: 0.75, borderRadius: 100, background: '#EEF2FF', color: '#6366F1' }}>
+          <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 2, px: 2, py: 0.75, borderRadius: 100, bgcolor: 'action.hover', color: 'primary.main' }}>
             <EditNoteIcon sx={{ fontSize: 18 }} />
             <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Quản trị Serverless</Typography>
           </Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: '#0F172A' }}>
-            Quản Lý <span style={{ color: '#6366F1' }}>Hệ Thống</span>
+          <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary' }}>
+            Quản Lý <span style={{ color: muiTheme.palette.primary.main }}>Hệ Thống</span>
           </Typography>
-          <IconButton onClick={() => setShowSettings(!showSettings)} sx={{ position: 'absolute', top: 0, right: 0, color: showSettings ? '#6366F1' : '#94A3B8' }}>
+          <IconButton onClick={() => setShowSettings(!showSettings)} sx={{ position: 'absolute', top: 0, right: 0, color: showSettings ? 'primary.main' : 'text.secondary' }}>
             <SettingsIcon />
           </IconButton>
         </Box>
 
         {/* Settings Panel */}
         <Collapse in={showSettings}>
-          <Paper elevation={0} sx={{ p: 3, mb: 3, border: '1px solid #E2E8F0', borderRadius: 4, background: '#F8FAFC' }}>
+          <Paper elevation={0} sx={{ p: 3, mb: 3, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.default' }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>Cấu hình GitHub API</Typography>
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, sm: 6 }}><TextField fullWidth size="small" label="GitHub Username" value={githubOwner} onChange={e => setGithubOwner(e.target.value)} /></Grid>
@@ -452,9 +523,9 @@ export default function AdminForm() {
         {tabIndex === 0 && (
           <Box>
             {!formData.id && (
-              <Paper elevation={0} sx={{ p: 3, mb: 3, border: '2px dashed #C7D2FE', borderRadius: 4, background: 'linear-gradient(135deg, #EEF2FF 0%, #F5F3FF 100%)' }}>
+              <Paper elevation={0} sx={{ p: 3, mb: 3, border: `2px dashed ${muiTheme.palette.primary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
                 <Box sx={{ display: 'flex', gap: 1.5 }}>
-                  <TextField fullWidth size="small" placeholder="Dán link YouTube để tự động điền..." value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleFetchYoutube())} sx={{ '& .MuiOutlinedInput-root': { background: '#FFFFFF' } }} />
+                  <TextField fullWidth size="small" placeholder="Dán link YouTube để tự động điền..." value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleFetchYoutube())} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} />
                   <Button variant="contained" onClick={handleFetchYoutube} disabled={fetching || !youtubeUrl.trim()} startIcon={fetching ? <CircularProgress size={18} color="inherit" /> : <AutoFixHighIcon />} sx={{ minWidth: 150, whiteSpace: 'nowrap', background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)' }}>
                     {fetching ? 'Đang cào...' : 'Tự động điền'}
                   </Button>
@@ -462,7 +533,7 @@ export default function AdminForm() {
               </Paper>
             )}
 
-            <Paper elevation={0} sx={{ p: { xs: 3, md: 4.5 }, border: '1px solid #E2E8F0', borderRadius: 4, background: '#FFFFFF' }}>
+            <Paper elevation={0} sx={{ p: { xs: 3, md: 4.5 }, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper' }}>
               <form onSubmit={handleSubmitProject}>
                 <Grid container spacing={2.5}>
                   <Grid size={{ xs: 12 }}>
@@ -483,6 +554,9 @@ export default function AdminForm() {
                     <TextField fullWidth label="Học kỳ" name="semester" value={formData.semester} onChange={handleChange} required />
                   </Grid>
                   <Grid size={{ xs: 12 }}>
+                    <TextField fullWidth label="Tag công nghệ" name="techTags" value={formData.techTags} onChange={handleChange} placeholder="React, Node, AI..." />
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
                     <TextField fullWidth label="Link ảnh Thumbnail" name="thumbnail" value={formData.thumbnail} onChange={handleChange} required />
                   </Grid>
                   <Grid size={{ xs: 12 }}>
@@ -492,10 +566,13 @@ export default function AdminForm() {
                     <TextField fullWidth label="Thành viên" name="teamMembers" value={formData.teamMembers} onChange={handleChange} multiline rows={4} required placeholder="Mỗi người 1 dòng&#10;Nguyễn Văn A&#10;Trần Thị B" />
                   </Grid>
                   <Grid size={{ xs: 12 }}>
-                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, color: '#475569' }}>Mô tả dự án (Không bắt buộc)</Typography>
+                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, color: 'text.secondary' }}>Mô tả dự án (Không bắt buộc)</Typography>
                     <Box sx={{
-                      '.ql-container': { borderBottomLeftRadius: 8, borderBottomRightRadius: 8, minHeight: 150, fontSize: '1rem', fontFamily: 'inherit' },
-                      '.ql-toolbar': { borderTopLeftRadius: 8, borderTopRightRadius: 8, bgcolor: '#F8FAFC' }
+                      '.ql-container': { borderBottomLeftRadius: 8, borderBottomRightRadius: 8, minHeight: 150, fontSize: '1rem', fontFamily: 'inherit', color: 'text.primary' },
+                      '.ql-toolbar': { borderTopLeftRadius: 8, borderTopRightRadius: 8, bgcolor: 'background.default' },
+                      '.ql-stroke': { stroke: muiTheme.palette.text.primary },
+                      '.ql-fill': { fill: muiTheme.palette.text.primary },
+                      '.ql-picker': { color: muiTheme.palette.text.primary },
                     }}>
                       <ReactQuill theme="snow" value={formData.description} onChange={handleQuillChange} />
                     </Box>
@@ -518,59 +595,60 @@ export default function AdminForm() {
 
         {/* Tab 1: Manage Projects List */}
         {tabIndex === 1 && (
-          <Paper elevation={0} sx={{ border: '1px solid #E2E8F0', borderRadius: 4, background: '#FFFFFF', overflow: 'hidden' }}>
+          <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
             {loadingList ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}><CircularProgress sx={{ color: '#6366F1' }} /></Box>
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}><CircularProgress sx={{ color: 'primary.main' }} /></Box>
             ) : projectsList.length === 0 ? (
               <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có dự án nào.</Typography></Box>
             ) : (
               <>
-                {/* Projects Bulk Action Header */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
-                  <FormControlLabel
-                    control={<Checkbox checked={selectedProjects.length > 0 && selectedProjects.length === projectsList.length} indeterminate={selectedProjects.length > 0 && selectedProjects.length < projectsList.length} onChange={handleToggleAllProjects} />}
-                    label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Chọn tất cả</Typography>}
-                    sx={{ ml: 0.5 }}
-                  />
+                {/* Projects Bulk Action & Reorder Header */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <FormControlLabel
+                      control={<Checkbox checked={selectedProjects.length > 0 && selectedProjects.length === projectsList.length} indeterminate={selectedProjects.length > 0 && selectedProjects.length < projectsList.length} onChange={handleToggleAllProjects} />}
+                      label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Chọn tất cả</Typography>}
+                      sx={{ ml: 0.5 }}
+                    />
+                    {isOrderChanged && (
+                      <Button variant="contained" size="small" onClick={saveNewOrder} sx={{ ml: 2 }}>Lưu thứ tự mới</Button>
+                    )}
+                  </Box>
                   {selectedProjects.length > 0 && (
                     <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteProjectsConfirm(true)} startIcon={<DeleteIcon />}>
                       Xoá {selectedProjects.length} mục
                     </Button>
                   )}
                 </Box>
-                <List sx={{ p: 0 }}>
-                  {projectsList.map((project, idx) => (
-                    <Box key={project.id}>
-                      {idx > 0 && <Divider />}
-                      <ListItem sx={{ py: 2 }}>
-                        <Checkbox 
-                          checked={selectedProjects.includes(project.id)} 
-                          onChange={() => handleToggleProject(project.id)} 
-                          sx={{ mr: 1 }} 
-                        />
-                        <ListItemAvatar>
-                          <Avatar src={project.thumbnail} variant="rounded" sx={{ width: 64, height: 40, mr: 1, border: '1px solid #E2E8F0' }} />
-                        </ListItemAvatar>
-                        <ListItemText 
-                          primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A' }}>{project.name}</Typography>}
-                          secondary={<Typography variant="caption" sx={{ color: '#64748B' }}>{project.category} • {project.semester}</Typography>}
-                        />
-                        <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
-                          <IconButton size="small" onClick={() => {
+                
+                {/* DndContext for Drag and Drop */}
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={projectsList.map(p => p.id)} strategy={verticalListSortingStrategy}>
+                    <List sx={{ p: 0 }}>
+                      {projectsList.map((project, idx) => (
+                        <SortableProjectItem 
+                          key={project.id} 
+                          id={project.id}
+                          project={project} 
+                          idx={idx}
+                          isSelected={selectedProjects.includes(project.id)}
+                          onToggle={handleToggleProject}
+                          onEdit={(p: any) => {
                             setFormData({
-                              id: project.id, name: project.name, description: project.description, thumbnail: project.thumbnail,
-                              youtubeUrl: project.youtubeUrl || '', category: project.category,
-                              teamMembers: Array.isArray(project.teamMembers) ? project.teamMembers.join('\n') : project.teamMembers,
-                              semester: project.semester,
+                              id: p.id, name: p.name, description: p.description, thumbnail: p.thumbnail,
+                              youtubeUrl: p.youtubeUrl || '', category: p.category,
+                              teamMembers: Array.isArray(p.teamMembers) ? p.teamMembers.join('\n') : p.teamMembers,
+                              semester: p.semester,
+                              techTags: Array.isArray(p.techTags) ? p.techTags.join(', ') : (p.techTags || ''),
                             });
                             setTabIndex(0);
-                          }} sx={{ color: '#6366F1', bgcolor: '#EEF2FF' }}><EditIcon fontSize="small" /></IconButton>
-                          <IconButton size="small" onClick={() => { setProjectToDelete(project.id); setDeleteConfirmOpen(true); }} sx={{ color: '#EF4444', bgcolor: '#FEF2F2' }}><DeleteIcon fontSize="small" /></IconButton>
-                        </Box>
-                      </ListItem>
-                    </Box>
-                  ))}
-                </List>
+                          }}
+                          onDelete={(id: string) => { setProjectToDelete(id); setDeleteConfirmOpen(true); }}
+                        />
+                      ))}
+                    </List>
+                  </SortableContext>
+                </DndContext>
               </>
             )}
           </Paper>
@@ -579,7 +657,7 @@ export default function AdminForm() {
         {/* Tab 2: Manage Categories */}
         {tabIndex === 2 && (
           <Box>
-            <Paper elevation={0} sx={{ p: 3, mb: 3, border: '1px solid #E2E8F0', borderRadius: 4, background: '#FFFFFF' }}>
+            <Paper elevation={0} sx={{ p: 3, mb: 3, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper' }}>
               <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
                 <TextField fullWidth size="small" label="Tên loại dự án mới" value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddCategory())} />
                 <Button variant="contained" onClick={handleAddCategory} disabled={loadingCategories || !newCategoryName.trim()} startIcon={loadingCategories ? <CircularProgress size={18} color="inherit" /> : <AddIcon />} sx={{ minWidth: 150, background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)' }}>
@@ -588,15 +666,14 @@ export default function AdminForm() {
               </Box>
             </Paper>
 
-            <Paper elevation={0} sx={{ border: '1px solid #E2E8F0', borderRadius: 4, background: '#FFFFFF', overflow: 'hidden' }}>
+            <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
               {loadingCategories ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}><CircularProgress sx={{ color: '#10B981' }} /></Box>
               ) : categoriesList.length === 0 ? (
                 <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có loại dự án nào.</Typography></Box>
               ) : (
                 <>
-                  {/* Categories Bulk Action Header */}
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
                     <FormControlLabel
                       control={<Checkbox checked={selectedCategories.length > 0 && selectedCategories.length === categoriesList.length} indeterminate={selectedCategories.length > 0 && selectedCategories.length < categoriesList.length} onChange={handleToggleAllCategories} />}
                       label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Chọn tất cả</Typography>}
@@ -613,17 +690,13 @@ export default function AdminForm() {
                       <Box key={cat.id}>
                         {idx > 0 && <Divider />}
                         <ListItem sx={{ py: 2 }}>
-                          <Checkbox 
-                            checked={selectedCategories.includes(cat.id)} 
-                            onChange={() => handleToggleCategory(cat.id)} 
-                            sx={{ mr: 1 }} 
-                          />
+                          <Checkbox checked={selectedCategories.includes(cat.id)} onChange={() => handleToggleCategory(cat.id)} sx={{ mr: 1 }} />
                           <ListItemText 
-                            primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0F172A' }}>{cat.name}</Typography>}
+                            primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{cat.name}</Typography>}
                             secondary={<Chip label="Giao diện nhãn" size="small" sx={{ mt: 1, background: cat.bg, color: cat.text, fontWeight: 700 }} />}
                           />
                           <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
-                            <IconButton size="small" onClick={() => { setCategoryToDelete(cat.id); }} sx={{ color: '#EF4444', bgcolor: '#FEF2F2' }}><DeleteIcon fontSize="small" /></IconButton>
+                            <IconButton size="small" onClick={() => { setCategoryToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'error.light', opacity: 0.2 }}><DeleteIcon fontSize="small" /></IconButton>
                           </Box>
                         </ListItem>
                       </Box>

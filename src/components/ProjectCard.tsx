@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import {
   Card, CardMedia, CardContent, Typography, CardActions, Button, Chip,
-  Box, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Grid, Avatar,
+  Box, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Grid, Avatar, Snackbar, Alert, useTheme
 } from '@mui/material';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import CloseIcon from '@mui/icons-material/Close';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import GroupsIcon from '@mui/icons-material/Groups';
+import ShareIcon from '@mui/icons-material/Share';
+import CodeIcon from '@mui/icons-material/Code';
 import type { Project } from '../types/Project';
 import { motion } from 'framer-motion';
 
@@ -17,6 +19,7 @@ interface Props {
 }
 
 const getYoutubeId = (url: string) => {
+  if (!url) return null;
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
   const match = url.match(regExp);
   return match && match[2].length === 11 ? match[2] : null;
@@ -24,11 +27,29 @@ const getYoutubeId = (url: string) => {
 
 const defaultColor = { bg: '#EEF2FF', text: '#6366F1' };
 
+const getAvatarLetter = (name: string) => {
+  if (!name) return '?';
+  const words = name.trim().split(' ');
+  const lastWord = words[words.length - 1];
+  return lastWord.charAt(0).toUpperCase();
+};
+
 export default function ProjectCard({ project, categoryColors = {} }: Props) {
   const [openVideo, setOpenVideo] = useState(false);
   const [openDetail, setOpenDetail] = useState(false);
+  const [shareSuccess, setShareSuccess] = useState(false);
+  
+  const muiTheme = useTheme();
   const youtubeId = getYoutubeId(project.youtubeUrl);
   const colors = categoryColors[project.category] || defaultColor;
+
+  const handleShare = () => {
+    // Generate URL like: http://domain.com/#/?project=123
+    const baseUrl = window.location.origin + window.location.pathname;
+    const shareUrl = `${baseUrl}#/?project=${project.id}`;
+    navigator.clipboard.writeText(shareUrl);
+    setShareSuccess(true);
+  };
 
   return (
     <>
@@ -38,11 +59,11 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          background: '#FFFFFF',
+          bgcolor: 'background.paper',
           transition: 'all 0.3s ease',
           '&:hover': {
-            boxShadow: '0 16px 48px rgba(99, 102, 241, 0.12)',
-            borderColor: '#C7D2FE',
+            boxShadow: muiTheme.palette.mode === 'light' ? '0 16px 48px rgba(99, 102, 241, 0.12)' : '0 16px 48px rgba(99, 102, 241, 0.25)',
+            borderColor: 'primary.light',
           },
           '&:hover .card-image': {
             transform: 'scale(1.05)',
@@ -72,6 +93,17 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
                 }}
               />
             </Box>
+            <IconButton 
+              onClick={handleShare}
+              size="small" 
+              sx={{ 
+                position: 'absolute', top: 12, right: 12, 
+                bgcolor: 'rgba(255, 255, 255, 0.8)', color: '#6366F1',
+                '&:hover': { bgcolor: '#FFFFFF' }, backdropFilter: 'blur(4px)'
+              }}
+            >
+              <ShareIcon fontSize="small" />
+            </IconButton>
           </Box>
 
           {/* Content */}
@@ -80,15 +112,28 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
               fontWeight: 700,
               fontSize: '1.05rem',
               lineHeight: 1.35,
-              color: '#0F172A',
+              color: 'text.primary',
               mb: 1,
             }}>
               {project.name}
             </Typography>
-            <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', mb: 1.5, color: '#64748B', fontWeight: 600 }}>
+            <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', mb: 1.5, color: 'text.secondary', fontWeight: 600 }}>
               <CalendarTodayIcon sx={{ fontSize: 14, mr: 0.5 }} />
               {project.semester}
             </Typography>
+
+            {/* Tech Tags */}
+            {project.techTags && project.techTags.length > 0 && (
+              <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1.5 }}>
+                {project.techTags.slice(0, 3).map((tag, i) => (
+                  <Chip key={i} label={tag} size="small" variant="outlined" sx={{ fontSize: '0.65rem', height: 20, borderColor: 'divider', color: 'text.secondary' }} />
+                ))}
+                {project.techTags.length > 3 && (
+                  <Chip label={`+${project.techTags.length - 3}`} size="small" sx={{ fontSize: '0.65rem', height: 20, bgcolor: 'action.hover' }} />
+                )}
+              </Box>
+            )}
+
             <Box
               dangerouslySetInnerHTML={{ __html: project.description }}
               sx={{
@@ -96,7 +141,7 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
-                color: '#475569',
+                color: 'text.secondary',
                 lineHeight: 1.6,
                 mb: 2,
                 minHeight: '3.2em',
@@ -117,11 +162,12 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
                       fontSize: '0.65rem',
                       fontWeight: 700,
                       bgcolor: ['#6366F1', '#EC4899', '#F59E0B'][idx % 3],
-                      border: '2px solid #FFF',
+                      border: '2px solid',
+                      borderColor: 'background.paper',
                       ml: idx > 0 ? -0.8 : 0,
                     }}
                   >
-                    {member.charAt(0)}
+                    {getAvatarLetter(member)}
                   </Avatar>
                 ))}
               </Box>
@@ -137,7 +183,7 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
               size="small"
               startIcon={<InfoOutlinedIcon sx={{ fontSize: 18 }} />}
               onClick={() => setOpenDetail(true)}
-              sx={{ color: '#64748B', fontSize: '0.8rem', '&:hover': { color: '#6366F1', background: '#F5F3FF' } }}
+              sx={{ color: 'text.secondary', fontSize: '0.8rem', '&:hover': { color: 'primary.main', bgcolor: 'action.hover' } }}
             >
               Chi tiết
             </Button>
@@ -166,12 +212,12 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
       {/* Video Modal */}
       <Dialog open={openVideo} onClose={() => setOpenVideo(false)} maxWidth="md" fullWidth>
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, color: '#0F172A' }}>{project.name}</Typography>
-          <IconButton onClick={() => setOpenVideo(false)} size="small" sx={{ color: '#94A3B8' }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>{project.name}</Typography>
+          <IconButton onClick={() => setOpenVideo(false)} size="small" sx={{ color: 'text.secondary' }}>
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent dividers sx={{ p: 0, height: '60vh', borderColor: '#E2E8F0' }}>
+        <DialogContent dividers sx={{ p: 0, height: '60vh', borderColor: 'divider' }}>
           {youtubeId && (
             <iframe
               width="100%" height="100%"
@@ -185,15 +231,20 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
       {/* Detail Modal */}
       <Dialog open={openDetail} onClose={() => setOpenDetail(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
-          <Typography variant="h5" sx={{ fontWeight: 800, color: '#6366F1' }}>
+          <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>
             Chi tiết dự án
           </Typography>
-          <IconButton onClick={() => setOpenDetail(false)} size="small" sx={{ color: '#94A3B8' }}>
-            <CloseIcon />
-          </IconButton>
+          <Box>
+            <IconButton onClick={handleShare} size="small" sx={{ color: 'text.secondary', mr: 1 }}>
+              <ShareIcon />
+            </IconButton>
+            <IconButton onClick={() => setOpenDetail(false)} size="small" sx={{ color: 'text.secondary' }}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
         </DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: '#0F172A', mb: 2 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary', mb: 2 }}>
             {project.name}
           </Typography>
 
@@ -210,15 +261,25 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
               label={project.semester}
               size="small"
               variant="outlined"
-              sx={{ borderColor: '#E2E8F0', color: '#64748B', fontWeight: 500 }}
+              sx={{ borderColor: 'divider', color: 'text.secondary', fontWeight: 500 }}
             />
+            {project.techTags && project.techTags.map((tag, i) => (
+              <Chip
+                key={i}
+                icon={<CodeIcon sx={{ fontSize: 14 }} />}
+                label={tag}
+                size="small"
+                variant="outlined"
+                sx={{ borderColor: 'divider', color: 'text.secondary', fontWeight: 500 }}
+              />
+            ))}
           </Box>
 
           {/* Description */}
           <Box 
             dangerouslySetInnerHTML={{ __html: project.description }}
             sx={{ 
-              color: '#334155', 
+              color: 'text.primary', 
               lineHeight: 1.8, 
               mb: 3, 
               fontSize: '1rem',
@@ -228,21 +289,21 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
           />
 
           {/* Team */}
-          <Box sx={{ p: 2.5, borderRadius: 3, background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+          <Box sx={{ p: 2.5, borderRadius: 3, bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <GroupsIcon sx={{ color: '#6366F1', fontSize: 20 }} />
-              <Typography variant="subtitle2" sx={{ color: '#0F172A', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.75rem' }}>
+              <GroupsIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+              <Typography variant="subtitle2" sx={{ color: 'text.primary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '0.75rem' }}>
                 Team thực hiện
               </Typography>
             </Box>
             <Grid container spacing={1.5}>
               {project.teamMembers.map((member, idx) => (
                 <Grid size={{ xs: 12 }} key={idx}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1, borderRadius: 2, '&:hover': { background: '#EEF2FF' } }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1, borderRadius: 2, '&:hover': { bgcolor: 'action.hover' } }}>
                     <Avatar sx={{ width: 30, height: 30, fontSize: '0.75rem', fontWeight: 700, bgcolor: ['#6366F1', '#EC4899', '#F59E0B', '#10B981'][idx % 4] }}>
-                      {member.charAt(0)}
+                      {getAvatarLetter(member)}
                     </Avatar>
-                    <Typography variant="body2" sx={{ fontWeight: 600, color: '#334155', fontSize: '0.825rem' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary', fontSize: '0.825rem' }}>
                       {member}
                     </Typography>
                   </Box>
@@ -251,12 +312,18 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
             </Grid>
           </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 2.5, borderTop: '1px solid #E2E8F0' }}>
-          <Button onClick={() => setOpenDetail(false)} variant="outlined" sx={{ borderColor: '#E2E8F0', color: '#64748B', '&:hover': { borderColor: '#6366F1', color: '#6366F1' } }}>
+        <DialogActions sx={{ p: 2.5, borderTop: '1px solid', borderColor: 'divider' }}>
+          <Button onClick={() => setOpenDetail(false)} variant="outlined" sx={{ borderColor: 'divider', color: 'text.secondary', '&:hover': { borderColor: 'primary.main', color: 'primary.main' } }}>
             Đóng
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar open={shareSuccess} autoHideDuration={3000} onClose={() => setShareSuccess(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert onClose={() => setShareSuccess(false)} severity="success" sx={{ width: '100%' }}>
+          Đã copy link dự án!
+        </Alert>
+      </Snackbar>
     </>
   );
 }

@@ -1,19 +1,24 @@
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import ProjectGallery from './components/ProjectGallery';
 import AdminForm from './components/AdminForm';
-import { AppBar, Toolbar, Typography, Button, Container, Box } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, Container, Box, IconButton, useTheme } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import { useAppTheme } from './ThemeContext';
 
 function App() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { mode, toggleTheme } = useAppTheme();
+  const theme = useTheme();
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
       {/* Navbar */}
       <AppBar position="sticky" elevation={0} sx={{
-        background: 'rgba(255, 255, 255, 0.85)',
+        background: mode === 'light' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(30, 41, 59, 0.85)',
         backdropFilter: 'blur(16px)',
         borderBottom: '1px solid',
         borderColor: 'divider',
@@ -34,11 +39,14 @@ function App() {
               sx={{
                 color: location.pathname === '/' ? 'primary.main' : 'text.secondary',
                 fontWeight: location.pathname === '/' ? 700 : 500,
-                '&:hover': { background: '#F1F5F9' },
+                '&:hover': { background: theme.palette.action.hover },
               }}
             >
               Khám phá
             </Button>
+            <IconButton onClick={toggleTheme} sx={{ color: 'text.secondary', ml: 1 }}>
+              {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+            </IconButton>
             {import.meta.env.DEV && (
               <Button
                 variant="contained"
@@ -74,7 +82,7 @@ function App() {
       <Box component="footer" sx={{
         py: 4, textAlign: 'center',
         borderTop: '1px solid', borderColor: 'divider',
-        background: 'var(--bg-white)',
+        bgcolor: 'background.paper',
       }}>
         <Typography variant="body2" color="text.secondary">
           © {new Date().getFullYear()} Một sản phẩm được xây dựng bởi DinhNT24
