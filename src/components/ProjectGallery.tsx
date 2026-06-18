@@ -58,9 +58,23 @@ export default function ProjectGallery() {
   const muiTheme = useTheme();
 
   useEffect(() => {
+    let projectsUrl = `${import.meta.env.BASE_URL}data/projects.json`;
+    let categoriesUrl = `${import.meta.env.BASE_URL}data/categories.json`;
+
+    // Nếu đang chạy trên GitHub Pages, tự động lấy dữ liệu raw để không cần chờ Build
+    if (window.location.hostname.includes('.github.io')) {
+      const owner = window.location.hostname.split('.')[0];
+      const repo = window.location.pathname.split('/')[1];
+      if (owner && repo) {
+        const t = Date.now(); // Bypass trình duyệt cache
+        projectsUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/public/data/projects.json?t=${t}`;
+        categoriesUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/public/data/categories.json?t=${t}`;
+      }
+    }
+
     Promise.all([
-      fetch(`${import.meta.env.BASE_URL}data/projects.json`).then(res => res.json()),
-      fetch(`${import.meta.env.BASE_URL}data/categories.json`).then(res => res.json()).catch(() => [])
+      fetch(projectsUrl).then(res => res.json()),
+      fetch(categoriesUrl).then(res => res.json()).catch(() => [])
     ])
       .then(([projData, catData]) => {
         setProjects(projData || []);

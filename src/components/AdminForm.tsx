@@ -449,13 +449,13 @@ export default function AdminForm() {
 
     try {
       if (isCategoriesChanged) {
-        const newSha = await commitFile(getCategoriesApiUrl(), categoriesList, categoriesSha, `Update categories (Bulk save)`);
+        const newSha = await commitFile(getCategoriesApiUrl(), categoriesList, categoriesSha, `Update categories (Bulk save) [skip ci]`);
         setOriginalCategories(categoriesList);
         setCategoriesSha(newSha);
         successCount++;
       }
       if (isProjectsChanged) {
-        const newSha = await commitFile(getProjectsApiUrl(), projectsList, projectsSha, `Update projects (Bulk save)`);
+        const newSha = await commitFile(getProjectsApiUrl(), projectsList, projectsSha, `Update projects (Bulk save) [skip ci]`);
         setOriginalProjects(projectsList);
         setProjectsSha(newSha);
         successCount++;
