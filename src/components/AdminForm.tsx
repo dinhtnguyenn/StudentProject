@@ -362,10 +362,9 @@ export default function AdminForm() {
     }
 
     const thumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}`;
+    const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}`;
     const pageRes = await fetch(proxyUrl);
-    const proxyData = await pageRes.json();
-    const html = proxyData.contents;
+    const html = await pageRes.text();
 
     let description = '';
     let teamMembers: string[] = [];
@@ -414,12 +413,10 @@ export default function AdminForm() {
     if (!articleFormData.link.trim()) return;
     setFetchingArticle(true);
     try {
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(articleFormData.link.trim())}`;
+      const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(articleFormData.link.trim())}`;
       const res = await fetch(proxyUrl);
-      const data = await res.json();
-      if (!data.contents) throw new Error('Không thể tải trang');
-      
-      const html = data.contents;
+      const html = await res.text();
+      if (!html) throw new Error('Không thể tải trang');
       let title = '';
       let imageUrl = '';
 
@@ -464,12 +461,9 @@ export default function AdminForm() {
       const playlistId = extractPlaylistId(bulkYoutubeUrl.trim());
       if (!playlistId) throw new Error('Link Playlist không hợp lệ. Vui lòng nhập link có chứa ?list=...');
 
-      // Use RSS Feed via allorigins for reliable playlist fetching (first 15 videos) or full HTML scraping
-      // Actually, scraping HTML is better to get all videos
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.youtube.com/playlist?list=${playlistId}`)}`;
-      const res = await fetch(proxyUrl);
-      const data = await res.json();
-      const html = data.contents;
+      const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(`https://www.youtube.com/playlist?list=${playlistId}`)}`;
+      const pageRes = await fetch(proxyUrl);
+      const html = await pageRes.text();
       
       const videoIds = new Set<string>();
       const regex = /"videoId":"([a-zA-Z0-9_-]{11})"/g;
@@ -1108,7 +1102,8 @@ export default function AdminForm() {
                           <Checkbox checked={selectedCategories.includes(cat.id)} onChange={() => handleToggleCategory(cat.id)} sx={{ mr: 1 }} />
                           <ListItemText
                             primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{cat.name}</Typography>}
-                            secondary={<Chip label="Giao diện nhãn" size="small" sx={{ mt: 1, background: cat.bg, color: cat.text, fontWeight: 700 }} />}
+                            secondary={<Box sx={{ mt: 1 }}><Chip label="Giao diện nhãn" size="small" sx={{ background: cat.bg, color: cat.text, fontWeight: 700 }} /></Box>}
+                            disableTypography
                           />
                           <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
                             <IconButton size="small" onClick={() => { setCategoryToDelete(cat.id); setDeleteConfirmOpen(true); }} sx={{ color: 'error.main', bgcolor: 'error.light', opacity: 0.2 }}><DeleteIcon fontSize="small" /></IconButton>
@@ -1260,7 +1255,8 @@ export default function AdminForm() {
                             <Checkbox checked={selectedMajors.includes(cat.id)} onChange={() => handleToggleMajor(cat.id)} sx={{ mr: 1 }} />
                             <ListItemText
                               primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{cat.name}</Typography>}
-                              secondary={<Chip label="Giao diện nhãn" size="small" sx={{ mt: 1, background: cat.bg, color: cat.text, fontWeight: 700 }} />}
+                              secondary={<Box sx={{ mt: 1 }}><Chip label="Giao diện nhãn" size="small" sx={{ background: cat.bg, color: cat.text, fontWeight: 700 }} /></Box>}
+                              disableTypography
                             />
                             <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
                               <IconButton size="small" onClick={() => { setMajorToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'error.light', opacity: 0.2 }}><DeleteIcon fontSize="small" /></IconButton>
@@ -1315,7 +1311,8 @@ export default function AdminForm() {
                             <Checkbox checked={selectedArticleTypes.includes(cat.id)} onChange={() => handleToggleArticleType(cat.id)} sx={{ mr: 1 }} />
                             <ListItemText
                               primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{cat.name}</Typography>}
-                              secondary={<Chip label="Giao diện nhãn" size="small" sx={{ mt: 1, background: cat.bg, color: cat.text, fontWeight: 700 }} />}
+                              secondary={<Box sx={{ mt: 1 }}><Chip label="Giao diện nhãn" size="small" sx={{ background: cat.bg, color: cat.text, fontWeight: 700 }} /></Box>}
+                              disableTypography
                             />
                             <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
                               <IconButton size="small" onClick={() => { setArticleTypeToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'error.light', opacity: 0.2 }}><DeleteIcon fontSize="small" /></IconButton>
