@@ -539,16 +539,22 @@
   },
   {
     "id": "1781845048785-33",
-    "name": "[Sản phẩm sinh viên] [FA22] [Dự án tốt nghiệp] - Ứng dụng bán máy tính, linh kiện máy tính HighTech",
+    "name": "Ứng dụng bán máy tính, linh kiện máy tính HighTech",
     "description": "",
     "thumbnail": "https://img.youtube.com/vi/0JJjSPCE9oQ/maxresdefault.jpg",
     "youtubeUrl": "https://www.youtube.com/watch?v=0JJjSPCE9oQ",
-    "category": "",
-    "teamMembers": [],
-    "semester": "",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "Lê Thanh Quý",
+      "Lê Kim Thống",
+      "Nguyễn Dương Linh",
+      "Võ Hoàng Nam",
+      "Nguyễn Lam Trường"
+    ],
+    "semester": "FALL 2022",
     "techTags": [],
     "isGoldenTicket": false,
-    "major": ""
+    "major": "Mobile"
   },
   {
     "id": "1781845049895-34",
