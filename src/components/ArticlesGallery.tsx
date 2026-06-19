@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Box, Typography, Grid, Card, CardMedia, CardContent, Chip, CircularProgress, Alert } from '@mui/material';
+import { Box, Typography, Grid, Card, CardContent, Chip, CircularProgress, Alert } from '@mui/material';
 import { motion } from 'framer-motion';
 import type { Article } from '../types/Article';
+import ImageWithFallback from './ImageWithFallback';
 
 export default function ArticlesGallery() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -105,13 +106,11 @@ export default function ArticlesGallery() {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <CardMedia
-                    component="img"
-                    height="200"
-                    image={article.imageUrl || 'https://placehold.co/400x200?text=No+Image'}
+                  <ImageWithFallback
+                    src={article.imageUrl}
                     alt={article.title}
-                    sx={{ objectFit: 'cover' }}
-                    onError={(e) => { e.currentTarget.src = 'https://placehold.co/400x200?text=No+Image'; }}
+                    major={article.major}
+                    height={200}
                   />
                   <CardContent sx={{ flexGrow: 1, p: 3 }}>
                     <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>

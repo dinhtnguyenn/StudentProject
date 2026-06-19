@@ -10,6 +10,7 @@ import SchoolIcon from '@mui/icons-material/School';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import DOMPurify from 'dompurify';
 import CommentSection from './CommentSection';
+import ImageWithFallback from './ImageWithFallback';
 
 interface Props {
   project: Project;
@@ -45,25 +46,17 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
     >
       {/* Hero Banner Area */}
       <Box sx={{ position: 'relative', width: '100%', height: { xs: 200, md: 320 }, bgcolor: 'background.default' }}>
-        {project.thumbnail ? (
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0, left: 0, right: 0, bottom: 0,
-              backgroundImage: `url(${project.thumbnail})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-          />
-        ) : (
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0, left: 0, right: 0, bottom: 0,
-              background: project.isGoldenTicket ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' : 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
-            }}
-          />
-        )}
+        <ImageWithFallback
+          src={project.thumbnail}
+          alt={project.name}
+          major={project.major}
+          height="100%"
+          sx={{
+            position: 'absolute',
+            top: 0, left: 0, right: 0, bottom: 0,
+            width: '100%'
+          }}
+        />
         {/* Gradient Overlay for seamless transition */}
         <Box
           sx={{

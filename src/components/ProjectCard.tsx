@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-  Card, CardMedia, CardContent, Typography, CardActions, Button, Chip,
+  Card, CardContent, Typography, CardActions, Button, Chip,
   Box, Dialog, DialogTitle, DialogContent, IconButton, Avatar, Snackbar, Alert, useTheme
 } from '@mui/material';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutlined';
@@ -14,6 +14,7 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import type { Project } from '../types/Project';
 import { motion } from 'framer-motion';
 import ProjectDetailModal from './ProjectDetailModal';
+import ImageWithFallback from './ImageWithFallback';
 
 interface Props {
   project: Project;
@@ -80,14 +81,13 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
           <Box onClick={() => setOpenDetail(true)} sx={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
             {/* Image */}
             <Box sx={{ overflow: 'hidden', position: 'relative' }}>
-            <CardMedia
+            <ImageWithFallback
               className="card-image"
-              component="img"
-              height="200"
-              image={project.thumbnail || 'https://placehold.co/400x200?text=No+Image'}
+              src={project.thumbnail}
               alt={project.name}
-              sx={{ transition: 'transform 0.5s ease', objectFit: 'cover' }}
-              onError={(e) => { e.currentTarget.src = 'https://placehold.co/400x200?text=No+Image'; }}
+              major={project.major}
+              height={200}
+              sx={{ transition: 'transform 0.5s ease' }}
             />
 
             <IconButton 
