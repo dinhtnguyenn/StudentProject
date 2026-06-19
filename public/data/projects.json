@@ -402,6 +402,23 @@
     "major": "Mobile"
   },
   {
+    "id": "1781913216256",
+    "name": "Hệ thống đặt và giao đồ ăn Coody",
+    "description": "",
+    "thumbnail": "https://img.youtube.com/vi/dywXsOXNF3I/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=dywXsOXNF3I",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS36193 - Trần Hữu An Bình",
+      "PS27989 - Nguyễn Minh Khương",
+      "PS28755 - Nguyễn Lê Hùng"
+    ],
+    "semester": "FALL 2024",
+    "techTags": [],
+    "isGoldenTicket": false,
+    "major": "Mobile"
+  },
+  {
     "id": "1781844992710-24",
     "name": "Game khám phá vùng đất bóng tối",
     "description": "",
@@ -628,5 +645,23 @@
     "techTags": [],
     "isGoldenTicket": false,
     "major": "Mobile"
+  },
+  {
+    "id": "1781913501284",
+    "name": "Game Chiến Binh Cyberpunk",
+    "description": "",
+    "thumbnail": "https://img.youtube.com/vi/tOhzkj5sCZ8/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=tOhzkj5sCZ8",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS40150 - Thái Tăng Phúc Hậu",
+      "PS39905 - Nguyễn Huỳnh Trọng Phúc",
+      "PS32434 - Kiều Minh Thuận",
+      "PS39464 - Ngô Thùy Mỹ Duyên"
+    ],
+    "semester": "SUMMER 2025",
+    "techTags": [],
+    "isGoldenTicket": true,
+    "major": "Game"
   }
 ]
