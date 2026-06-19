@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Box, Typography, TextField, Button, Paper, Snackbar, Alert, Grid,
   CircularProgress, Divider, Collapse, IconButton, InputAdornment,
-  Tabs, Tab, List, ListItem, ListItemText, Avatar, ListItemAvatar,
+  List, ListItem, ListItemText, Avatar, ListItemAvatar, ListSubheader, ListItemButton,
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
   FormControl, InputLabel, Select, MenuItem, Chip, Checkbox, FormControlLabel, useTheme
 } from '@mui/material';
@@ -214,6 +214,7 @@ export default function AdminForm() {
   const [articleFormData, setArticleFormData] = useState({
     id: '', title: '', imageUrl: '', link: '', type: '', major: ''
   });
+  const [fetchingArticle, setFetchingArticle] = useState(false);
 
   // Bulk Import State
   const [bulkYoutubeUrl, setBulkYoutubeUrl] = useState('');
@@ -231,6 +232,16 @@ export default function AdminForm() {
   const [categoriesSha, setCategoriesSha] = useState('');
   const [loadingCategories, setLoadingCategories] = useState(false);
 
+  const [originalMajors, setOriginalMajors] = useState<Category[]>([]);
+  const [majorsList, setMajorsList] = useState<Category[]>([]);
+  const [majorsSha, setMajorsSha] = useState('');
+  const [loadingMajors, setLoadingMajors] = useState(false);
+
+  const [originalArticleTypes, setOriginalArticleTypes] = useState<Category[]>([]);
+  const [articleTypesList, setArticleTypesList] = useState<Category[]>([]);
+  const [articleTypesSha, setArticleTypesSha] = useState('');
+  const [loadingArticleTypes, setLoadingArticleTypes] = useState(false);
+
   const [originalArticles, setOriginalArticles] = useState<any[]>([]);
   const [articlesList, setArticlesList] = useState<any[]>([]);
   const [articlesSha, setArticlesSha] = useState('');
@@ -242,7 +253,9 @@ export default function AdminForm() {
   const isProjectsChanged = JSON.stringify(originalProjects) !== JSON.stringify(projectsList);
   const isCategoriesChanged = JSON.stringify(originalCategories) !== JSON.stringify(categoriesList);
   const isArticlesChanged = JSON.stringify(originalArticles) !== JSON.stringify(articlesList);
-  const hasUnsavedChanges = isProjectsChanged || isCategoriesChanged || isArticlesChanged;
+  const isMajorsChanged = JSON.stringify(originalMajors) !== JSON.stringify(majorsList);
+  const isArticleTypesChanged = JSON.stringify(originalArticleTypes) !== JSON.stringify(articleTypesList);
+  const hasUnsavedChanges = isProjectsChanged || isCategoriesChanged || isArticlesChanged || isMajorsChanged || isArticleTypesChanged;
   const [isSavingAll, setIsSavingAll] = useState(false);
 
   // Modal States
@@ -259,6 +272,8 @@ export default function AdminForm() {
   const getProjectsApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/projects.json`;
   const getCategoriesApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/categories.json`;
   const getArticlesApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/articles.json`;
+  const getMajorsApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/majors.json`;
+  const getArticleTypesApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/articleTypes.json`;
 
   const fetchFile = async (url: string) => {
     const getRes = await fetch(url, { headers: { 'Authorization': `token ${githubToken}`, 'Accept': 'application/vnd.github.v3+json' } });
@@ -307,6 +322,18 @@ export default function AdminForm() {
         .then(res => { setArticlesList(res.data); setOriginalArticles(res.data); setArticlesSha(res.sha); })
         .catch(err => { console.error(err); setFetchError('Lỗi tải danh sách bài viết. Vui lòng không lưu để tránh mất dữ liệu!'); })
         .finally(() => setLoadingArticles(false));
+
+      setLoadingMajors(true);
+      fetchFile(getMajorsApiUrl())
+        .then(res => { setMajorsList(res.data); setOriginalMajors(res.data); setMajorsSha(res.sha); })
+        .catch(err => { console.error(err); setFetchError('Lỗi tải danh mục chuyên ngành. Vui lòng không lưu!'); })
+        .finally(() => setLoadingMajors(false));
+
+      setLoadingArticleTypes(true);
+      fetchFile(getArticleTypesApiUrl())
+        .then(res => { setArticleTypesList(res.data); setOriginalArticleTypes(res.data); setArticleTypesSha(res.sha); })
+        .catch(err => { console.error(err); setFetchError('Lỗi tải danh mục loại bài viết. Vui lòng không lưu!'); })
+        .finally(() => setLoadingArticleTypes(false));
     }
   }, [isAuthenticated, githubToken, githubOwner, githubRepo]);
 
@@ -380,6 +407,47 @@ export default function AdminForm() {
       setStatus({ type: 'error', message: err.message || 'Không thể lấy thông tin video.' });
     } finally {
       setFetching(false);
+    }
+  };
+
+  const handleFetchArticle = async () => {
+    if (!articleFormData.link.trim()) return;
+    setFetchingArticle(true);
+    try {
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(articleFormData.link.trim())}`;
+      const res = await fetch(proxyUrl);
+      const data = await res.json();
+      if (!data.contents) throw new Error('Không thể tải trang');
+      
+      const html = data.contents;
+      let title = '';
+      let imageUrl = '';
+
+      // Parse Open Graph Meta
+      const ogTitleMatch = html.match(/<meta[^>]*property="og:title"[^>]*content="([^"]*)"/i) || html.match(/<meta[^>]*content="([^"]*)"[^>]*property="og:title"/i);
+      if (ogTitleMatch) title = ogTitleMatch[1];
+      else {
+        const titleMatch = html.match(/<title>([^<]*)<\/title>/i);
+        if (titleMatch) title = titleMatch[1];
+      }
+
+      const ogImageMatch = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]*)"/i) || html.match(/<meta[^>]*content="([^"]*)"[^>]*property="og:image"/i);
+      if (ogImageMatch) imageUrl = ogImageMatch[1];
+
+      // Decode entities
+      title = title.replace(/&#x27;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
+
+      setArticleFormData(prev => ({
+        ...prev,
+        title: title || prev.title,
+        imageUrl: imageUrl || prev.imageUrl
+      }));
+
+      setStatus({ type: 'success', message: 'Đã trích xuất thông tin bài viết!' });
+    } catch (err: any) {
+      setStatus({ type: 'error', message: err.message || 'Lỗi lấy dữ liệu bài viết.' });
+    } finally {
+      setFetchingArticle(false);
     }
   };
 
@@ -564,6 +632,72 @@ export default function AdminForm() {
   const handleToggleCategory = (id: string) => setSelectedCategories(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   const handleToggleAllCategories = () => setSelectedCategories(selectedCategories.length === categoriesList.length ? [] : categoriesList.map(c => c.id));
 
+  // Majors Draft Actions
+  const [newMajorName, setNewMajorName] = useState('');
+  const [majorToDelete, setMajorToDelete] = useState<string | null>(null);
+  const [selectedMajors, setSelectedMajors] = useState<string[]>([]);
+  const [bulkDeleteMajorsConfirm, setBulkDeleteMajorsConfirm] = useState(false);
+
+  const handleAddMajor = () => {
+    if (!newMajorName.trim()) return;
+    const colors = generateCategoryColors();
+    const newMajor: Category = { id: Date.now().toString(), name: newMajorName.trim(), ...colors };
+    setMajorsList(prev => [...prev, newMajor]);
+    setNewMajorName('');
+    setStatus({ type: 'success', message: 'Đã lưu nháp chuyên ngành mới!' });
+  };
+
+  const confirmDeleteMajorHandler = () => {
+    if (!majorToDelete) return;
+    setMajorsList(prev => prev.filter(c => c.id !== majorToDelete));
+    setMajorToDelete(null);
+    setStatus({ type: 'info', message: 'Đã xoá chuyên ngành khỏi bản nháp.' });
+  };
+
+  const confirmBulkDeleteMajorsAction = () => {
+    if (selectedMajors.length === 0) return;
+    setMajorsList(prev => prev.filter(c => !selectedMajors.includes(c.id)));
+    setSelectedMajors([]);
+    setBulkDeleteMajorsConfirm(false);
+    setStatus({ type: 'info', message: `Đã xoá nháp ${selectedMajors.length} chuyên ngành.` });
+  };
+
+  const handleToggleMajor = (id: string) => setSelectedMajors(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  const handleToggleAllMajors = () => setSelectedMajors(selectedMajors.length === majorsList.length ? [] : majorsList.map(c => c.id));
+
+  // ArticleTypes Draft Actions
+  const [newArticleTypeName, setNewArticleTypeName] = useState('');
+  const [articleTypeToDelete, setArticleTypeToDelete] = useState<string | null>(null);
+  const [selectedArticleTypes, setSelectedArticleTypes] = useState<string[]>([]);
+  const [bulkDeleteArticleTypesConfirm, setBulkDeleteArticleTypesConfirm] = useState(false);
+
+  const handleAddArticleType = () => {
+    if (!newArticleTypeName.trim()) return;
+    const colors = generateCategoryColors();
+    const newCat: Category = { id: Date.now().toString(), name: newArticleTypeName.trim(), ...colors };
+    setArticleTypesList(prev => [...prev, newCat]);
+    setNewArticleTypeName('');
+    setStatus({ type: 'success', message: 'Đã lưu nháp loại bài viết mới!' });
+  };
+
+  const confirmDeleteArticleTypeHandler = () => {
+    if (!articleTypeToDelete) return;
+    setArticleTypesList(prev => prev.filter(c => c.id !== articleTypeToDelete));
+    setArticleTypeToDelete(null);
+    setStatus({ type: 'info', message: 'Đã xoá loại bài viết khỏi bản nháp.' });
+  };
+
+  const confirmBulkDeleteArticleTypesAction = () => {
+    if (selectedArticleTypes.length === 0) return;
+    setArticleTypesList(prev => prev.filter(c => !selectedArticleTypes.includes(c.id)));
+    setSelectedArticleTypes([]);
+    setBulkDeleteArticleTypesConfirm(false);
+    setStatus({ type: 'info', message: `Đã xoá nháp ${selectedArticleTypes.length} loại bài viết.` });
+  };
+
+  const handleToggleArticleType = (id: string) => setSelectedArticleTypes(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  const handleToggleAllArticleTypes = () => setSelectedArticleTypes(selectedArticleTypes.length === articleTypesList.length ? [] : articleTypesList.map(c => c.id));
+
   // Global Save
   const saveAllChangesToGithub = async () => {
     if (fetchError) {
@@ -594,6 +728,18 @@ export default function AdminForm() {
         const newSha = await commitFile(getArticlesApiUrl(), articlesList, articlesSha, `Update articles (Bulk save) [skip ci]`);
         setOriginalArticles(articlesList);
         setArticlesSha(newSha);
+        successCount++;
+      }
+      if (isMajorsChanged) {
+        const newSha = await commitFile(getMajorsApiUrl(), majorsList, majorsSha, `Update majors (Bulk save) [skip ci]`);
+        setOriginalMajors(majorsList);
+        setMajorsSha(newSha);
+        successCount++;
+      }
+      if (isArticleTypesChanged) {
+        const newSha = await commitFile(getArticleTypesApiUrl(), articleTypesList, articleTypesSha, `Update article types (Bulk save) [skip ci]`);
+        setOriginalArticleTypes(articleTypesList);
+        setArticleTypesSha(newSha);
         successCount++;
       }
 
@@ -666,7 +812,7 @@ export default function AdminForm() {
   }
 
   return (
-    <Box sx={{ maxWidth: 1000, mx: 'auto', pb: 10 }}>
+    <Box sx={{ maxWidth: 1440, mx: 'auto', px: { xs: 2, md: 4, lg: 6 }, pt: 4, pb: 10 }}>
       {/* Unsaved Changes Banner */}
       <Collapse in={hasUnsavedChanges}>
         <Paper elevation={3} sx={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, display: 'flex', alignItems: 'center', gap: 2, p: 2, px: 3, borderRadius: 100, bgcolor: 'warning.light', color: 'warning.contrastText', border: '1px solid', borderColor: 'warning.main', minWidth: 320, justifyContent: 'space-between' }}>
@@ -703,30 +849,50 @@ export default function AdminForm() {
           </IconButton>
         </Box>
 
-        <Paper elevation={0} sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, border: '1px solid', borderColor: 'divider', borderRadius: 4, minHeight: 600, overflow: 'hidden' }}>
+        <Paper elevation={0} sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, border: '1px solid', borderColor: 'divider', borderRadius: 6, minHeight: 650, overflow: 'hidden', boxShadow: '0 20px 50px -10px rgba(0,0,0,0.08)' }}>
           {/* Sidebar */}
-          <Box sx={{ width: { xs: '100%', md: 220 }, flexShrink: 0, borderRight: { xs: 'none', md: '1px solid' }, borderBottom: { xs: '1px solid', md: 'none' }, borderColor: 'divider', bgcolor: 'background.default' }}>
-            <Tabs 
-              orientation="vertical" 
-              value={tabIndex} 
-              onChange={(_, val) => setTabIndex(val)} 
-              variant="scrollable"
-              sx={{ 
-                height: '100%', 
-                '& .MuiTabs-flexContainer': { flexDirection: { xs: 'row', md: 'column' } },
-                '& .MuiTab-root': { alignItems: { xs: 'center', md: 'flex-start' }, px: 3, py: 2, fontWeight: 600, minHeight: 56, textTransform: 'none', fontSize: '0.95rem' } 
-              }}
-            >
-              <Tab label={formData.id ? "Sửa Dự Án" : "Thêm Dự Án"} />
-              <Tab label="QL Dự Án" />
-              <Tab label="Loại Dự Án" />
-              <Tab label="Thêm Bài Viết" />
-              <Tab label="QL Bài Viết" />
-            </Tabs>
+          <Box sx={{ width: { xs: '100%', md: 280 }, flexShrink: 0, borderRight: { xs: 'none', md: '1px solid' }, borderBottom: { xs: '1px solid', md: 'none' }, borderColor: 'divider', bgcolor: 'background.default', p: 2 }}>
+            {/* Groups */}
+            <List sx={{ pt: 0, '& .MuiListItemButton-root': { borderRadius: 3, mb: 0.5, py: 1.2, transition: 'all 0.2s ease', '&.Mui-selected': { bgcolor: 'primary.main', color: 'primary.contrastText', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)', '& .MuiTypography-root': { color: 'primary.contrastText' }, '&:hover': { bgcolor: 'primary.dark' } } } }}>
+              
+              <ListSubheader sx={{ bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'primary.main', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+                📁 NHÓM DỰ ÁN
+              </ListSubheader>
+              <ListItemButton selected={tabIndex === 1} onClick={() => setTabIndex(1)}>
+                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 1 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Dự Án</Typography>} />
+              </ListItemButton>
+              <ListItemButton selected={tabIndex === 0} onClick={() => setTabIndex(0)}>
+                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 0 ? 700 : 500, fontSize: '0.9rem' }}>{formData.id ? "Sửa Dự Án" : "Thêm Dự Án"}</Typography>} />
+              </ListItemButton>
+              <ListItemButton selected={tabIndex === 2} onClick={() => setTabIndex(2)}>
+                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 2 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Loại Dự Án</Typography>} />
+              </ListItemButton>
+
+              <ListSubheader sx={{ bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'secondary.main', fontSize: '0.75rem', letterSpacing: '0.05em', mt: 1 }}>
+                📰 NHÓM BÀI VIẾT
+              </ListSubheader>
+              <ListItemButton selected={tabIndex === 4} onClick={() => setTabIndex(4)}>
+                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 4 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Bài Viết</Typography>} />
+              </ListItemButton>
+              <ListItemButton selected={tabIndex === 3} onClick={() => setTabIndex(3)}>
+                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 3 ? 700 : 500, fontSize: '0.9rem' }}>{articleFormData.id ? "Sửa Bài Viết" : "Thêm Bài Viết"}</Typography>} />
+              </ListItemButton>
+              <ListItemButton selected={tabIndex === 6} onClick={() => setTabIndex(6)}>
+                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 6 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Loại Bài Viết</Typography>} />
+              </ListItemButton>
+
+              <ListSubheader sx={{ bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'info.main', fontSize: '0.75rem', letterSpacing: '0.05em', mt: 1 }}>
+                ⚙️ QUẢN LÝ CHUNG
+              </ListSubheader>
+              <ListItemButton selected={tabIndex === 5} onClick={() => setTabIndex(5)}>
+                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 5 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Chuyên Ngành</Typography>} />
+              </ListItemButton>
+
+            </List>
           </Box>
 
           {/* Main Content */}
-          <Box sx={{ flexGrow: 1, p: { xs: 2, md: 4 }, bgcolor: 'background.paper', overflowY: 'auto' }}>
+          <Box sx={{ flexGrow: 1, p: { xs: 3, md: 5 }, bgcolor: 'background.paper', overflowY: 'auto' }}>
 
         {/* Tab 0: Add / Edit Form */}
         {tabIndex === 0 && (
@@ -787,10 +953,10 @@ export default function AdminForm() {
                     <FormControl fullWidth required>
                       <InputLabel>Chuyên ngành</InputLabel>
                       <Select name="major" value={formData.major} label="Chuyên ngành" onChange={(e) => setFormData({ ...formData, major: e.target.value as string })}>
-                        <MenuItem value="Game">Game</MenuItem>
-                        <MenuItem value="Mobile">Mobile</MenuItem>
-                        <MenuItem value="AI">AI</MenuItem>
-                        <MenuItem value="Web">Web</MenuItem>
+                        {majorsList.map(major => (
+                          <MenuItem key={major.id} value={major.name}>{major.name}</MenuItem>
+                        ))}
+                        {majorsList.length === 0 && <MenuItem disabled value="">Chưa có chuyên ngành nào</MenuItem>}
                       </Select>
                     </FormControl>
                   </Grid>
@@ -960,25 +1126,38 @@ export default function AdminForm() {
           {/* Tab 3: Add / Edit Article Form */}
           {tabIndex === 3 && (
             <Box>
+              {!articleFormData.id && (
+                <Paper elevation={0} sx={{ p: 3, mb: 3, border: `2px dashed ${muiTheme.palette.primary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'text.secondary' }}>Tự động lấy thông tin bài viết</Typography>
+                  <Box sx={{ display: 'flex', gap: 1.5 }}>
+                    <TextField fullWidth size="small" placeholder="Dán link bài viết..." value={articleFormData.link} onChange={e => setArticleFormData({ ...articleFormData, link: e.target.value })} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleFetchArticle())} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} />
+                    <Button variant="contained" onClick={handleFetchArticle} disabled={fetchingArticle || !articleFormData.link.trim()} startIcon={fetchingArticle ? <CircularProgress size={18} color="inherit" /> : <AutoFixHighIcon />} sx={{ minWidth: 150, whiteSpace: 'nowrap', borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.39)', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
+                      {fetchingArticle ? 'Đang cào...' : 'Tự động điền'}
+                    </Button>
+                  </Box>
+                </Paper>
+              )}
+
               <Paper elevation={0} sx={{ p: { xs: 3, md: 4.5 }, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper' }}>
                 <form onSubmit={handleSubmitArticle}>
                   <Grid container spacing={2.5}>
+                    <Grid size={{ xs: 12 }}>
+                      <TextField fullWidth label="Link gốc bài viết" value={articleFormData.link} onChange={e => setArticleFormData({ ...articleFormData, link: e.target.value })} required />
+                    </Grid>
                     <Grid size={{ xs: 12 }}>
                       <TextField fullWidth label="Tên bài viết" value={articleFormData.title} onChange={e => setArticleFormData({ ...articleFormData, title: e.target.value })} required />
                     </Grid>
                     <Grid size={{ xs: 12 }}>
                       <TextField fullWidth label="Link ảnh bài viết" value={articleFormData.imageUrl} onChange={e => setArticleFormData({ ...articleFormData, imageUrl: e.target.value })} required />
                     </Grid>
-                    <Grid size={{ xs: 12 }}>
-                      <TextField fullWidth label="Link gốc bài viết" value={articleFormData.link} onChange={e => setArticleFormData({ ...articleFormData, link: e.target.value })} required />
-                    </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>
                       <FormControl fullWidth required>
                         <InputLabel>Loại bài viết</InputLabel>
                         <Select value={articleFormData.type} label="Loại bài viết" onChange={e => setArticleFormData({ ...articleFormData, type: e.target.value as string })}>
-                          <MenuItem value="Tin tức">Tin tức</MenuItem>
-                          <MenuItem value="Sự kiện">Sự kiện</MenuItem>
-                          <MenuItem value="PR">PR / Hoạt động</MenuItem>
+                          {articleTypesList.map(type => (
+                            <MenuItem key={type.id} value={type.name}>{type.name}</MenuItem>
+                          ))}
+                          {articleTypesList.length === 0 && <MenuItem disabled value="">Chưa có loại bài viết nào</MenuItem>}
                         </Select>
                       </FormControl>
                     </Grid>
@@ -986,11 +1165,10 @@ export default function AdminForm() {
                       <FormControl fullWidth required>
                         <InputLabel>Chuyên ngành</InputLabel>
                         <Select value={articleFormData.major} label="Chuyên ngành" onChange={e => setArticleFormData({ ...articleFormData, major: e.target.value as string })}>
-                          <MenuItem value="Game">Game</MenuItem>
-                          <MenuItem value="Mobile">Mobile</MenuItem>
-                          <MenuItem value="AI">AI</MenuItem>
-                          <MenuItem value="Web">Web</MenuItem>
-                          <MenuItem value="Khác">Khác</MenuItem>
+                          {majorsList.map(major => (
+                            <MenuItem key={major.id} value={major.name}>{major.name}</MenuItem>
+                          ))}
+                          {majorsList.length === 0 && <MenuItem disabled value="">Chưa có chuyên ngành nào</MenuItem>}
                         </Select>
                       </FormControl>
                     </Grid>
@@ -1042,6 +1220,116 @@ export default function AdminForm() {
             </Paper>
           )}
 
+          {/* Tab 5: QL Chuyên Ngành */}
+          {tabIndex === 5 && (
+            <Box>
+              <Paper elevation={0} sx={{ p: 3, mb: 3, border: `2px dashed ${muiTheme.palette.primary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'text.secondary' }}>Thêm Chuyên Ngành Mới</Typography>
+                <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+                  <TextField fullWidth size="small" label="Tên chuyên ngành mới" value={newMajorName} onChange={e => setNewMajorName(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddMajor())} />
+                  <Button variant="contained" onClick={handleAddMajor} disabled={!newMajorName.trim()} startIcon={<AddIcon />} sx={{ minWidth: 150, borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(16, 185, 129, 0.39)', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
+                    Thêm Nháp
+                  </Button>
+                </Box>
+              </Paper>
+
+              <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
+                {loadingMajors ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}><CircularProgress sx={{ color: '#10B981' }} /></Box>
+                ) : majorsList.length === 0 ? (
+                  <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có chuyên ngành nào.</Typography></Box>
+                ) : (
+                  <>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
+                      <FormControlLabel
+                        control={<Checkbox checked={selectedMajors.length > 0 && selectedMajors.length === majorsList.length} indeterminate={selectedMajors.length > 0 && selectedMajors.length < majorsList.length} onChange={handleToggleAllMajors} />}
+                        label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Chọn tất cả</Typography>}
+                        sx={{ ml: 0.5 }}
+                      />
+                      {selectedMajors.length > 0 && (
+                        <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteMajorsConfirm(true)} startIcon={<DeleteIcon />} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
+                          Xoá {selectedMajors.length} mục
+                        </Button>
+                      )}
+                    </Box>
+                    <List sx={{ p: 0 }}>
+                      {majorsList.map((cat, idx) => (
+                        <Box key={cat.id}>
+                          {idx > 0 && <Divider />}
+                          <ListItem sx={{ py: 2 }}>
+                            <Checkbox checked={selectedMajors.includes(cat.id)} onChange={() => handleToggleMajor(cat.id)} sx={{ mr: 1 }} />
+                            <ListItemText
+                              primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{cat.name}</Typography>}
+                              secondary={<Chip label="Giao diện nhãn" size="small" sx={{ mt: 1, background: cat.bg, color: cat.text, fontWeight: 700 }} />}
+                            />
+                            <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                              <IconButton size="small" onClick={() => { setMajorToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'error.light', opacity: 0.2 }}><DeleteIcon fontSize="small" /></IconButton>
+                            </Box>
+                          </ListItem>
+                        </Box>
+                      ))}
+                    </List>
+                  </>
+                )}
+              </Paper>
+            </Box>
+          )}
+
+          {/* Tab 6: QL Loại Bài Viết */}
+          {tabIndex === 6 && (
+            <Box>
+              <Paper elevation={0} sx={{ p: 3, mb: 3, border: `2px dashed ${muiTheme.palette.primary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'text.secondary' }}>Thêm Loại Bài Viết Mới</Typography>
+                <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+                  <TextField fullWidth size="small" label="Tên loại bài viết mới" value={newArticleTypeName} onChange={e => setNewArticleTypeName(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddArticleType())} />
+                  <Button variant="contained" onClick={handleAddArticleType} disabled={!newArticleTypeName.trim()} startIcon={<AddIcon />} sx={{ minWidth: 150, borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(16, 185, 129, 0.39)', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
+                    Thêm Nháp
+                  </Button>
+                </Box>
+              </Paper>
+
+              <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
+                {loadingArticleTypes ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}><CircularProgress sx={{ color: '#10B981' }} /></Box>
+                ) : articleTypesList.length === 0 ? (
+                  <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có loại bài viết nào.</Typography></Box>
+                ) : (
+                  <>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
+                      <FormControlLabel
+                        control={<Checkbox checked={selectedArticleTypes.length > 0 && selectedArticleTypes.length === articleTypesList.length} indeterminate={selectedArticleTypes.length > 0 && selectedArticleTypes.length < articleTypesList.length} onChange={handleToggleAllArticleTypes} />}
+                        label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Chọn tất cả</Typography>}
+                        sx={{ ml: 0.5 }}
+                      />
+                      {selectedArticleTypes.length > 0 && (
+                        <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteArticleTypesConfirm(true)} startIcon={<DeleteIcon />} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
+                          Xoá {selectedArticleTypes.length} mục
+                        </Button>
+                      )}
+                    </Box>
+                    <List sx={{ p: 0 }}>
+                      {articleTypesList.map((cat, idx) => (
+                        <Box key={cat.id}>
+                          {idx > 0 && <Divider />}
+                          <ListItem sx={{ py: 2 }}>
+                            <Checkbox checked={selectedArticleTypes.includes(cat.id)} onChange={() => handleToggleArticleType(cat.id)} sx={{ mr: 1 }} />
+                            <ListItemText
+                              primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{cat.name}</Typography>}
+                              secondary={<Chip label="Giao diện nhãn" size="small" sx={{ mt: 1, background: cat.bg, color: cat.text, fontWeight: 700 }} />}
+                            />
+                            <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                              <IconButton size="small" onClick={() => { setArticleTypeToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'error.light', opacity: 0.2 }}><DeleteIcon fontSize="small" /></IconButton>
+                            </Box>
+                          </ListItem>
+                        </Box>
+                      ))}
+                    </List>
+                  </>
+                )}
+              </Paper>
+            </Box>
+          )}
+
           </Box>
         </Paper>
       </motion.div>
@@ -1080,6 +1368,44 @@ export default function AdminForm() {
         <DialogActions sx={{ p: 2, pt: 0 }}>
           <Button onClick={() => setBulkDeleteCategoriesConfirm(false)} color="inherit" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Huỷ</Button>
           <Button onClick={confirmBulkDeleteCategoriesAction} variant="contained" color="error" disableElevation sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Xoá Hàng Loạt</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Majors Dialogs */}
+      <Dialog open={!!majorToDelete} onClose={() => setMajorToDelete(null)} sx={{ '& .MuiDialog-paper': { borderRadius: 3 } }}>
+        <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá chuyên ngành</DialogTitle>
+        <DialogContent><DialogContentText>Xoá chuyên ngành này khỏi bản nháp?</DialogContentText></DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setMajorToDelete(null)} color="inherit" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Huỷ</Button>
+          <Button onClick={confirmDeleteMajorHandler} variant="contained" color="error" disableElevation sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Xoá</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={bulkDeleteMajorsConfirm} onClose={() => setBulkDeleteMajorsConfirm(false)} sx={{ '& .MuiDialog-paper': { borderRadius: 3 } }}>
+        <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá nhiều chuyên ngành</DialogTitle>
+        <DialogContent><DialogContentText>Xoá {selectedMajors.length} chuyên ngành khỏi bản nháp?</DialogContentText></DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setBulkDeleteMajorsConfirm(false)} color="inherit" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Huỷ</Button>
+          <Button onClick={confirmBulkDeleteMajorsAction} variant="contained" color="error" disableElevation sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Xoá Hàng Loạt</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ArticleTypes Dialogs */}
+      <Dialog open={!!articleTypeToDelete} onClose={() => setArticleTypeToDelete(null)} sx={{ '& .MuiDialog-paper': { borderRadius: 3 } }}>
+        <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá loại bài viết</DialogTitle>
+        <DialogContent><DialogContentText>Xoá loại bài viết này khỏi bản nháp?</DialogContentText></DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setArticleTypeToDelete(null)} color="inherit" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Huỷ</Button>
+          <Button onClick={confirmDeleteArticleTypeHandler} variant="contained" color="error" disableElevation sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Xoá</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={bulkDeleteArticleTypesConfirm} onClose={() => setBulkDeleteArticleTypesConfirm(false)} sx={{ '& .MuiDialog-paper': { borderRadius: 3 } }}>
+        <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá nhiều loại bài viết</DialogTitle>
+        <DialogContent><DialogContentText>Xoá {selectedArticleTypes.length} loại bài viết khỏi bản nháp?</DialogContentText></DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setBulkDeleteArticleTypesConfirm(false)} color="inherit" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Huỷ</Button>
+          <Button onClick={confirmBulkDeleteArticleTypesAction} variant="contained" color="error" disableElevation sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Xoá Hàng Loạt</Button>
         </DialogActions>
       </Dialog>
 
