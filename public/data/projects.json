@@ -403,42 +403,60 @@
   },
   {
     "id": "1781844992710-24",
-    "name": "[Sản phẩm sinh viên] [FA24] [Dự án tốt nghiệp] - Game khám phá vùng đất bóng tối",
+    "name": "Game khám phá vùng đất bóng tối",
     "description": "",
     "thumbnail": "https://img.youtube.com/vi/kwZfE-y_h44/maxresdefault.jpg",
     "youtubeUrl": "https://www.youtube.com/watch?v=kwZfE-y_h44",
-    "category": "",
-    "teamMembers": [],
-    "semester": "",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS34377 - Lương Hữu Nhất",
+      "PK03130 - Nguyễn Trung Thành",
+      "PS33380 - Huỳnh Văn Khánh",
+      "PS32217 - Nguyễn Tân Thuận",
+      "PS35131 - Bùi Hoàng Giáp"
+    ],
+    "semester": "FALL 2024",
     "techTags": [],
     "isGoldenTicket": false,
-    "major": ""
+    "major": "Game"
   },
   {
     "id": "1781844994700-25",
-    "name": "[Sản phẩm sinh viên] [FA24] [Dự án tốt nghiệp] - Game 3D Runner Parkour giải đố",
+    "name": "Game 3D Runner Parkour giải đố",
     "description": "",
     "thumbnail": "https://img.youtube.com/vi/XBolhHZXBLs/maxresdefault.jpg",
     "youtubeUrl": "https://www.youtube.com/watch?v=XBolhHZXBLs",
-    "category": "",
-    "teamMembers": [],
-    "semester": "",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS28093 - Thân Công Chiến",
+      "PS27951 - Nguyễn Hà Thế Huy",
+      "PS28250 - Phan Phúc Thịnh",
+      "PS28671 - Võ Minh Nhựt",
+      "PS33240 - Đặng Nguyên Quốc",
+      "PS36390 - Nguyễn Hồng Thanh Thuận"
+    ],
+    "semester": "FALL 2024",
     "techTags": [],
     "isGoldenTicket": false,
-    "major": ""
+    "major": "Game"
   },
   {
     "id": "1781844996475-26",
-    "name": "[Sản phẩm sinh viên] [FA24] [Dự án tốt nghiệp] - Ứng dụng du lịch & trải nghiệm Wander Vietnam",
+    "name": "Ứng dụng du lịch & trải nghiệm Wander Vietnam",
     "description": "",
     "thumbnail": "https://img.youtube.com/vi/_ba5uE7dpc0/maxresdefault.jpg",
     "youtubeUrl": "https://www.youtube.com/watch?v=_ba5uE7dpc0",
-    "category": "",
-    "teamMembers": [],
-    "semester": "",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS34197 - Phạm Ngọc Quốc Khánh",
+      "PS34205 - Trần Công Chính",
+      "PS33973 - Trần Ngọc Tú",
+      "PS31475 - Nguyễn Duy Tâm"
+    ],
+    "semester": "FALL 2024",
     "techTags": [],
-    "isGoldenTicket": false,
-    "major": ""
+    "isGoldenTicket": true,
+    "major": "Mobile"
   },
   {
     "id": "1781844998606-27",
