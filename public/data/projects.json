@@ -346,42 +346,60 @@
   },
   {
     "id": "1781844980483-20",
-    "name": "[Sản phẩm sinh viên] [SP25] [Dự án tốt nghiệp] - Ứng dụng mạng xã hội Linkage",
+    "name": "Ứng dụng mạng xã hội Linkage",
     "description": "",
     "thumbnail": "https://img.youtube.com/vi/GMJsMurmA44/maxresdefault.jpg",
     "youtubeUrl": "https://www.youtube.com/watch?v=GMJsMurmA44",
-    "category": "",
-    "teamMembers": [],
-    "semester": "",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS36640 - Nguyễn Thiện Thông",
+      "PS26842 - Tằng Quảng Thông",
+      "PS31449 - Phan Hữu Cảnh",
+      "PS36582 - Nguyễn Anh Điền Độ",
+      "PS36752 - Võ Tấn Tài"
+    ],
+    "semester": "SPRING 2025",
     "techTags": [],
-    "isGoldenTicket": false,
-    "major": ""
+    "isGoldenTicket": true,
+    "major": "Mobile"
   },
   {
     "id": "1781844981377-21",
-    "name": "[Sản phẩm sinh viên] [FA24] [Dự án tốt nghiệp] - Ứng dụng đặt vé xem phim Movie Go",
+    "name": "Ứng dụng đặt vé xem phim Movie Go",
     "description": "",
     "thumbnail": "https://img.youtube.com/vi/r_BtCKDlt1w/maxresdefault.jpg",
     "youtubeUrl": "https://www.youtube.com/watch?v=r_BtCKDlt1w",
-    "category": "",
-    "teamMembers": [],
-    "semester": "",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS29024 - Nguyễn Trần Nhật An",
+      "PS35723 - Ngô Thành Phát",
+      "PS33638 - Võ Trung Nguyên",
+      "PS35629 - Lương Thanh Danh",
+      "PS27251 - Nguyễn Văn Huy Hoàng"
+    ],
+    "semester": "FALL 2024",
     "techTags": [],
     "isGoldenTicket": false,
-    "major": ""
+    "major": "Mobile"
   },
   {
     "id": "1781844990580-23",
-    "name": "[Sản phẩm sinh viên] [FA24] [Dự án tốt nghiệp] - Ứng dụng đặt vé du lịch TripAura",
+    "name": "Ứng dụng đặt vé du lịch TripAura",
     "description": "",
     "thumbnail": "https://img.youtube.com/vi/p6SJlpxirmA/maxresdefault.jpg",
     "youtubeUrl": "https://www.youtube.com/watch?v=p6SJlpxirmA",
-    "category": "",
-    "teamMembers": [],
-    "semester": "",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS34368 - Nguyễn Văn Bảo Hoàng",
+      "PS34031 - Nguyễn Minh Nhựt",
+      "PS33773 - Nguyễn Đình Nhật Hoàng",
+      "PS33316 - Phạm Thành Đạt",
+      "PS33354 - Thiều Công Thành"
+    ],
+    "semester": "FALL 2024",
     "techTags": [],
     "isGoldenTicket": false,
-    "major": ""
+    "major": "Mobile"
   },
   {
     "id": "1781844992710-24",
