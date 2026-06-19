@@ -249,29 +249,42 @@
   },
   {
     "id": "1781844974615-15",
-    "name": "[Sản phẩm sinh viên] [SP25] [Dự án tốt nghiệp] - Ứng dụng đồng bộ lịch trình tập luyện GymSync",
+    "name": "Ứng dụng đồng bộ lịch trình tập luyện GymSync",
     "description": "",
     "thumbnail": "https://img.youtube.com/vi/6h4HceIM3WM/maxresdefault.jpg",
     "youtubeUrl": "https://www.youtube.com/watch?v=6h4HceIM3WM",
-    "category": "",
-    "teamMembers": [],
-    "semester": "",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS36681 - Nguyễn Vũ Nhật Tiến",
+      "PS37038 - Nguyễn Văn Thái",
+      "PS29871 - Hoàng Văn Hòa",
+      "PS28241 - Trần Phúc Thiện",
+      "PS37168 - Nguyễn Quốc Anh",
+      "PS29037 - Lê Nhựt Tiến"
+    ],
+    "semester": "SPRING 2025",
     "techTags": [],
-    "isGoldenTicket": false,
-    "major": ""
+    "isGoldenTicket": true,
+    "major": "Mobile"
   },
   {
     "id": "1781844975933-16",
-    "name": "[Sản phẩm sinh viên] [SP25] [Dự án tốt nghiệp] - Ứng dụng đặt lịch khám bệnh FPT",
+    "name": "Ứng dụng đặt lịch khám bệnh FPT",
     "description": "",
     "thumbnail": "https://img.youtube.com/vi/KcXcQSSEX6Q/maxresdefault.jpg",
     "youtubeUrl": "https://www.youtube.com/watch?v=KcXcQSSEX6Q",
-    "category": "",
-    "teamMembers": [],
-    "semester": "",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS31625 - Huỳnh Minh Khải",
+      "PS36737 - Hồ Đắc Toàn",
+      "PS33458 - Lê Văn Dũng",
+      "PS30139 - Nguyễn Khánh Dương",
+      "PD07161 - Nguyễn Hữu Thiện"
+    ],
+    "semester": "SPRING 2025",
     "techTags": [],
     "isGoldenTicket": false,
-    "major": ""
+    "major": "Mobile"
   },
   {
     "id": "1781844977129-17",
