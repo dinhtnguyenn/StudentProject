@@ -460,42 +460,62 @@
   },
   {
     "id": "1781844998606-27",
-    "name": "[Sản phẩm sinh viên] [SU24] [Dự án tốt nghiệp] - Hệ thống book đồ ăn Yumhub",
+    "name": "Hệ thống book đồ ăn Yumhub",
     "description": "",
     "thumbnail": "https://img.youtube.com/vi/kygM6-zAagc/maxresdefault.jpg",
     "youtubeUrl": "https://www.youtube.com/watch?v=kygM6-zAagc",
-    "category": "",
-    "teamMembers": [],
-    "semester": "",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS26626 - Đoàn Thanh Hòa",
+      "PS26625 - Phạm Trọng Nghĩa",
+      "PS26236 - Nguyễn Bá Sơn",
+      "PS26637 - Trương Minh Thi",
+      "PS26283 - Lê Văn Hoàng"
+    ],
+    "semester": "SUMMER 2024",
     "techTags": [],
     "isGoldenTicket": false,
-    "major": ""
+    "major": "Mobile"
   },
   {
     "id": "1781845000753-28",
-    "name": "[Sản phẩm sinh viên] [SU24] [Dự án tốt nghiệp] - Ứng dụng mạng xã hội NetForge",
+    "name": "Ứng dụng mạng xã hội NetForge",
     "description": "",
     "thumbnail": "https://img.youtube.com/vi/IUTeydYP6SU/maxresdefault.jpg",
     "youtubeUrl": "https://www.youtube.com/watch?v=IUTeydYP6SU",
-    "category": "",
-    "teamMembers": [],
-    "semester": "",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS26540 - Lê Hoàng Chiến",
+      "PS26300 - Lê Thanh Tường",
+      "PS26688 - Trần Văn Quyết",
+      "PS27381 - Lê Hoàng Duy",
+      "PS26206 - Lục Thiên Phú",
+      "PS26198 - Trần Hữu Trí"
+    ],
+    "semester": "SUMMER 2024",
     "techTags": [],
     "isGoldenTicket": false,
-    "major": ""
+    "major": "Mobile"
   },
   {
     "id": "1781845008932-30",
-    "name": "[Sản phẩm sinh viên] [SP24] [Dự án tốt nghiệp] - Ứng dụng mạng xã hội SWEET",
+    "name": "Ứng dụng mạng xã hội SWEET",
     "description": "",
     "thumbnail": "https://img.youtube.com/vi/TNx0zKi0RpA/maxresdefault.jpg",
     "youtubeUrl": "https://www.youtube.com/watch?v=TNx0zKi0RpA",
-    "category": "",
-    "teamMembers": [],
-    "semester": "",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PK02294 - Nguyễn Đình Trưng",
+      "ps19523 - Nguyễn Hữu Dũng",
+      "Pk02515 - Nguyễn Phúc Chinh",
+      "ps26023 - Lê Nhật Duy",
+      "PS25951 - Mang Tuấn Vĩ",
+      "PS21635 - Nguyễn Quốc Nam"
+    ],
+    "semester": "SPRING 2024",
     "techTags": [],
     "isGoldenTicket": false,
-    "major": ""
+    "major": "Mobile"
   },
   {
     "id": "1781844937102-1",
