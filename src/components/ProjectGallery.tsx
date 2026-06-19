@@ -27,6 +27,7 @@ export default function ProjectGallery() {
   const [search, setSearch] = useState('');
   const [currentTab, setCurrentTab] = useState('All');
   const [currentSemester, setCurrentSemester] = useState('All');
+  const [currentMajor, setCurrentMajor] = useState('All');
   
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -105,7 +106,7 @@ export default function ProjectGallery() {
   // Reset Load More when filters change
   useEffect(() => {
     setVisibleCount(9);
-  }, [search, currentTab, currentSemester, selectedTags]);
+  }, [search, currentTab, currentSemester, currentMajor, selectedTags]);
 
   if (loading) {
     return (
@@ -118,6 +119,7 @@ export default function ProjectGallery() {
 
   const categoryNames = ['All', ...Array.from(new Set([...categories.map(c => c.name), ...projects.map(p => p.category)]))];
   const semesters = ['All', ...Array.from(new Set(projects.map(p => p.semester)))];
+  const majors = ['All', ...Array.from(new Set(projects.map(p => p.major).filter(Boolean)))];
   const allTags = Array.from(new Set(projects.flatMap(p => p.techTags || [])));
 
   const categoryColors = categories.reduce((acc, cat) => {
@@ -130,8 +132,9 @@ export default function ProjectGallery() {
     const matchesSearch = p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q);
     const matchesTab = currentTab === 'All' || p.category === currentTab;
     const matchesSemester = currentSemester === 'All' || p.semester === currentSemester;
+    const matchesMajor = currentMajor === 'All' || p.major === currentMajor;
     const matchesTags = selectedTags.length === 0 || selectedTags.every(t => (p.techTags || []).includes(t));
-    return matchesSearch && matchesTab && matchesSemester && matchesTags;
+    return matchesSearch && matchesTab && matchesSemester && matchesMajor && matchesTags;
   });
 
   const displayedProjects = filteredProjects.slice(0, visibleCount);
@@ -197,6 +200,20 @@ export default function ProjectGallery() {
                 >
                   {semesters.map(sem => (
                     <MenuItem key={sem} value={sem}>{sem === 'All' ? 'Tất cả học kỳ' : sem}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 160 } }}>
+                <InputLabel>Chuyên ngành</InputLabel>
+                <Select
+                  value={currentMajor}
+                  label="Chuyên ngành"
+                  onChange={e => setCurrentMajor(e.target.value)}
+                  sx={{ borderRadius: 2, bgcolor: 'background.paper' }}
+                >
+                  {majors.map(major => (
+                    <MenuItem key={major} value={major}>{major === 'All' ? 'Tất cả chuyên ngành' : major}</MenuItem>
                   ))}
                 </Select>
               </FormControl>

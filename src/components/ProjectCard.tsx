@@ -9,6 +9,8 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import CloseIcon from '@mui/icons-material/Close';
 import ShareIcon from '@mui/icons-material/Share';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import SchoolIcon from '@mui/icons-material/School';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import type { Project } from '../types/Project';
 import { motion } from 'framer-motion';
 import DOMPurify from 'dompurify';
@@ -86,6 +88,7 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
               image={project.thumbnail || 'https://via.placeholder.com/400x200?text=No+Image'}
               alt={project.name}
               sx={{ transition: 'transform 0.5s ease', objectFit: 'cover' }}
+              onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/400x200?text=No+Image'; }}
             />
             <Box sx={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               <Chip
@@ -115,6 +118,23 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
                     boxShadow: '0 2px 10px rgba(245, 158, 11, 0.5)',
                     backdropFilter: 'blur(8px)',
                     '& .MuiChip-icon': { color: '#FFF' }
+                  }}
+                />
+              )}
+              {project.major && (
+                <Chip
+                  icon={project.isGoldenTicket ? <AutoAwesomeIcon sx={{ fontSize: '12px !important' }} /> : <SchoolIcon sx={{ fontSize: '12px !important' }} />}
+                  label={project.major}
+                  size="small"
+                  sx={{
+                    background: project.isGoldenTicket ? 'linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(217,119,6,0.2) 100%)' : 'rgba(255, 255, 255, 0.85)',
+                    color: project.isGoldenTicket ? '#F59E0B' : 'text.primary',
+                    fontWeight: 700,
+                    fontSize: '0.65rem',
+                    height: 26,
+                    backdropFilter: 'blur(8px)',
+                    border: project.isGoldenTicket ? '1px solid rgba(245,158,11,0.4)' : '1px solid rgba(0,0,0,0.1)',
+                    '& .MuiChip-icon': { color: project.isGoldenTicket ? '#F59E0B' : 'text.secondary' }
                   }}
                 />
               )}
