@@ -23,6 +23,7 @@
       "PlayFab",
       "ZaloPay",
       "PayOS"
-    ]
+    ],
+    "isGoldenTicket": true
   }
 ]
