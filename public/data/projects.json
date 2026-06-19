@@ -288,42 +288,61 @@
   },
   {
     "id": "1781844977129-17",
-    "name": "[Sản phẩm sinh viên] [SP25] [Dự án tốt nghiệp] - Hệ thống đặt và giao đồ uống GreenZone",
+    "name": "Hệ thống đặt và giao đồ uống GreenZone",
     "description": "",
     "thumbnail": "https://img.youtube.com/vi/nYC9JdHXWOU/maxresdefault.jpg",
     "youtubeUrl": "https://www.youtube.com/watch?v=nYC9JdHXWOU",
-    "category": "",
-    "teamMembers": [],
-    "semester": "",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS37610 - Đặng Thị Thu Thảo",
+      "PS37288 - Bùi Ngọc Đại",
+      "PS37913 - Nguyễn Tấn Duy",
+      "PS37618 - Lò Tùng Dương",
+      "PS37470 - Nguyễn Hồng Phong"
+    ],
+    "semester": "SPRING 2025",
     "techTags": [],
     "isGoldenTicket": false,
-    "major": ""
+    "major": "Mobile"
   },
   {
     "id": "1781844978228-18",
-    "name": "[Sản phẩm sinh viên] [SP25] [Dự án tốt nghiệp] - Ứng dụng dịch vụ cưới Wedding Planning",
+    "name": "Ứng dụng dịch vụ cưới Wedding Planning",
     "description": "",
     "thumbnail": "https://img.youtube.com/vi/A6XuUL_GqHk/maxresdefault.jpg",
     "youtubeUrl": "https://www.youtube.com/watch?v=A6XuUL_GqHk",
-    "category": "",
-    "teamMembers": [],
-    "semester": "",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS29565 - Nguyễn Văn Cường",
+      "PS29829 - La Toàn Thịnh",
+      "PS29933 - Hoàng Triệu Tâm Nhân",
+      "PS31500 - Huỳnh Quang Đạt",
+      "PS37551 - Trần Trung Hiếu",
+      "PS37570 - Hoàng Anh Tuấn"
+    ],
+    "semester": "SPRING 2025",
     "techTags": [],
     "isGoldenTicket": false,
-    "major": ""
+    "major": "Mobile"
   },
   {
     "id": "1781844979261-19",
-    "name": "[Sản phẩm sinh viên] [SP25] [Dự án tốt nghiệp] - Game Anh hùng bất diệt Immortal Heroes",
+    "name": "Game Anh hùng bất diệt Immortal Heroes",
     "description": "",
     "thumbnail": "https://img.youtube.com/vi/sjoRV8Hu9sA/maxresdefault.jpg",
     "youtubeUrl": "https://www.youtube.com/watch?v=sjoRV8Hu9sA",
-    "category": "",
-    "teamMembers": [],
-    "semester": "",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS25112 - Lê Tuấn Vũ",
+      "PS31623 - Nguyễn Lữ Minh Hảo",
+      "PS32471 - Đỗ Mạnh Hùng",
+      "PS35087 - Nguyễn Việt Khánh",
+      "PS22512 - Huỳnh Minh Tân"
+    ],
+    "semester": "SPRING 2025",
     "techTags": [],
     "isGoldenTicket": false,
-    "major": ""
+    "major": "Game"
   },
   {
     "id": "1781844980483-20",
