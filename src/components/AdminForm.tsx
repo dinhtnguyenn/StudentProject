@@ -27,6 +27,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import SchoolIcon from '@mui/icons-material/School';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { motion } from 'framer-motion';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -117,7 +118,7 @@ function SortableProjectItem({ project, idx, isSelected, onToggle, onEdit, onDel
         />
         <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
           <IconButton size="small" onClick={() => onEdit(project)} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
-          <IconButton size="small" onClick={() => onDelete(project.id)} sx={{ color: 'error.main', bgcolor: 'error.light', opacity: 0.2 }}><DeleteIcon fontSize="small" /></IconButton>
+          <IconButton size="small" onClick={() => onDelete(project.id)} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
         </Box>
       </ListItem>
     </Box>
@@ -138,6 +139,10 @@ export default function AdminForm() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(true);
 
+  // AI State
+  const [geminiApiKey, setGeminiApiKey] = useState('');
+  const [isAiLoading, setIsAiLoading] = useState<{tags: boolean, summary: boolean}>({ tags: false, summary: false });
+
   const verifyToken = async (token: string, owner: string, repo: string) => {
     try {
       const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
@@ -157,9 +162,11 @@ export default function AdminForm() {
       const token = localStorage.getItem('gh_token') || '';
       const owner = localStorage.getItem('gh_owner') || '';
       const repo = localStorage.getItem('gh_repo') || '';
+      const geminiKey = localStorage.getItem('gemini_api_key') || '';
       setGithubToken(token);
       setGithubOwner(owner);
       setGithubRepo(repo);
+      setGeminiApiKey(geminiKey);
 
       if (token && owner && repo) {
         try {
@@ -1228,7 +1235,7 @@ export default function AdminForm() {
                           />
                           <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
                             <IconButton size="small" onClick={() => { setEditCategoryType('category'); setEditCategoryItem(cat); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
-                            <IconButton size="small" onClick={() => { setCategoryToDelete(cat.id); setDeleteConfirmOpen(true); }} sx={{ color: 'error.main', bgcolor: 'error.light', opacity: 0.2 }}><DeleteIcon fontSize="small" /></IconButton>
+                            <IconButton size="small" onClick={() => { setCategoryToDelete(cat.id); setDeleteConfirmOpen(true); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
                           </Box>
                         </ListItem>
                       </Box>
@@ -1327,7 +1334,7 @@ export default function AdminForm() {
                         />
                         <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
                           <IconButton size="small" onClick={() => { setArticleFormData(article); setTabIndex(3); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
-                          <IconButton size="small" onClick={() => setArticlesList(prev => prev.filter(a => a.id !== article.id))} sx={{ color: 'error.main', bgcolor: 'error.light', opacity: 0.2 }}><DeleteIcon fontSize="small" /></IconButton>
+                          <IconButton size="small" onClick={() => setArticlesList(prev => prev.filter(a => a.id !== article.id))} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
                         </Box>
                       </ListItem>
                     </Box>
@@ -1382,7 +1389,7 @@ export default function AdminForm() {
                             />
                             <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
                               <IconButton size="small" onClick={() => { setEditCategoryType('major'); setEditCategoryItem(cat); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
-                              <IconButton size="small" onClick={() => { setMajorToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'error.light', opacity: 0.2 }}><DeleteIcon fontSize="small" /></IconButton>
+                              <IconButton size="small" onClick={() => { setMajorToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
                             </Box>
                           </ListItem>
                         </Box>
@@ -1439,7 +1446,7 @@ export default function AdminForm() {
                             />
                             <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
                               <IconButton size="small" onClick={() => { setEditCategoryType('articleType'); setEditCategoryItem(cat); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
-                              <IconButton size="small" onClick={() => { setArticleTypeToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'error.light', opacity: 0.2 }}><DeleteIcon fontSize="small" /></IconButton>
+                              <IconButton size="small" onClick={() => { setArticleTypeToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
                             </Box>
                           </ListItem>
                         </Box>
