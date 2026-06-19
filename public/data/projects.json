@@ -538,6 +538,42 @@
     "major": "Mobile"
   },
   {
+    "id": "1781913016046",
+    "name": "Ứng dụng bán giày 5AE",
+    "description": "",
+    "thumbnail": "https://img.youtube.com/vi/eDBrSiBiNqo/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=eDBrSiBiNqo",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS24817 - Hoàng Phi Tùng",
+      "PS24882 - Đặng Văn Việt",
+      "PS24718 - Nguyễn Tấn Thy",
+      "PS24761 - Nguyễn Hữu Hòa"
+    ],
+    "semester": "FALL 2023",
+    "techTags": [],
+    "isGoldenTicket": false,
+    "major": "Mobile"
+  },
+  {
+    "id": "1781912941108",
+    "name": "Ứng dụng thuê xe GoTraffic",
+    "description": "",
+    "thumbnail": "https://img.youtube.com/vi/TNC1_Qg3KNE/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=TNC1_Qg3KNE",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS24943 - Nguyễn Văn Sơn",
+      "PS25024 - Trần Thị Thanh Thuỳ",
+      "PS25048 - Phạm Nguyễn Thế Sơn",
+      "PS24199 - Lê Hoàng Gia Khánh"
+    ],
+    "semester": "FALL 2023",
+    "techTags": [],
+    "isGoldenTicket": false,
+    "major": "Mobile"
+  },
+  {
     "id": "1781845048785-33",
     "name": "Ứng dụng bán máy tính, linh kiện máy tính HighTech",
     "description": "",
@@ -574,5 +610,23 @@
     "techTags": [],
     "isGoldenTicket": false,
     "major": "Mobile"
+  },
+  {
+    "id": "1781913109807",
+    "name": "Game NinjaNDice",
+    "description": "",
+    "thumbnail": "https://img.youtube.com/vi/keRTmAKkMRQ/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=keRTmAKkMRQ",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS26915 - Nguyễn Nam An",
+      "PS27310 - Đặng Bình An",
+      "PS27103 - Ngô Lam Nhật",
+      "PS27246 - Nguyễn Thành Quốc"
+    ],
+    "semester": "SUMMER 2024",
+    "techTags": [],
+    "isGoldenTicket": false,
+    "major": "Game"
   }
 ]
