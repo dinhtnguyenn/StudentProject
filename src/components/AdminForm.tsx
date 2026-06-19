@@ -21,6 +21,11 @@ import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import StarIcon from '@mui/icons-material/Star';
+import FolderIcon from '@mui/icons-material/Folder';
+import ArticleIcon from '@mui/icons-material/Article';
+import SettingsIcon from '@mui/icons-material/Settings';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import SchoolIcon from '@mui/icons-material/School';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import { motion } from 'framer-motion';
 import ReactQuill from 'react-quill-new';
@@ -121,7 +126,7 @@ function SortableProjectItem({ project, idx, isSelected, onToggle, onEdit, onDel
 
 // --- Main Component ---
 export default function AdminForm() {
-  const [tabIndex, setTabIndex] = useState(0);
+  const [tabIndex, setTabIndex] = useState(7);
   const muiTheme = useTheme();
 
   // Settings / Auth State
@@ -685,6 +690,23 @@ export default function AdminForm() {
     setStatus({ type: 'success', message: 'Đã lưu nháp loại bài viết mới!' });
   };
 
+  // --- Category / Major / ArticleType Edit State ---
+  const [editCategoryItem, setEditCategoryItem] = useState<Category | null>(null);
+  const [editCategoryType, setEditCategoryType] = useState<'category' | 'major' | 'articleType'>('category');
+
+  const handleSaveCategoryEdit = () => {
+    if (!editCategoryItem) return;
+    if (editCategoryType === 'category') {
+      setCategoriesList(prev => prev.map(c => c.id === editCategoryItem.id ? editCategoryItem : c));
+    } else if (editCategoryType === 'major') {
+      setMajorsList(prev => prev.map(c => c.id === editCategoryItem.id ? editCategoryItem : c));
+    } else {
+      setArticleTypesList(prev => prev.map(c => c.id === editCategoryItem.id ? editCategoryItem : c));
+    }
+    setEditCategoryItem(null);
+    setStatus({ type: 'success', message: 'Đã lưu chỉnh sửa!' });
+  };
+
   const confirmDeleteArticleTypeHandler = () => {
     if (!articleTypeToDelete) return;
     setArticleTypesList(prev => prev.filter(c => c.id !== articleTypeToDelete));
@@ -860,8 +882,15 @@ export default function AdminForm() {
             {/* Groups */}
             <List sx={{ pt: 0, '& .MuiListItemButton-root': { borderRadius: 3, mb: 0.5, py: 1.2, transition: 'all 0.2s ease', '&.Mui-selected': { bgcolor: 'primary.main', color: 'primary.contrastText', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)', '& .MuiTypography-root': { color: 'primary.contrastText' }, '&:hover': { bgcolor: 'primary.dark' } } } }}>
               
-              <ListSubheader sx={{ bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'primary.main', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
-                📁 NHÓM DỰ ÁN
+              <ListSubheader sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'primary.main', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+                <DashboardIcon fontSize="small" /> TỔNG QUAN
+              </ListSubheader>
+              <ListItemButton selected={tabIndex === 7} onClick={() => setTabIndex(7)} sx={{ mb: 2 }}>
+                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 7 ? 700 : 500, fontSize: '0.9rem' }}>Dashboard</Typography>} />
+              </ListItemButton>
+
+              <ListSubheader sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'primary.main', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+                <FolderIcon fontSize="small" /> NHÓM DỰ ÁN
               </ListSubheader>
               <ListItemButton selected={tabIndex === 1} onClick={() => setTabIndex(1)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 1 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Dự Án</Typography>} />
@@ -873,8 +902,8 @@ export default function AdminForm() {
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 2 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Loại Dự Án</Typography>} />
               </ListItemButton>
 
-              <ListSubheader sx={{ bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'secondary.main', fontSize: '0.75rem', letterSpacing: '0.05em', mt: 1 }}>
-                📰 NHÓM BÀI VIẾT
+              <ListSubheader sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'secondary.main', fontSize: '0.75rem', letterSpacing: '0.05em', mt: 1 }}>
+                <ArticleIcon fontSize="small" /> NHÓM BÀI VIẾT
               </ListSubheader>
               <ListItemButton selected={tabIndex === 4} onClick={() => setTabIndex(4)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 4 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Bài Viết</Typography>} />
@@ -886,8 +915,8 @@ export default function AdminForm() {
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 6 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Loại Bài Viết</Typography>} />
               </ListItemButton>
 
-              <ListSubheader sx={{ bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'info.main', fontSize: '0.75rem', letterSpacing: '0.05em', mt: 1 }}>
-                ⚙️ QUẢN LÝ CHUNG
+              <ListSubheader sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'info.main', fontSize: '0.75rem', letterSpacing: '0.05em', mt: 1 }}>
+                <SettingsIcon fontSize="small" /> QUẢN LÝ CHUNG
               </ListSubheader>
               <ListItemButton selected={tabIndex === 5} onClick={() => setTabIndex(5)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 5 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Chuyên Ngành</Typography>} />
@@ -898,6 +927,87 @@ export default function AdminForm() {
 
           {/* Main Content */}
           <Box sx={{ flexGrow: 1, p: { xs: 3, md: 5 }, bgcolor: 'background.paper', overflowY: 'auto' }}>
+            {/* Tab 7: Dashboard */}
+            {tabIndex === 7 && (
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 800, mb: 4, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <DashboardIcon sx={{ color: 'primary.main', fontSize: 32 }} /> Tổng Quan Hệ Thống
+                </Typography>
+                <Grid container spacing={3} sx={{ mb: 6 }}>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
+                      <Paper elevation={0} sx={{ p: 3, borderRadius: 4, background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)', color: '#1E3A8A', display: 'flex', flexDirection: 'column', gap: 1, position: 'relative', overflow: 'hidden', boxShadow: '0 10px 25px -5px rgba(37, 99, 235, 0.15)', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-4px)' } }}>
+                        <FolderIcon sx={{ position: 'absolute', right: -16, bottom: -16, fontSize: 120, opacity: 0.08, transform: 'rotate(-15deg)' }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, opacity: 0.9 }}>
+                          <FolderIcon fontSize="small" />
+                          <Typography variant="body2" sx={{ fontWeight: 800, letterSpacing: '0.05em' }}>TỔNG SỐ DỰ ÁN</Typography>
+                        </Box>
+                        <Typography variant="h3" sx={{ fontWeight: 900 }}>{projectsList.length}</Typography>
+                      </Paper>
+                    </motion.div>
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}>
+                      <Paper elevation={0} sx={{ p: 3, borderRadius: 4, background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)', color: '#92400E', display: 'flex', flexDirection: 'column', gap: 1, position: 'relative', overflow: 'hidden', boxShadow: '0 10px 25px -5px rgba(245, 158, 11, 0.15)', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-4px)' } }}>
+                        <WorkspacePremiumIcon sx={{ position: 'absolute', right: -16, bottom: -16, fontSize: 120, opacity: 0.08, transform: 'rotate(-15deg)' }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, opacity: 0.9 }}>
+                          <WorkspacePremiumIcon fontSize="small" />
+                          <Typography variant="body2" sx={{ fontWeight: 800, letterSpacing: '0.05em' }}>GOLDEN TICKET</Typography>
+                        </Box>
+                        <Typography variant="h3" sx={{ fontWeight: 900 }}>{projectsList.filter(p => p.isGoldenTicket).length}</Typography>
+                      </Paper>
+                    </motion.div>
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }}>
+                      <Paper elevation={0} sx={{ p: 3, borderRadius: 4, background: 'linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)', color: '#6B21A8', display: 'flex', flexDirection: 'column', gap: 1, position: 'relative', overflow: 'hidden', boxShadow: '0 10px 25px -5px rgba(168, 85, 247, 0.15)', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-4px)' } }}>
+                        <ArticleIcon sx={{ position: 'absolute', right: -16, bottom: -16, fontSize: 120, opacity: 0.08, transform: 'rotate(-15deg)' }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, opacity: 0.9 }}>
+                          <ArticleIcon fontSize="small" />
+                          <Typography variant="body2" sx={{ fontWeight: 800, letterSpacing: '0.05em' }}>TỔNG SỐ BÀI VIẾT</Typography>
+                        </Box>
+                        <Typography variant="h3" sx={{ fontWeight: 900 }}>{articlesList.length}</Typography>
+                      </Paper>
+                    </motion.div>
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.4 }}>
+                      <Paper elevation={0} sx={{ p: 3, borderRadius: 4, background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)', color: '#065F46', display: 'flex', flexDirection: 'column', gap: 1, position: 'relative', overflow: 'hidden', boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.15)', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-4px)' } }}>
+                        <SchoolIcon sx={{ position: 'absolute', right: -16, bottom: -16, fontSize: 120, opacity: 0.08, transform: 'rotate(-15deg)' }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, opacity: 0.9 }}>
+                          <SchoolIcon fontSize="small" />
+                          <Typography variant="body2" sx={{ fontWeight: 800, letterSpacing: '0.05em' }}>CHUYÊN NGÀNH</Typography>
+                        </Box>
+                        <Typography variant="h3" sx={{ fontWeight: 900 }}>{majorsList.length}</Typography>
+                      </Paper>
+                    </motion.div>
+                  </Grid>
+                </Grid>
+
+                <Typography variant="h6" sx={{ fontWeight: 800, mb: 3, color: 'text.primary' }}>Phân Bố Dự Án Theo Chuyên Ngành</Typography>
+                <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
+                  {majorsList.length === 0 ? (
+                    <Typography color="text.secondary">Chưa có dữ liệu chuyên ngành.</Typography>
+                  ) : (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      {majorsList.map(major => {
+                        const count = projectsList.filter(p => p.major === major.name).length;
+                        const percentage = projectsList.length > 0 ? (count / projectsList.length) * 100 : 0;
+                        return (
+                          <Box key={major.id} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <Typography sx={{ width: 150, fontWeight: 600, fontSize: '0.85rem' }} noWrap>{major.name}</Typography>
+                            <Box sx={{ flexGrow: 1, height: 12, bgcolor: 'action.hover', borderRadius: 10, overflow: 'hidden' }}>
+                              <Box sx={{ width: `${percentage}%`, height: '100%', bgcolor: major.bg !== 'transparent' ? major.bg : 'primary.main', transition: 'width 1s ease-in-out' }} />
+                            </Box>
+                            <Typography sx={{ width: 40, textAlign: 'right', fontWeight: 800, fontSize: '0.85rem' }}>{count}</Typography>
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                  )}
+                </Paper>
+              </Box>
+            )}
 
         {/* Tab 0: Add / Edit Form */}
         {tabIndex === 0 && (
@@ -1117,6 +1227,7 @@ export default function AdminForm() {
                             disableTypography
                           />
                           <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                            <IconButton size="small" onClick={() => { setEditCategoryType('category'); setEditCategoryItem(cat); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
                             <IconButton size="small" onClick={() => { setCategoryToDelete(cat.id); setDeleteConfirmOpen(true); }} sx={{ color: 'error.main', bgcolor: 'error.light', opacity: 0.2 }}><DeleteIcon fontSize="small" /></IconButton>
                           </Box>
                         </ListItem>
@@ -1270,6 +1381,7 @@ export default function AdminForm() {
                               disableTypography
                             />
                             <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                              <IconButton size="small" onClick={() => { setEditCategoryType('major'); setEditCategoryItem(cat); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
                               <IconButton size="small" onClick={() => { setMajorToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'error.light', opacity: 0.2 }}><DeleteIcon fontSize="small" /></IconButton>
                             </Box>
                           </ListItem>
@@ -1326,6 +1438,7 @@ export default function AdminForm() {
                               disableTypography
                             />
                             <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                              <IconButton size="small" onClick={() => { setEditCategoryType('articleType'); setEditCategoryItem(cat); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
                               <IconButton size="small" onClick={() => { setArticleTypeToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'error.light', opacity: 0.2 }}><DeleteIcon fontSize="small" /></IconButton>
                             </Box>
                           </ListItem>
@@ -1422,6 +1535,66 @@ export default function AdminForm() {
           {status?.message}
         </Alert>
       </Snackbar>
+
+      {/* Edit Category/Major Dialog */}
+      <Dialog open={!!editCategoryItem} onClose={() => setEditCategoryItem(null)} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ fontWeight: 800 }}>Chỉnh Sửa Thuộc Tính</DialogTitle>
+        <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
+          {editCategoryItem && (
+            <>
+              <TextField
+                label="Tên"
+                fullWidth
+                size="small"
+                value={editCategoryItem.name}
+                onChange={e => setEditCategoryItem({ ...editCategoryItem, name: e.target.value })}
+              />
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <TextField
+                  label="Màu Nền (Mã Hex hoặc Tên màu)"
+                  fullWidth
+                  size="small"
+                  value={editCategoryItem.bg}
+                  onChange={e => setEditCategoryItem({ ...editCategoryItem, bg: e.target.value })}
+                />
+                <input 
+                  type="color" 
+                  value={editCategoryItem.bg.startsWith('#') && editCategoryItem.bg.length === 7 ? editCategoryItem.bg : '#ffffff'} 
+                  onChange={e => setEditCategoryItem({ ...editCategoryItem, bg: e.target.value })}
+                  style={{ width: 40, height: 40, padding: 0, border: 'none', borderRadius: 8, cursor: 'pointer', flexShrink: 0 }}
+                  title="Chọn Màu Nền"
+                />
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <TextField
+                  label="Màu Chữ (Mã Hex hoặc Tên màu)"
+                  fullWidth
+                  size="small"
+                  value={editCategoryItem.text}
+                  onChange={e => setEditCategoryItem({ ...editCategoryItem, text: e.target.value })}
+                />
+                <input 
+                  type="color" 
+                  value={editCategoryItem.text.startsWith('#') && editCategoryItem.text.length === 7 ? editCategoryItem.text : '#000000'} 
+                  onChange={e => setEditCategoryItem({ ...editCategoryItem, text: e.target.value })}
+                  style={{ width: 40, height: 40, padding: 0, border: 'none', borderRadius: 8, cursor: 'pointer', flexShrink: 0 }}
+                  title="Chọn Màu Chữ"
+                />
+              </Box>
+              <Box sx={{ mt: 2, p: 2, borderRadius: 2, border: '1px dashed', borderColor: 'divider', display: 'flex', justifyContent: 'center' }}>
+                <Chip 
+                  label={editCategoryItem.name || 'Xem Trước'} 
+                  sx={{ background: editCategoryItem.bg, color: editCategoryItem.text, fontWeight: 700 }} 
+                />
+              </Box>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setEditCategoryItem(null)} color="inherit" sx={{ fontWeight: 600 }}>Huỷ</Button>
+          <Button onClick={handleSaveCategoryEdit} variant="contained" sx={{ fontWeight: 700, borderRadius: 2 }}>Lưu Thay Đổi</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
