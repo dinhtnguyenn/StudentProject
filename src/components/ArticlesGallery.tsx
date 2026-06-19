@@ -9,13 +9,38 @@ export default function ArticlesGallery() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/data/articles.json')
-      .then(res => res.json())
-      .then(data => {
-        setArticles(data);
+    const localArticlesUrl = `${import.meta.env.BASE_URL}data/articles.json`;
+
+    const fetchWithFallback = async (apiUrl: string, localUrl: string) => {
+      try {
+        const res = await fetch(apiUrl);
+        if (!res.ok) throw new Error('API limit reached or error');
+        const json = await res.json();
+        const decoded = decodeURIComponent(escape(atob(json.content)));
+        return JSON.parse(decoded);
+      } catch (err) {
+        const localRes = await fetch(localUrl);
+        if (!localRes.ok) return [];
+        return localRes.json();
+      }
+    };
+
+    let pPromise = fetch(localArticlesUrl).then(res => res.json());
+
+    if (window.location.hostname.includes('.github.io')) {
+      const owner = window.location.hostname.split('.')[0];
+      const repo = window.location.pathname.split('/')[1];
+      if (owner && repo) {
+        pPromise = fetchWithFallback(`https://api.github.com/repos/${owner}/${repo}/contents/public/data/articles.json`, localArticlesUrl);
+      }
+    }
+
+    pPromise
+      .then((data: any) => {
+        setArticles(data || []);
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err: any) => {
         console.error('Error fetching articles:', err);
         setError('Không thể tải danh sách bài viết.');
         setLoading(false);
