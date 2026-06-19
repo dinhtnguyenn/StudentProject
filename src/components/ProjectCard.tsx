@@ -13,7 +13,6 @@ import SchoolIcon from '@mui/icons-material/School';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import type { Project } from '../types/Project';
 import { motion } from 'framer-motion';
-import DOMPurify from 'dompurify';
 import ProjectDetailModal from './ProjectDetailModal';
 
 interface Props {
@@ -90,55 +89,7 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
               sx={{ transition: 'transform 0.5s ease', objectFit: 'cover' }}
               onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/400x200?text=No+Image'; }}
             />
-            <Box sx={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              <Chip
-                label={project.category}
-                size="small"
-                sx={{
-                  background: project.isGoldenTicket ? 'rgba(245, 158, 11, 0.1)' : colors.bg,
-                  color: project.isGoldenTicket ? '#F59E0B' : colors.text,
-                  fontWeight: 700,
-                  fontSize: '0.7rem',
-                  height: 26,
-                  backdropFilter: 'blur(8px)',
-                }}
-              />
-              {project.isGoldenTicket && (
-                <Chip
-                  icon={<WorkspacePremiumIcon sx={{ fontSize: '14px !important' }} />}
-                  label="GOLDEN TICKET"
-                  size="small"
-                  sx={{
-                    background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-                    color: '#FFF',
-                    fontWeight: 800,
-                    fontSize: '0.65rem',
-                    height: 26,
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    boxShadow: '0 2px 10px rgba(245, 158, 11, 0.5)',
-                    backdropFilter: 'blur(8px)',
-                    '& .MuiChip-icon': { color: '#FFF' }
-                  }}
-                />
-              )}
-              {project.major && (
-                <Chip
-                  icon={project.isGoldenTicket ? <AutoAwesomeIcon sx={{ fontSize: '12px !important' }} /> : <SchoolIcon sx={{ fontSize: '12px !important' }} />}
-                  label={project.major}
-                  size="small"
-                  sx={{
-                    background: project.isGoldenTicket ? 'linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(217,119,6,0.2) 100%)' : 'rgba(255, 255, 255, 0.85)',
-                    color: project.isGoldenTicket ? '#F59E0B' : 'text.primary',
-                    fontWeight: 700,
-                    fontSize: '0.65rem',
-                    height: 26,
-                    backdropFilter: 'blur(8px)',
-                    border: project.isGoldenTicket ? '1px solid rgba(245,158,11,0.4)' : '1px solid rgba(0,0,0,0.1)',
-                    '& .MuiChip-icon': { color: project.isGoldenTicket ? '#F59E0B' : 'text.secondary' }
-                  }}
-                />
-              )}
-            </Box>
+
             <IconButton 
               onClick={handleShare}
               size="small" 
@@ -154,6 +105,51 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
 
           {/* Content */}
           <CardContent sx={{ flexGrow: 1, p: 2.5, pb: 1 }}>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1.5 }}>
+              <Chip
+                label={project.category}
+                size="small"
+                sx={{
+                  background: project.isGoldenTicket ? 'rgba(245, 158, 11, 0.1)' : colors.bg,
+                  color: project.isGoldenTicket ? '#F59E0B' : colors.text,
+                  fontWeight: 700,
+                  fontSize: '0.7rem',
+                  height: 24,
+                }}
+              />
+              {project.isGoldenTicket && (
+                <Chip
+                  icon={<WorkspacePremiumIcon sx={{ fontSize: '14px !important' }} />}
+                  label="GOLDEN TICKET"
+                  size="small"
+                  sx={{
+                    background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                    color: '#FFF',
+                    fontWeight: 800,
+                    fontSize: '0.65rem',
+                    height: 24,
+                    boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)',
+                    '& .MuiChip-icon': { color: '#FFF' }
+                  }}
+                />
+              )}
+              {project.major && (
+                <Chip
+                  icon={project.isGoldenTicket ? <AutoAwesomeIcon sx={{ fontSize: '12px !important' }} /> : <SchoolIcon sx={{ fontSize: '12px !important' }} />}
+                  label={project.major}
+                  size="small"
+                  sx={{
+                    background: project.isGoldenTicket ? 'linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(217,119,6,0.1) 100%)' : 'rgba(0, 0, 0, 0.04)',
+                    color: project.isGoldenTicket ? '#F59E0B' : 'text.primary',
+                    fontWeight: 700,
+                    fontSize: '0.65rem',
+                    height: 24,
+                    border: 'none',
+                    '& .MuiChip-icon': { color: project.isGoldenTicket ? '#F59E0B' : 'text.secondary' }
+                  }}
+                />
+              )}
+            </Box>
             <Typography variant="h6" component="h2" sx={{
               fontWeight: 700,
               fontSize: '1.05rem',
@@ -179,23 +175,6 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
                 )}
               </Box>
             )}
-
-            <Box
-            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(project.description) }}
-              sx={{
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                color: 'text.secondary',
-                lineHeight: 1.6,
-                mb: 2,
-                minHeight: '3.2em',
-                fontSize: '0.875rem',
-                '& p': { margin: 0 },
-                '& ul, & ol': { margin: 0, paddingLeft: 2 }
-              }}
-            />
 
             {/* Team preview */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>

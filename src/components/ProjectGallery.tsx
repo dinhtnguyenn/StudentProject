@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Typography, TextField, Box, CircularProgress, InputAdornment, Grid, Chip, Stack, FormControl, Select, MenuItem, InputLabel, Button, useTheme } from '@mui/material';
+import { useState, useEffect, useRef } from 'react';
+import { Typography, TextField, Box, CircularProgress, InputAdornment, Grid, Chip, Stack, FormControl, Select, MenuItem, InputLabel, useTheme, Button } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
+import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import ProjectCard from './ProjectCard';
 import type { Project } from '../types/Project';
 import type { Category } from '../types/Category';
@@ -28,6 +29,8 @@ export default function ProjectGallery() {
   const [currentTab, setCurrentTab] = useState('All');
   const [currentSemester, setCurrentSemester] = useState('All');
   const [currentMajor, setCurrentMajor] = useState('All');
+  const [showOnlyGoldenTicket, setShowOnlyGoldenTicket] = useState(false);
+  const [isFiltering, setIsFiltering] = useState(false);
   
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -38,6 +41,18 @@ export default function ProjectGallery() {
   const location = useLocation();
   const navigate = useNavigate();
   const muiTheme = useTheme();
+  
+  const observer = useRef<IntersectionObserver | null>(null);
+  const lastElementRef = (node: HTMLDivElement | null) => {
+    if (loading) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) {
+        setVisibleCount(prev => prev + 9);
+      }
+    }, { threshold: 0.1 });
+    if (node) observer.current.observe(node);
+  };
 
   useEffect(() => {
     const localProjectsUrl = `${import.meta.env.BASE_URL}data/projects.json`;
@@ -103,10 +118,15 @@ export default function ProjectGallery() {
     navigate({ search: params.toString() }, { replace: true });
   };
 
-  // Reset Load More when filters change
+  // Reset Load More and trigger loading when filters change
   useEffect(() => {
     setVisibleCount(9);
-  }, [search, currentTab, currentSemester, currentMajor, selectedTags]);
+    setIsFiltering(true);
+    const timer = setTimeout(() => {
+      setIsFiltering(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search, currentTab, currentSemester, currentMajor, showOnlyGoldenTicket, selectedTags]);
 
   if (loading) {
     return (
@@ -133,8 +153,9 @@ export default function ProjectGallery() {
     const matchesTab = currentTab === 'All' || p.category === currentTab;
     const matchesSemester = currentSemester === 'All' || p.semester === currentSemester;
     const matchesMajor = currentMajor === 'All' || p.major === currentMajor;
+    const matchesGolden = showOnlyGoldenTicket ? p.isGoldenTicket : true;
     const matchesTags = selectedTags.length === 0 || selectedTags.every(t => (p.techTags || []).includes(t));
-    return matchesSearch && matchesTab && matchesSemester && matchesMajor && matchesTags;
+    return matchesSearch && matchesTab && matchesSemester && matchesMajor && matchesGolden && matchesTags;
   });
 
   const displayedProjects = filteredProjects.slice(0, visibleCount);
@@ -163,10 +184,11 @@ export default function ProjectGallery() {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }}>
         <Box sx={{
           bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: 4, boxShadow: 1,
-          display: 'flex', flexDirection: 'column', gap: 2, p: 2, px: 3, mb: 5,
+          p: 3, mb: 5,
         }}>
-          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', md: 'center' }, gap: 2 }}>
-            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 0.5, flex: 1 }}>
+          {/* Categories Row */}
+          <Box sx={{ mb: 3 }}>
+            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
               {categoryNames.map(cat => (
                 <Chip
                   key={cat}
@@ -174,11 +196,11 @@ export default function ProjectGallery() {
                   onClick={() => setCurrentTab(cat)}
                   variant={currentTab === cat ? 'filled' : 'outlined'}
                   sx={{
-                    fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer',
+                    fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', height: 32, px: 0.5,
                     ...(currentTab === cat
                       ? {
                         background: 'linear-gradient(135deg, #2563EB, #1D4ED8)',
-                        color: '#FFF', border: 'none', boxShadow: '0 2px 8px rgba(37, 99, 235, 0.3)',
+                        color: '#FFF', border: 'none', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
                       }
                       : {
                         borderColor: 'divider', color: 'text.secondary',
@@ -188,37 +210,84 @@ export default function ProjectGallery() {
                 />
               ))}
             </Stack>
+          </Box>
 
-            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, width: { xs: '100%', md: 'auto' } }}>
-              <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 160 } }}>
+          {/* Filters & Search Row */}
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <FormControl size="small" fullWidth>
                 <InputLabel>Học kỳ</InputLabel>
                 <Select
                   value={currentSemester}
                   label="Học kỳ"
                   onChange={e => setCurrentSemester(e.target.value)}
-                  sx={{ borderRadius: 2, bgcolor: 'background.paper' }}
+                  sx={{ borderRadius: 2, bgcolor: 'background.default' }}
                 >
                   {semesters.map(sem => (
                     <MenuItem key={sem} value={sem}>{sem === 'All' ? 'Tất cả học kỳ' : sem}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
+            </Grid>
 
-              <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 160 } }}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <FormControl size="small" fullWidth>
                 <InputLabel>Chuyên ngành</InputLabel>
                 <Select
                   value={currentMajor}
                   label="Chuyên ngành"
                   onChange={e => setCurrentMajor(e.target.value)}
-                  sx={{ borderRadius: 2, bgcolor: 'background.paper' }}
+                  sx={{ borderRadius: 2, bgcolor: 'background.default' }}
                 >
                   {majors.map(major => (
                     <MenuItem key={major} value={major}>{major === 'All' ? 'Tất cả chuyên ngành' : major}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
+            </Grid>
 
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Button
+                fullWidth
+                variant={showOnlyGoldenTicket ? 'contained' : 'outlined'}
+                onClick={() => setShowOnlyGoldenTicket(!showOnlyGoldenTicket)}
+                startIcon={<WorkspacePremiumIcon />}
+                sx={{
+                  height: 40,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  fontSize: '0.9rem',
+                  borderWidth: '1.5px',
+                  ...(showOnlyGoldenTicket
+                    ? {
+                      background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                      color: '#FFF',
+                      border: 'none',
+                      boxShadow: '0 4px 14px rgba(245,158,11,0.4)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #D97706 0%, #B45309 100%)',
+                      }
+                    }
+                    : {
+                      borderColor: '#F59E0B',
+                      color: '#F59E0B',
+                      bgcolor: 'transparent',
+                      '&:hover': {
+                        borderColor: '#D97706',
+                        bgcolor: 'rgba(245,158,11,0.08)',
+                        borderWidth: '1.5px',
+                      }
+                    }),
+                }}
+              >
+                Golden Ticket
+              </Button>
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <TextField
+                fullWidth
                 placeholder="Tìm kiếm dự án..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
@@ -233,10 +302,10 @@ export default function ProjectGallery() {
                     ),
                   },
                 }}
-                sx={{ minWidth: { xs: '100%', sm: '280px' }, bgcolor: 'background.paper', borderRadius: 2 }}
+                sx={{ bgcolor: 'background.default', borderRadius: 2 }}
               />
-            </Box>
-          </Box>
+            </Grid>
+          </Grid>
 
           {/* Tech Tags Filter */}
           {allTags.length > 0 && (
@@ -261,7 +330,12 @@ export default function ProjectGallery() {
       </motion.div>
 
       {/* Grid */}
-      {filteredProjects.length === 0 ? (
+      {isFiltering ? (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 10, gap: 2 }}>
+          <CircularProgress size={40} thickness={4} sx={{ color: 'primary.main' }} />
+          <Typography color="text.secondary">Đang tải dữ liệu...</Typography>
+        </Box>
+      ) : filteredProjects.length === 0 ? (
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
           <Box sx={{ textAlign: 'center', py: 10, px: 3, bgcolor: 'background.paper', borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
             <SentimentDissatisfiedIcon sx={{ fontSize: 56, color: 'text.disabled', mb: 2 }} />
@@ -290,22 +364,8 @@ export default function ProjectGallery() {
           </motion.div>
           
           {visibleCount < filteredProjects.length && (
-            <Box sx={{ textAlign: 'center', mt: 5 }}>
-              <Button 
-                variant="outlined" 
-                onClick={() => setVisibleCount(prev => prev + 9)}
-                sx={{ 
-                  borderRadius: 100, 
-                  px: 4, 
-                  py: 1.5, 
-                  borderWidth: 2, 
-                  borderColor: 'primary.main', 
-                  color: 'primary.main',
-                  '&:hover': { borderWidth: 2 } 
-                }}
-              >
-                Tải thêm ({filteredProjects.length - visibleCount} dự án)
-              </Button>
+            <Box ref={lastElementRef} sx={{ textAlign: 'center', mt: 5, py: 2 }}>
+              <CircularProgress size={32} sx={{ color: 'primary.main' }} />
             </Box>
           )}
         </>
