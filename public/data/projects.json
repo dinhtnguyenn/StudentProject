@@ -558,15 +558,21 @@
   },
   {
     "id": "1781845049895-34",
-    "name": "[Sản phẩm sinh viên] [FA22] [Dự án tốt nghiệp] - Ứng dụng bán đồ ăn thức uống Lava Coffee",
+    "name": "Ứng dụng bán đồ ăn thức uống Lava Coffee",
     "description": "",
     "thumbnail": "https://img.youtube.com/vi/ONPUEOQoz9g/maxresdefault.jpg",
     "youtubeUrl": "https://www.youtube.com/watch?v=ONPUEOQoz9g",
-    "category": "",
-    "teamMembers": [],
-    "semester": "",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "Hồ Thành Đạt",
+      "Đinh Nhựt Linh",
+      "Trương Thị Ngọc Trân",
+      "Trần Võ Thục Miên",
+      "Nguyễn Hoàng Uyên Nhi"
+    ],
+    "semester": "FALL 2022",
     "techTags": [],
     "isGoldenTicket": false,
-    "major": ""
+    "major": "Mobile"
   }
 ]
