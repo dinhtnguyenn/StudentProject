@@ -4,6 +4,7 @@ import {
   Box, Dialog, DialogTitle, DialogContent, IconButton, Avatar, Snackbar, Alert, useTheme
 } from '@mui/material';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutlined';
+import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import CloseIcon from '@mui/icons-material/Close';
 import ShareIcon from '@mui/icons-material/Share';
@@ -69,6 +70,7 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
               ? '0 16px 48px rgba(245, 158, 11, 0.4)'
               : (muiTheme.palette.mode === 'light' ? '0 16px 48px rgba(99, 102, 241, 0.12)' : '0 16px 48px rgba(99, 102, 241, 0.25)'),
             borderColor: project.isGoldenTicket ? '#F59E0B' : 'primary.light',
+            animation: project.isGoldenTicket ? 'golden-pulse 2s infinite' : 'none',
           },
           '&:hover .card-image': {
             transform: 'scale(1.05)',
@@ -90,8 +92,8 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
                 label={project.category}
                 size="small"
                 sx={{
-                  background: colors.bg,
-                  color: colors.text,
+                  background: project.isGoldenTicket ? 'rgba(245, 158, 11, 0.1)' : colors.bg,
+                  color: project.isGoldenTicket ? '#F59E0B' : colors.text,
                   fontWeight: 700,
                   fontSize: '0.7rem',
                   height: 26,
@@ -100,7 +102,7 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
               />
               {project.isGoldenTicket && (
                 <Chip
-                  icon={<span style={{ fontSize: '12px' }}>🌟</span>}
+                  icon={<WorkspacePremiumIcon sx={{ fontSize: '14px !important' }} />}
                   label="GOLDEN TICKET"
                   size="small"
                   sx={{
@@ -122,8 +124,8 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
               size="small" 
               sx={{ 
                 position: 'absolute', top: 12, right: 12, 
-                bgcolor: 'rgba(255, 255, 255, 0.8)', color: '#2563EB',
-                '&:hover': { bgcolor: '#2563EB', color: '#FFF' }, backdropFilter: 'blur(4px)'
+                bgcolor: 'rgba(255, 255, 255, 0.8)', color: project.isGoldenTicket ? '#F59E0B' : '#2563EB',
+                '&:hover': { bgcolor: project.isGoldenTicket ? '#F59E0B' : '#2563EB', color: '#FFF' }, backdropFilter: 'blur(4px)'
               }}
             >
               <ShareIcon fontSize="small" />
@@ -208,7 +210,7 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
               size="small"
               startIcon={<InfoOutlinedIcon sx={{ fontSize: 18 }} />}
               onClick={() => setOpenDetail(true)}
-              sx={{ color: 'text.secondary', fontSize: '0.8rem', '&:hover': { color: 'primary.main', bgcolor: 'action.hover' } }}
+              sx={{ color: 'text.secondary', fontSize: '0.8rem', '&:hover': { color: project.isGoldenTicket ? '#F59E0B' : 'primary.main', bgcolor: project.isGoldenTicket ? 'rgba(245,158,11,0.05)' : 'action.hover' } }}
             >
               Chi tiết
             </Button>
@@ -220,10 +222,10 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
                 onClick={() => setOpenVideo(true)}
                 sx={{
                   fontSize: '0.8rem',
-                  background: 'linear-gradient(135deg, #2563EB, #1D4ED8)',
+                  background: project.isGoldenTicket ? 'linear-gradient(135deg, #F59E0B, #D97706)' : 'linear-gradient(135deg, #2563EB, #1D4ED8)',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #2563EB, #1D4ED8)',
-                    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+                    background: project.isGoldenTicket ? 'linear-gradient(135deg, #D97706, #B45309)' : 'linear-gradient(135deg, #1D4ED8, #1E40AF)',
+                    boxShadow: project.isGoldenTicket ? '0 4px 12px rgba(245, 158, 11, 0.3)' : '0 4px 12px rgba(37, 99, 235, 0.3)',
                   },
                 }}
               >

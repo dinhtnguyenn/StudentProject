@@ -25,5 +25,32 @@
       "PayOS"
     ],
     "isGoldenTicket": true
+  },
+  {
+    "id": "1781790499064",
+    "name": "Game Chiến trường huynh đệ / The Boys Battleground",
+    "description": "<p></p>",
+    "thumbnail": "https://img.youtube.com/vi/0w3tQrNNaGY/maxresdefault.jpg",
+    "youtubeUrl": "https://youtu.be/0w3tQrNNaGY?si=5dw0hP30CbAoth65",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS43552 - Võ Vĩnh Phúc",
+      "PS43428 - Hồ Tùng Diệp",
+      "PS43433 - Nguyễn Thành Quyên",
+      "PS43361 - Trần Trung Nghĩa",
+      "PS43370 - Nguyễn Anh Tuấn",
+      "PS39420 - Nguyễn Minh Mẫn"
+    ],
+    "semester": "SPRING 2026",
+    "techTags": [
+      "Unity",
+      "Unity 3D",
+      "NetCode",
+      "Vivox",
+      "PlayFab",
+      "ZaloPay",
+      "PayOS"
+    ],
+    "isGoldenTicket": false
   }
 ]

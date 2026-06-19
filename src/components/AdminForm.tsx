@@ -21,6 +21,7 @@ import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import StarIcon from '@mui/icons-material/Star';
+import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import { motion } from 'framer-motion';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -207,7 +208,11 @@ export default function AdminForm() {
 
   // Form State
   const [formData, setFormData] = useState({
-    id: '', name: '', description: '', thumbnail: '', youtubeUrl: '', category: '', teamMembers: '', semester: '', techTags: '', isGoldenTicket: false,
+    id: '', name: '', description: '', thumbnail: '', youtubeUrl: '', category: '', teamMembers: '', semester: '', techTags: '', isGoldenTicket: false, major: '',
+  });
+
+  const [articleFormData, setArticleFormData] = useState({
+    id: '', title: '', imageUrl: '', link: '', type: '', major: ''
   });
 
   // Bulk Import State
@@ -226,12 +231,18 @@ export default function AdminForm() {
   const [categoriesSha, setCategoriesSha] = useState('');
   const [loadingCategories, setLoadingCategories] = useState(false);
 
+  const [originalArticles, setOriginalArticles] = useState<any[]>([]);
+  const [articlesList, setArticlesList] = useState<any[]>([]);
+  const [articlesSha, setArticlesSha] = useState('');
+  const [loadingArticles, setLoadingArticles] = useState(false);
+
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   // Draft State detection
   const isProjectsChanged = JSON.stringify(originalProjects) !== JSON.stringify(projectsList);
   const isCategoriesChanged = JSON.stringify(originalCategories) !== JSON.stringify(categoriesList);
-  const hasUnsavedChanges = isProjectsChanged || isCategoriesChanged;
+  const isArticlesChanged = JSON.stringify(originalArticles) !== JSON.stringify(articlesList);
+  const hasUnsavedChanges = isProjectsChanged || isCategoriesChanged || isArticlesChanged;
   const [isSavingAll, setIsSavingAll] = useState(false);
 
   // Modal States
@@ -247,6 +258,7 @@ export default function AdminForm() {
 
   const getProjectsApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/projects.json`;
   const getCategoriesApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/categories.json`;
+  const getArticlesApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/articles.json`;
 
   const fetchFile = async (url: string) => {
     const getRes = await fetch(url, { headers: { 'Authorization': `token ${githubToken}`, 'Accept': 'application/vnd.github.v3+json' } });
@@ -289,6 +301,12 @@ export default function AdminForm() {
         .then(res => { setProjectsList(res.data); setOriginalProjects(res.data); setProjectsSha(res.sha); })
         .catch(err => { console.error(err); setFetchError('Lỗi tải danh sách dự án. Vui lòng không lưu để tránh mất dữ liệu!'); })
         .finally(() => setLoadingList(false));
+
+      setLoadingArticles(true);
+      fetchFile(getArticlesApiUrl())
+        .then(res => { setArticlesList(res.data); setOriginalArticles(res.data); setArticlesSha(res.sha); })
+        .catch(err => { console.error(err); setFetchError('Lỗi tải danh sách bài viết. Vui lòng không lưu để tránh mất dữ liệu!'); })
+        .finally(() => setLoadingArticles(false));
     }
   }, [isAuthenticated, githubToken, githubOwner, githubRepo]);
 
@@ -460,8 +478,29 @@ export default function AdminForm() {
   };
 
   const resetForm = () => {
-    setFormData({ id: '', name: '', description: '', thumbnail: '', youtubeUrl: '', category: '', teamMembers: '', semester: '', techTags: '', isGoldenTicket: false });
+    setFormData({ id: '', name: '', description: '', thumbnail: '', youtubeUrl: '', category: '', teamMembers: '', semester: '', techTags: '', isGoldenTicket: false, major: '' });
     setYoutubeUrl('');
+  };
+
+  const handleSubmitArticle = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!githubToken || !githubOwner || !githubRepo) {
+      setStatus({ type: 'error', message: 'Phiên đăng nhập không hợp lệ.' });
+      return;
+    }
+    const isEdit = !!articleFormData.id;
+    const articleToSave = {
+      ...articleFormData,
+      id: isEdit ? articleFormData.id : Date.now().toString(),
+    };
+    setArticlesList(prev => isEdit ? prev.map(a => a.id === articleFormData.id ? articleToSave : a) : [...prev, articleToSave]);
+    setStatus({ type: 'success', message: `Đã lưu nháp bài viết ${isEdit ? '(Cập nhật)' : '(Mới)'}!` });
+    resetArticleForm();
+    if (!isEdit) setTabIndex(4);
+  };
+
+  const resetArticleForm = () => {
+    setArticleFormData({ id: '', title: '', imageUrl: '', link: '', type: '', major: '' });
   };
 
   // Projects Draft Actions
@@ -551,6 +590,12 @@ export default function AdminForm() {
         setProjectsSha(newSha);
         successCount++;
       }
+      if (isArticlesChanged) {
+        const newSha = await commitFile(getArticlesApiUrl(), articlesList, articlesSha, `Update articles (Bulk save) [skip ci]`);
+        setOriginalArticles(articlesList);
+        setArticlesSha(newSha);
+        successCount++;
+      }
 
       setStatus({ type: 'success', message: `Commit thành công ${successCount} file lên GitHub! Quá trình build sẽ tự động chạy.` });
     } catch (err: any) {
@@ -621,7 +666,7 @@ export default function AdminForm() {
   }
 
   return (
-    <Box sx={{ maxWidth: 720, mx: 'auto', pb: 10 }}>
+    <Box sx={{ maxWidth: 1000, mx: 'auto', pb: 10 }}>
       {/* Unsaved Changes Banner */}
       <Collapse in={hasUnsavedChanges}>
         <Paper elevation={3} sx={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, display: 'flex', alignItems: 'center', gap: 2, p: 2, px: 3, borderRadius: 100, bgcolor: 'warning.light', color: 'warning.contrastText', border: '1px solid', borderColor: 'warning.main', minWidth: 320, justifyContent: 'space-between' }}>
@@ -631,7 +676,7 @@ export default function AdminForm() {
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
             {hasUnsavedChanges && (
-              <Button variant="outlined" color="secondary" onClick={() => { setProjectsList(originalProjects); setCategoriesList(originalCategories); }} sx={{ borderRadius: 100, fontWeight: 700 }}>Huỷ Thay Đổi</Button>
+              <Button variant="outlined" color="secondary" onClick={() => { setProjectsList(originalProjects); setCategoriesList(originalCategories); setArticlesList(originalArticles); }} sx={{ borderRadius: 100, fontWeight: 700 }}>Huỷ Thay Đổi</Button>
             )}
             <Button variant="contained" color="warning" onClick={saveAllChangesToGithub} disabled={isSavingAll || !!fetchError} startIcon={isSavingAll ? <CircularProgress size={16} color="inherit" /> : <CloudUploadIcon />} sx={{ borderRadius: 100, fontWeight: 700, px: 3, '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
               {isSavingAll ? 'Đang Gửi...' : 'Lưu Lên GitHub'}
@@ -643,26 +688,45 @@ export default function AdminForm() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
 
         {/* Header */}
-        <Box sx={{ mb: 4, textAlign: 'center', position: 'relative' }}>
-          <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 2, px: 2, py: 0.75, borderRadius: 100, bgcolor: 'action.hover', color: 'primary.main' }}>
-            <EditNoteIcon sx={{ fontSize: 18 }} />
-            <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Quản trị Serverless</Typography>
+        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box>
+            <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 1, px: 2, py: 0.5, borderRadius: 100, bgcolor: 'action.hover', color: 'primary.main' }}>
+              <EditNoteIcon sx={{ fontSize: 18 }} />
+              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Quản trị Serverless</Typography>
+            </Box>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary' }}>
+              Hệ Thống <span style={{ color: muiTheme.palette.primary.main }}>Quản Lý</span>
+            </Typography>
           </Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary' }}>
-            Quản Lý <span style={{ color: muiTheme.palette.primary.main }}>Hệ Thống</span>
-          </Typography>
-          <IconButton onClick={handleLogout} sx={{ position: 'absolute', top: 0, right: 0, color: 'text.secondary', '&:hover': { color: 'error.main' } }} title="Đăng xuất">
+          <IconButton onClick={handleLogout} sx={{ color: 'text.secondary', '&:hover': { color: 'error.main', bgcolor: 'error.light' } }} title="Đăng xuất">
             <LogoutIcon />
           </IconButton>
         </Box>
 
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-          <Tabs value={tabIndex} onChange={(_, val) => setTabIndex(val)} variant="fullWidth">
-            <Tab label={formData.id ? "Sửa Dự Án" : "Thêm Dự Án"} sx={{ fontWeight: 700 }} />
-            <Tab label="QL Dự Án" sx={{ fontWeight: 700 }} />
-            <Tab label="QL Loại Dự Án" sx={{ fontWeight: 700 }} />
-          </Tabs>
-        </Box>
+        <Paper elevation={0} sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, border: '1px solid', borderColor: 'divider', borderRadius: 4, minHeight: 600, overflow: 'hidden' }}>
+          {/* Sidebar */}
+          <Box sx={{ width: { xs: '100%', md: 220 }, flexShrink: 0, borderRight: { xs: 'none', md: '1px solid' }, borderBottom: { xs: '1px solid', md: 'none' }, borderColor: 'divider', bgcolor: 'background.default' }}>
+            <Tabs 
+              orientation="vertical" 
+              value={tabIndex} 
+              onChange={(_, val) => setTabIndex(val)} 
+              variant="scrollable"
+              sx={{ 
+                height: '100%', 
+                '& .MuiTabs-flexContainer': { flexDirection: { xs: 'row', md: 'column' } },
+                '& .MuiTab-root': { alignItems: { xs: 'center', md: 'flex-start' }, px: 3, py: 2, fontWeight: 600, minHeight: 56, textTransform: 'none', fontSize: '0.95rem' } 
+              }}
+            >
+              <Tab label={formData.id ? "Sửa Dự Án" : "Thêm Dự Án"} />
+              <Tab label="QL Dự Án" />
+              <Tab label="Loại Dự Án" />
+              <Tab label="Thêm Bài Viết" />
+              <Tab label="QL Bài Viết" />
+            </Tabs>
+          </Box>
+
+          {/* Main Content */}
+          <Box sx={{ flexGrow: 1, p: { xs: 2, md: 4 }, bgcolor: 'background.paper', overflowY: 'auto' }}>
 
         {/* Tab 0: Add / Edit Form */}
         {tabIndex === 0 && (
@@ -705,7 +769,7 @@ export default function AdminForm() {
                   <Grid size={{ xs: 12 }}>
                     <TextField fullWidth label="Tên dự án" name="name" value={formData.name} onChange={handleChange} required />
                   </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                  <Grid size={{ xs: 12, sm: 4 }}>
                     <FormControl fullWidth required>
                       <InputLabel>Loại dự án</InputLabel>
                       <Select name="category" value={formData.category} label="Loại dự án" onChange={(e) => setFormData({ ...formData, category: e.target.value as string })}>
@@ -716,8 +780,19 @@ export default function AdminForm() {
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
+                  <Grid size={{ xs: 12, sm: 4 }}>
                     <TextField fullWidth label="Học kỳ" name="semester" value={formData.semester} onChange={handleChange} required />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <FormControl fullWidth required>
+                      <InputLabel>Chuyên ngành</InputLabel>
+                      <Select name="major" value={formData.major} label="Chuyên ngành" onChange={(e) => setFormData({ ...formData, major: e.target.value as string })}>
+                        <MenuItem value="Game">Game</MenuItem>
+                        <MenuItem value="Mobile">Mobile</MenuItem>
+                        <MenuItem value="AI">AI</MenuItem>
+                        <MenuItem value="Web">Web</MenuItem>
+                      </Select>
+                    </FormControl>
                   </Grid>
                   <Grid size={{ xs: 12 }}>
                     <TextField fullWidth label="Tag công nghệ" name="techTags" value={formData.techTags} onChange={handleChange} placeholder="React, Node, AI..." />
@@ -746,7 +821,12 @@ export default function AdminForm() {
                   <Grid size={{ xs: 12 }}>
                     <FormControlLabel
                       control={<Checkbox checked={formData.isGoldenTicket} onChange={(e) => setFormData({ ...formData, isGoldenTicket: e.target.checked })} sx={{ color: '#F59E0B', '&.Mui-checked': { color: '#F59E0B' } }} />}
-                      label={<Typography variant="body1" sx={{ fontWeight: 600, color: '#B45309' }}>🌟 Golden Ticket (Dự án xuất sắc)</Typography>}
+                      label={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <WorkspacePremiumIcon sx={{ color: '#F59E0B', fontSize: 20 }} />
+                          <Typography variant="body1" sx={{ fontWeight: 600, color: '#B45309' }}>Golden Ticket (Dự án xuất sắc)</Typography>
+                        </Box>
+                      }
                     />
                   </Grid>
                   <Grid size={{ xs: 12 }} sx={{ mt: 1, display: 'flex', gap: 2 }}>
@@ -808,6 +888,7 @@ export default function AdminForm() {
                               semester: p.semester,
                               techTags: Array.isArray(p.techTags) ? p.techTags.join(', ') : (p.techTags || ''),
                               isGoldenTicket: !!p.isGoldenTicket,
+                              major: p.major || '',
                             });
                             setTabIndex(0);
                           }}
@@ -876,11 +957,98 @@ export default function AdminForm() {
           </Box>
         )}
 
+          {/* Tab 3: Add / Edit Article Form */}
+          {tabIndex === 3 && (
+            <Box>
+              <Paper elevation={0} sx={{ p: { xs: 3, md: 4.5 }, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper' }}>
+                <form onSubmit={handleSubmitArticle}>
+                  <Grid container spacing={2.5}>
+                    <Grid size={{ xs: 12 }}>
+                      <TextField fullWidth label="Tên bài viết" value={articleFormData.title} onChange={e => setArticleFormData({ ...articleFormData, title: e.target.value })} required />
+                    </Grid>
+                    <Grid size={{ xs: 12 }}>
+                      <TextField fullWidth label="Link ảnh bài viết" value={articleFormData.imageUrl} onChange={e => setArticleFormData({ ...articleFormData, imageUrl: e.target.value })} required />
+                    </Grid>
+                    <Grid size={{ xs: 12 }}>
+                      <TextField fullWidth label="Link gốc bài viết" value={articleFormData.link} onChange={e => setArticleFormData({ ...articleFormData, link: e.target.value })} required />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <FormControl fullWidth required>
+                        <InputLabel>Loại bài viết</InputLabel>
+                        <Select value={articleFormData.type} label="Loại bài viết" onChange={e => setArticleFormData({ ...articleFormData, type: e.target.value as string })}>
+                          <MenuItem value="Tin tức">Tin tức</MenuItem>
+                          <MenuItem value="Sự kiện">Sự kiện</MenuItem>
+                          <MenuItem value="PR">PR / Hoạt động</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <FormControl fullWidth required>
+                        <InputLabel>Chuyên ngành</InputLabel>
+                        <Select value={articleFormData.major} label="Chuyên ngành" onChange={e => setArticleFormData({ ...articleFormData, major: e.target.value as string })}>
+                          <MenuItem value="Game">Game</MenuItem>
+                          <MenuItem value="Mobile">Mobile</MenuItem>
+                          <MenuItem value="AI">AI</MenuItem>
+                          <MenuItem value="Web">Web</MenuItem>
+                          <MenuItem value="Khác">Khác</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid size={{ xs: 12 }} sx={{ mt: 1, display: 'flex', gap: 2 }}>
+                      {articleFormData.id && (
+                        <Button variant="outlined" size="large" onClick={resetArticleForm} sx={{ py: 1.6, flex: 1, fontWeight: 700, borderRadius: 3, textTransform: 'none', borderWidth: 2, color: 'text.secondary', borderColor: 'divider', '&:hover': { borderColor: 'text.primary', color: 'text.primary', borderWidth: 2 } }}>Huỷ</Button>
+                      )}
+                      <motion.div style={{ flex: 2 }} whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.985 }}>
+                        <Button type="submit" variant="contained" size="large" fullWidth startIcon={<SaveIcon />} sx={{ py: 1.6, borderRadius: 3, textTransform: 'none', fontWeight: 800, fontSize: '1.05rem', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', boxShadow: '0 6px 20px rgba(37, 99, 235, 0.4)' }}>
+                          {articleFormData.id ? 'Cập Nhật Nháp' : 'Lưu Nháp Mới'}
+                        </Button>
+                      </motion.div>
+                    </Grid>
+                  </Grid>
+                </form>
+              </Paper>
+            </Box>
+          )}
+
+          {/* Tab 4: Manage Articles */}
+          {tabIndex === 4 && (
+            <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
+              {loadingArticles ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}><CircularProgress /></Box>
+              ) : articlesList.length === 0 ? (
+                <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có bài viết nào.</Typography></Box>
+              ) : (
+                <List sx={{ p: 0 }}>
+                  {articlesList.map((article, idx) => (
+                    <Box key={article.id}>
+                      {idx > 0 && <Divider />}
+                      <ListItem sx={{ py: 2 }}>
+                        <ListItemAvatar>
+                          <Avatar src={article.imageUrl} variant="rounded" sx={{ width: 80, height: 50, mr: 2, border: '1px solid', borderColor: 'divider' }} />
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{article.title}</Typography>}
+                          secondary={<Typography variant="caption" sx={{ color: 'text.secondary' }}>{article.type} • {article.major}</Typography>}
+                        />
+                        <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                          <IconButton size="small" onClick={() => { setArticleFormData(article); setTabIndex(3); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
+                          <IconButton size="small" onClick={() => setArticlesList(prev => prev.filter(a => a.id !== article.id))} sx={{ color: 'error.main', bgcolor: 'error.light', opacity: 0.2 }}><DeleteIcon fontSize="small" /></IconButton>
+                        </Box>
+                      </ListItem>
+                    </Box>
+                  ))}
+                </List>
+              )}
+            </Paper>
+          )}
+
+          </Box>
+        </Paper>
       </motion.div>
 
       {/* Dialogs */}
       <Dialog open={deleteConfirmOpen} onClose={() => setDeleteConfirmOpen(false)} sx={{ '& .MuiDialog-paper': { borderRadius: 3 } }}>
-        <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá dự án khỏi nháp</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá dự án</DialogTitle>
         <DialogContent><DialogContentText>Dự án này sẽ bị xoá khỏi bản nháp hiện tại của bạn.</DialogContentText></DialogContent>
         <DialogActions sx={{ p: 2, pt: 0 }}>
           <Button onClick={() => setDeleteConfirmOpen(false)} color="inherit" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Huỷ</Button>

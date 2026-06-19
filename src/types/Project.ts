@@ -7,6 +7,7 @@ export interface Project {
   category: string;
   teamMembers: string[];
   semester: string;
+  major?: string;
   techTags?: string[];
   isGoldenTicket?: boolean;
 }

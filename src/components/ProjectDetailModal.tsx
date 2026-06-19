@@ -4,6 +4,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import ShareIcon from '@mui/icons-material/Share';
 import CodeIcon from '@mui/icons-material/Code';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import DOMPurify from 'dompurify';
 import CommentSection from './CommentSection';
 
@@ -56,7 +58,7 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
             sx={{
               position: 'absolute',
               top: 0, left: 0, right: 0, bottom: 0,
-              background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
+              background: project.isGoldenTicket ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' : 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
             }}
           />
         )}
@@ -73,7 +75,7 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
         {/* Action Buttons Overlay */}
         <Box sx={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: 1 }}>
           {onShare && (
-            <IconButton onClick={onShare} sx={{ bgcolor: 'rgba(0,0,0,0.4)', color: '#fff', '&:hover': { bgcolor: 'primary.main' }, backdropFilter: 'blur(8px)' }}>
+            <IconButton onClick={onShare} sx={{ bgcolor: 'rgba(0,0,0,0.4)', color: '#fff', '&:hover': { bgcolor: project.isGoldenTicket ? '#F59E0B' : 'primary.main' }, backdropFilter: 'blur(8px)' }}>
               <ShareIcon fontSize="small" />
             </IconButton>
           )}
@@ -88,27 +90,45 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
         <Grid container spacing={5}>
           {/* LEFT COLUMN: Overview, Video, Comments */}
           <Grid size={{ xs: 12, md: 8 }}>
-            <Typography variant="h3" sx={{
-              fontWeight: 900,
-              mb: 3,
+            <Typography variant="h3" sx={{ 
+              fontWeight: 900, 
+              mb: 3, 
               position: 'relative',
               zIndex: 1,
+              display: 'flex',
+              alignItems: 'center',
               background: project.isGoldenTicket
-                ? 'linear-gradient(90deg, #D97706, #FBBF24)'
+                ? 'linear-gradient(90deg, #D97706 0%, #FBBF24 50%, #D97706 100%)'
                 : (isLight ? 'linear-gradient(90deg, #1E293B, #2563EB)' : 'linear-gradient(90deg, #F8FAFC, #60A5FA)'),
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
+              backgroundSize: project.isGoldenTicket ? '200% auto' : 'auto',
+              animation: project.isGoldenTicket ? 'golden-shine 3s linear infinite' : 'none',
               fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' }
             }}>
-              {project.name} {project.isGoldenTicket && <span style={{ WebkitTextFillColor: 'initial', fontSize: '1.5rem', verticalAlign: 'middle' }}>🌟</span>}
+              {project.isGoldenTicket && <WorkspacePremiumIcon sx={{ color: '#F59E0B', fontSize: { xs: '1.8rem', md: '2.8rem' }, mr: 1.5, filter: 'drop-shadow(0 0px 8px rgba(245,158,11,0.6))', animation: 'golden-float 3s ease-in-out infinite' }} />}
+              {project.name}
             </Typography>
 
             {project.isGoldenTicket && (
-              <Box sx={{ mb: 4, p: 2, borderRadius: 3, background: 'linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(217,119,6,0.2) 100%)', border: '1px solid rgba(245,158,11,0.3)', display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Typography variant="h2" sx={{ m: 0, fontSize: '2rem' }}>🏆</Typography>
+              <Box sx={{ 
+                mb: 4, p: 2, borderRadius: 3, 
+                background: 'linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(217,119,6,0.05) 100%)', 
+                border: '1px solid rgba(245,158,11,0.4)', 
+                display: 'flex', alignItems: 'center', gap: 2,
+                position: 'relative',
+                overflow: 'hidden',
+                boxShadow: '0 4px 20px rgba(245, 158, 11, 0.15)'
+              }}>
+                <Box sx={{
+                  position: 'absolute', top: 0, left: '-100%', width: '50%', height: '100%',
+                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
+                  animation: 'golden-shine 4s infinite linear'
+                }} />
+                <EmojiEventsIcon sx={{ fontSize: '2.5rem', color: '#F59E0B', filter: 'drop-shadow(0 2px 4px rgba(245,158,11,0.4))' }} />
                 <Box>
                   <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#D97706', mb: 0.5 }}>Dự án Đạt Golden Ticket</Typography>
-                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Đây là một trong những DATN xuất sắc, được đánh giá cao về cả giải pháp kỹ thuật lẫn tính ứng dụng.</Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: '0.75rem', lineHeight: 1.4 }}>Đây là một trong những DATN xuất sắc, được đánh giá cao về cả giải pháp kỹ thuật lẫn tính ứng dụng.</Typography>
                 </Box>
               </Box>
             )}
@@ -166,7 +186,7 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
                   Thông tin chung
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                  <Box sx={{ width: 36, height: 36, borderRadius: 2, bgcolor: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                  <Box sx={{ width: 36, height: 36, borderRadius: 2, bgcolor: project.isGoldenTicket ? '#F59E0B' : 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
                     <CalendarTodayIcon fontSize="small" />
                   </Box>
                   <Box>
@@ -174,8 +194,8 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
                     <Typography variant="body2" color="text.primary" sx={{ fontWeight: 700 }}>{project.semester}</Typography>
                   </Box>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Box sx={{ width: 36, height: 36, borderRadius: 2, bgcolor: 'secondary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: project.major ? 2 : 0 }}>
+                  <Box sx={{ width: 36, height: 36, borderRadius: 2, bgcolor: project.isGoldenTicket ? '#D97706' : 'secondary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
                     <CodeIcon fontSize="small" />
                   </Box>
                   <Box>
@@ -183,6 +203,17 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
                     <Typography variant="body2" color="text.primary" sx={{ fontWeight: 700 }}>{project.category}</Typography>
                   </Box>
                 </Box>
+                {project.major && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Box sx={{ width: 36, height: 36, borderRadius: 2, bgcolor: 'info.main', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                      <Typography variant="caption" sx={{ fontWeight: 800 }}>M</Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>Chuyên ngành</Typography>
+                      <Typography variant="body2" color="text.primary" sx={{ fontWeight: 700 }}>{project.major}</Typography>
+                    </Box>
+                  </Box>
+                )}
               </Box>
 
               {/* Tech Stack */}
@@ -197,8 +228,8 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
                         key={i}
                         label={tag}
                         sx={{
-                          bgcolor: isLight ? 'rgba(37, 99, 235, 0.1)' : 'rgba(96, 165, 250, 0.1)',
-                          color: 'primary.main',
+                          bgcolor: project.isGoldenTicket ? 'rgba(245, 158, 11, 0.1)' : (isLight ? 'rgba(37, 99, 235, 0.1)' : 'rgba(96, 165, 250, 0.1)'),
+                          color: project.isGoldenTicket ? '#F59E0B' : 'primary.main',
                           fontWeight: 700,
                           borderRadius: 2
                         }}
@@ -222,7 +253,7 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
                         bgcolor: 'background.default',
                         border: '1px solid', borderColor: 'divider',
                         transition: 'all 0.2s',
-                        '&:hover': { borderColor: 'primary.main', transform: 'translateX(4px)' }
+                        '&:hover': { borderColor: project.isGoldenTicket ? '#F59E0B' : 'primary.main', transform: 'translateX(4px)' }
                       }}>
                         <Avatar sx={{
                           width: 40, height: 40,

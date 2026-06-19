@@ -1,5 +1,6 @@
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import ProjectGallery from './components/ProjectGallery';
+import ArticlesGallery from './components/ArticlesGallery';
 import AdminForm from './components/AdminForm';
 import { AppBar, Toolbar, Typography, Button, Container, Box, IconButton, useTheme } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -43,7 +44,18 @@ function App() {
                 '&:hover': { background: theme.palette.action.hover },
               }}
             >
-              Khám phá
+              Dự án
+            </Button>
+            <Button
+              onClick={() => navigate('/articles')}
+              sx={{
+                display: { xs: 'none', sm: 'flex' },
+                color: location.pathname === '/articles' ? 'primary.main' : 'text.secondary',
+                fontWeight: location.pathname === '/articles' ? 700 : 500,
+                '&:hover': { background: theme.palette.action.hover },
+              }}
+            >
+              Bài viết
             </Button>
             <IconButton onClick={toggleTheme} sx={{ color: 'text.secondary', ml: 1 }}>
               {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
@@ -74,6 +86,7 @@ function App() {
         <Container maxWidth="lg">
           <Routes>
             <Route path="/" element={<ProjectGallery />} />
+            <Route path="/articles" element={<ArticlesGallery />} />
             <Route path="/admin" element={<AdminForm />} />
           </Routes>
         </Container>
