@@ -176,29 +176,42 @@
   },
   {
     "id": "1781844970911-12",
-    "name": "[Sản phẩm sinh viên] [SU25] [Dự án tốt nghiệp] - Ứng dụng khám phá sự kiện EventSphere",
+    "name": "Ứng dụng khám phá sự kiện EventSphere",
     "description": "",
     "thumbnail": "https://img.youtube.com/vi/Y2FnhYucLu8/maxresdefault.jpg",
     "youtubeUrl": "https://www.youtube.com/watch?v=Y2FnhYucLu8",
-    "category": "",
-    "teamMembers": [],
-    "semester": "",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS38713 - Nguyễn Nhật Nam",
+      "PS38830 - Nguyễn Tiến Sĩ",
+      "PS38258 - Nguyễn Trần Trung Nguyên",
+      "PS38575 - Nguyễn Thành Đạt",
+      "PS37329 - Phạm Thanh Toàn"
+    ],
+    "semester": "SUMMER 2025",
     "techTags": [],
     "isGoldenTicket": false,
-    "major": ""
+    "major": "Mobile"
   },
   {
     "id": "1781844972269-13",
-    "name": "[Sản phẩm sinh viên] [SU25] [Dự án tốt nghiệp] - Ứng dụng mạng xã hội Cirla",
+    "name": "Ứng dụng mạng xã hội Cirla",
     "description": "",
     "thumbnail": "https://img.youtube.com/vi/7Ckmfj7Kcfs/maxresdefault.jpg",
     "youtubeUrl": "https://www.youtube.com/watch?v=7Ckmfj7Kcfs",
-    "category": "",
-    "teamMembers": [],
-    "semester": "",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS41828 - Nguyễn Quốc Anh",
+      "PS40589 - Bùi Phú Quý",
+      "PS40580 - Hoàng Công Nhựt Việt",
+      "PS42350 - Ngô Tấn Thiên Phúc",
+      "PS42298 - Đào Thị Ánh Phi",
+      "PS39959 - Trịnh Chấn Phúc"
+    ],
+    "semester": "SUMMER 2025",
     "techTags": [],
-    "isGoldenTicket": false,
-    "major": ""
+    "isGoldenTicket": true,
+    "major": "Mobile"
   },
   {
     "id": "1781844936000-0",
@@ -217,16 +230,22 @@
   },
   {
     "id": "1781844973410-14",
-    "name": "[Sản phẩm sinh viên] [SP25] [Dự án tốt nghiệp] - Ứng dụng bán mô hình Gundam GShop",
+    "name": "Ứng dụng bán mô hình Gundam GShop",
     "description": "",
     "thumbnail": "https://img.youtube.com/vi/Fam_0gBMk_8/maxresdefault.jpg",
     "youtubeUrl": "https://www.youtube.com/watch?v=Fam_0gBMk_8",
-    "category": "",
-    "teamMembers": [],
-    "semester": "",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS37397 - Nghiêu Thanh Phong",
+      "PS37361 - Nguyễn Tấn Sang",
+      "PS37345 - Ngô Thị Giáng Sinh",
+      "PS37504 - Tiêu Trương Uy Khang",
+      "PS37444 - Nguyễn Đức Phát"
+    ],
+    "semester": "SPRING 2025",
     "techTags": [],
     "isGoldenTicket": false,
-    "major": ""
+    "major": "Mobile"
   },
   {
     "id": "1781844974615-15",
