@@ -24,7 +24,8 @@
       "ZaloPay",
       "PayOS"
     ],
-    "isGoldenTicket": true
+    "isGoldenTicket": true,
+    "major": "Game"
   },
   {
     "id": "1781790499064",
@@ -51,6 +52,7 @@
       "ZaloPay",
       "PayOS"
     ],
-    "isGoldenTicket": false
+    "isGoldenTicket": true,
+    "major": "Game"
   }
 ]
