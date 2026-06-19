@@ -17,8 +17,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import StarIcon from '@mui/icons-material/Star';
 import { motion } from 'framer-motion';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -99,7 +101,12 @@ function SortableProjectItem({ project, idx, isSelected, onToggle, onEdit, onDel
           <Avatar src={project.thumbnail} variant="rounded" sx={{ width: 64, height: 40, mr: 1, border: '1px solid', borderColor: 'divider' }} />
         </ListItemAvatar>
         <ListItemText
-          primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{project.name}</Typography>}
+          primary={
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{project.name}</Typography>
+              {project.isGoldenTicket && <StarIcon sx={{ color: '#F59E0B', fontSize: 18 }} titleAccess="Golden Ticket" />}
+            </Box>
+          }
           secondary={<Typography variant="caption" sx={{ color: 'text.secondary' }}>{project.category} • {project.semester}</Typography>}
         />
         <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
@@ -200,8 +207,13 @@ export default function AdminForm() {
 
   // Form State
   const [formData, setFormData] = useState({
-    id: '', name: '', description: '', thumbnail: '', youtubeUrl: '', category: '', teamMembers: '', semester: '', techTags: '',
+    id: '', name: '', description: '', thumbnail: '', youtubeUrl: '', category: '', teamMembers: '', semester: '', techTags: '', isGoldenTicket: false,
   });
+
+  // Bulk Import State
+  const [bulkYoutubeUrl, setBulkYoutubeUrl] = useState('');
+  const [isBulkFetching, setIsBulkFetching] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState({ total: 0, current: 0 });
 
   // Data State
   const [originalProjects, setOriginalProjects] = useState<any[]>([]);
@@ -296,6 +308,46 @@ export default function AdminForm() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, [e.target.name]: e.target.value });
   const handleQuillChange = (value: string) => setFormData({ ...formData, description: value });
 
+  const fetchSingleVideoData = async (videoId: string, existingData?: any) => {
+    const oembedRes = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
+    let title = '';
+    if (oembedRes.ok) {
+      const oembedData = await oembedRes.json();
+      title = oembedData.title || '';
+    }
+
+    const thumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}`;
+    const pageRes = await fetch(proxyUrl);
+    const proxyData = await pageRes.json();
+    const html = proxyData.contents;
+
+    let description = '';
+    let teamMembers: string[] = [];
+
+    const playerMatch = html.match(/var ytInitialPlayerResponse\s*=\s*(\{.+?\});/s) || html.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\});/s);
+    if (playerMatch) {
+      try {
+        const playerData = JSON.parse(playerMatch[1]);
+        description = playerData?.videoDetails?.shortDescription || '';
+      } catch { }
+    }
+
+    if (!description) {
+      const metaMatch = html.match(/<meta\s+name="description"\s+content="([^"]*?)"\s*\/?>/i);
+      if (metaMatch) description = metaMatch[1].replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    }
+    if (description) teamMembers = parseTeamMembers(description);
+
+    return {
+      name: title || existingData?.name || '',
+      thumbnail: thumbnail || existingData?.thumbnail || '',
+      youtubeUrl: `https://www.youtube.com/watch?v=${videoId}`,
+      teamMembers: teamMembers.length > 0 ? teamMembers.join('\n') : (existingData?.teamMembers || ''),
+      description: description || existingData?.description || ''
+    };
+  };
+
   const handleFetchYoutube = async () => {
     if (!youtubeUrl.trim()) return;
     setFetching(true);
@@ -303,45 +355,84 @@ export default function AdminForm() {
       const videoId = extractYoutubeId(youtubeUrl.trim());
       if (!videoId) throw new Error('Link YouTube không hợp lệ');
 
-      const oembedRes = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
-      let title = '';
-      if (oembedRes.ok) {
-        const oembedData = await oembedRes.json();
-        title = oembedData.title || '';
-      }
-
-      const thumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}`;
-      const pageRes = await fetch(proxyUrl);
-      const proxyData = await pageRes.json();
-      const html = proxyData.contents;
-
-      let description = '';
-      let teamMembers: string[] = [];
-
-      const playerMatch = html.match(/var ytInitialPlayerResponse\s*=\s*(\{.+?\});/s) || html.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\});/s);
-      if (playerMatch) {
-        try {
-          const playerData = JSON.parse(playerMatch[1]);
-          description = playerData?.videoDetails?.shortDescription || '';
-        } catch { }
-      }
-
-      if (!description) {
-        const metaMatch = html.match(/<meta\s+name="description"\s+content="([^"]*?)"\s*\/?>/i);
-        if (metaMatch) description = metaMatch[1].replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-      }
-      if (description) teamMembers = parseTeamMembers(description);
-
-      setFormData(prev => ({
-        ...prev, name: title || prev.name, thumbnail: thumbnail || prev.thumbnail, youtubeUrl: youtubeUrl.trim(),
-        teamMembers: teamMembers.length > 0 ? teamMembers.join('\n') : prev.teamMembers, description: description || prev.description,
-      }));
+      const data = await fetchSingleVideoData(videoId, formData);
+      setFormData(prev => ({ ...prev, ...data }));
       setStatus({ type: 'success', message: 'Đã lấy thông tin từ YouTube qua Proxy!' });
     } catch (err: any) {
       setStatus({ type: 'error', message: err.message || 'Không thể lấy thông tin video.' });
     } finally {
       setFetching(false);
+    }
+  };
+
+  const extractPlaylistId = (url: string) => {
+    if (!url) return null;
+    const match = url.match(/[&?]list=([^&]+)/i);
+    return match ? match[1] : null;
+  };
+
+  const handleFetchBulkYoutube = async () => {
+    if (!bulkYoutubeUrl.trim()) return;
+    setIsBulkFetching(true);
+    try {
+      const playlistId = extractPlaylistId(bulkYoutubeUrl.trim());
+      if (!playlistId) throw new Error('Link Playlist không hợp lệ. Vui lòng nhập link có chứa ?list=...');
+
+      // Use RSS Feed via allorigins for reliable playlist fetching (first 15 videos) or full HTML scraping
+      // Actually, scraping HTML is better to get all videos
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.youtube.com/playlist?list=${playlistId}`)}`;
+      const res = await fetch(proxyUrl);
+      const data = await res.json();
+      const html = data.contents;
+      
+      const videoIds = new Set<string>();
+      const regex = /"videoId":"([a-zA-Z0-9_-]{11})"/g;
+      let m;
+      while ((m = regex.exec(html)) !== null) {
+          videoIds.add(m[1]);
+      }
+      
+      const idList = Array.from(videoIds);
+      if (idList.length === 0) throw new Error('Không tìm thấy video nào trong Playlist, hoặc bị chặn bởi YouTube.');
+      
+      setBulkProgress({ total: idList.length, current: 0 });
+      
+      const newProjects: any[] = [];
+      for (let i = 0; i < idList.length; i++) {
+          const vid = idList[i];
+          setBulkProgress({ total: idList.length, current: i + 1 });
+          
+          try {
+            const videoData = await fetchSingleVideoData(vid);
+            newProjects.push({
+              ...formData, // use default form empty fields
+              id: Date.now().toString() + '-' + i,
+              name: videoData.name,
+              description: videoData.description,
+              thumbnail: videoData.thumbnail,
+              youtubeUrl: videoData.youtubeUrl,
+              teamMembers: videoData.teamMembers ? videoData.teamMembers.split('\n').map((m: string) => m.trim()).filter((m: string) => m) : [],
+              techTags: [], // Empty initially
+              category: '', // Empty initially
+              semester: '', // Empty initially
+            });
+            // Delay 500ms to avoid rate limit
+            await new Promise(r => setTimeout(r, 500));
+          } catch (e) {
+            console.error('Error fetching video', vid, e);
+          }
+      }
+      
+      setProjectsList(prev => [...newProjects, ...prev]);
+      setStatus({ type: 'success', message: `Đã nhập nháp thành công ${newProjects.length} dự án từ Playlist!` });
+      setTabIndex(1); // Switch to review tab
+      
+    } catch (e: any) {
+      setStatus({ type: 'error', message: e.message });
+    } finally {
+      setIsBulkFetching(false);
+      setBulkProgress({ total: 0, current: 0 });
+      setBulkYoutubeUrl('');
     }
   };
 
@@ -369,7 +460,7 @@ export default function AdminForm() {
   };
 
   const resetForm = () => {
-    setFormData({ id: '', name: '', description: '', thumbnail: '', youtubeUrl: '', category: '', teamMembers: '', semester: '', techTags: '' });
+    setFormData({ id: '', name: '', description: '', thumbnail: '', youtubeUrl: '', category: '', teamMembers: '', semester: '', techTags: '', isGoldenTicket: false });
     setYoutubeUrl('');
   };
 
@@ -577,14 +668,35 @@ export default function AdminForm() {
         {tabIndex === 0 && (
           <Box>
             {!formData.id && (
-              <Paper elevation={0} sx={{ p: 3, mb: 3, border: `2px dashed ${muiTheme.palette.primary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
-                <Box sx={{ display: 'flex', gap: 1.5 }}>
-                  <TextField fullWidth size="small" placeholder="Dán link YouTube để tự động điền..." value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleFetchYoutube())} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} />
-                  <Button variant="contained" onClick={handleFetchYoutube} disabled={fetching || !youtubeUrl.trim()} startIcon={fetching ? <CircularProgress size={18} color="inherit" /> : <AutoFixHighIcon />} sx={{ minWidth: 150, whiteSpace: 'nowrap', borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.39)', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
-                    {fetching ? 'Đang cào...' : 'Tự động điền'}
-                  </Button>
-                </Box>
-              </Paper>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
+                <Paper elevation={0} sx={{ p: 3, border: `2px dashed ${muiTheme.palette.primary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'text.secondary' }}>Nhập một Video</Typography>
+                  <Box sx={{ display: 'flex', gap: 1.5 }}>
+                    <TextField fullWidth size="small" placeholder="Dán link YouTube để tự động điền..." value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleFetchYoutube())} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} />
+                    <Button variant="contained" onClick={handleFetchYoutube} disabled={fetching || !youtubeUrl.trim()} startIcon={fetching ? <CircularProgress size={18} color="inherit" /> : <AutoFixHighIcon />} sx={{ minWidth: 150, whiteSpace: 'nowrap', borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.39)', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
+                      {fetching ? 'Đang cào...' : 'Tự động điền'}
+                    </Button>
+                  </Box>
+                </Paper>
+
+                <Paper elevation={0} sx={{ p: 3, border: `2px dashed ${muiTheme.palette.secondary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'text.secondary' }}>Nhập hàng loạt từ Playlist</Typography>
+                  <Box sx={{ display: 'flex', gap: 1.5 }}>
+                    <TextField fullWidth size="small" placeholder="Dán link Playlist YouTube..." value={bulkYoutubeUrl} onChange={e => setBulkYoutubeUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleFetchBulkYoutube())} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} />
+                    <Button variant="contained" color="secondary" onClick={handleFetchBulkYoutube} disabled={isBulkFetching || !bulkYoutubeUrl.trim()} startIcon={isBulkFetching ? <CircularProgress size={18} color="inherit" /> : <CloudUploadIcon />} sx={{ minWidth: 150, whiteSpace: 'nowrap', borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(156, 39, 176, 0.39)', background: 'linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
+                      {isBulkFetching ? `Đang cào (${bulkProgress.current}/${bulkProgress.total})...` : 'Nhập Playlist'}
+                    </Button>
+                  </Box>
+                  {isBulkFetching && bulkProgress.total > 0 && (
+                    <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Box sx={{ flex: 1, height: 8, bgcolor: 'action.hover', borderRadius: 4, overflow: 'hidden' }}>
+                        <Box sx={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%`, height: '100%', bgcolor: 'secondary.main', transition: 'width 0.3s ease' }} />
+                      </Box>
+                      <Typography variant="caption" sx={{ fontWeight: 700 }}>{Math.round((bulkProgress.current / bulkProgress.total) * 100)}%</Typography>
+                    </Box>
+                  )}
+                </Paper>
+              </Box>
             )}
 
             <Paper elevation={0} sx={{ p: { xs: 3, md: 4.5 }, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper' }}>
@@ -630,6 +742,12 @@ export default function AdminForm() {
                     }}>
                       <ReactQuill theme="snow" value={formData.description} onChange={handleQuillChange} />
                     </Box>
+                  </Grid>
+                  <Grid size={{ xs: 12 }}>
+                    <FormControlLabel
+                      control={<Checkbox checked={formData.isGoldenTicket} onChange={(e) => setFormData({ ...formData, isGoldenTicket: e.target.checked })} sx={{ color: '#F59E0B', '&.Mui-checked': { color: '#F59E0B' } }} />}
+                      label={<Typography variant="body1" sx={{ fontWeight: 600, color: '#B45309' }}>🌟 Golden Ticket (Dự án xuất sắc)</Typography>}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12 }} sx={{ mt: 1, display: 'flex', gap: 2 }}>
                     {formData.id && (
@@ -689,6 +807,7 @@ export default function AdminForm() {
                               teamMembers: Array.isArray(p.teamMembers) ? p.teamMembers.join('\n') : p.teamMembers,
                               semester: p.semester,
                               techTags: Array.isArray(p.techTags) ? p.techTags.join(', ') : (p.techTags || ''),
+                              isGoldenTicket: !!p.isGoldenTicket,
                             });
                             setTabIndex(0);
                           }}

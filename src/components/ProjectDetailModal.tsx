@@ -25,10 +25,10 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
   const youtubeId = (match && match[2].length === 11) ? match[2] : null;
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      maxWidth="lg" 
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="lg"
       fullWidth
       sx={{
         '& .MuiDialog-paper': {
@@ -88,31 +88,43 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
         <Grid container spacing={5}>
           {/* LEFT COLUMN: Overview, Video, Comments */}
           <Grid size={{ xs: 12, md: 8 }}>
-            <Typography variant="h3" sx={{ 
-              fontWeight: 900, 
-              mb: 3, 
+            <Typography variant="h3" sx={{
+              fontWeight: 900,
+              mb: 3,
               position: 'relative',
               zIndex: 1,
-              background: isLight ? 'linear-gradient(90deg, #1E293B, #2563EB)' : 'linear-gradient(90deg, #F8FAFC, #60A5FA)',
+              background: project.isGoldenTicket
+                ? 'linear-gradient(90deg, #D97706, #FBBF24)'
+                : (isLight ? 'linear-gradient(90deg, #1E293B, #2563EB)' : 'linear-gradient(90deg, #F8FAFC, #60A5FA)'),
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' }
             }}>
-              {project.name}
+              {project.name} {project.isGoldenTicket && <span style={{ WebkitTextFillColor: 'initial', fontSize: '1.5rem', verticalAlign: 'middle' }}>🌟</span>}
             </Typography>
+
+            {project.isGoldenTicket && (
+              <Box sx={{ mb: 4, p: 2, borderRadius: 3, background: 'linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(217,119,6,0.2) 100%)', border: '1px solid rgba(245,158,11,0.3)', display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Typography variant="h2" sx={{ m: 0, fontSize: '2rem' }}>🏆</Typography>
+                <Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#D97706', mb: 0.5 }}>Dự án Đạt Golden Ticket</Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>Đây là một trong những DATN xuất sắc, được đánh giá cao về cả giải pháp kỹ thuật lẫn tính ứng dụng.</Typography>
+                </Box>
+              </Box>
+            )}
 
             {project.description && (project.description.includes('<img') || project.description.includes('<iframe') || project.description.replace(/<[^>]*>?/gm, '').trim().length > 0) && (
               <>
                 <Typography variant="h6" sx={{ fontWeight: 800, mb: 2, color: 'text.primary' }}>
                   Tổng quan dự án
                 </Typography>
-                
-                <Box 
+
+                <Box
                   dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(project.description) }}
-                  sx={{ 
-                    color: 'text.secondary', 
-                    lineHeight: 1.8, 
-                    mb: 4, 
+                  sx={{
+                    color: 'text.secondary',
+                    lineHeight: 1.8,
+                    mb: 4,
                     fontSize: '1.05rem',
                     '& p': { mb: 2, mt: 0 },
                     '& ul, & ol': { mb: 2, mt: 0, paddingLeft: 3 }
@@ -126,8 +138,8 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
                 <Typography variant="h6" sx={{ fontWeight: 800, mb: 2, color: 'text.primary' }}>
                   Video Demo
                 </Typography>
-                <Box sx={{ 
-                  position: 'relative', pt: '56.25%', borderRadius: 4, overflow: 'hidden', 
+                <Box sx={{
+                  position: 'relative', pt: '56.25%', borderRadius: 4, overflow: 'hidden',
                   boxShadow: isLight ? '0 10px 30px rgba(0,0,0,0.1)' : '0 10px 30px rgba(0,0,0,0.5)'
                 }}>
                   <iframe
@@ -147,7 +159,7 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
           {/* RIGHT COLUMN: Meta, Tech Stack, Team */}
           <Grid size={{ xs: 12, md: 4 }}>
             <Box sx={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 4 }}>
-              
+
               {/* Project Meta Card */}
               <Box sx={{ p: 3, borderRadius: 4, bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}>
                 <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 2 }}>
@@ -184,9 +196,9 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
                       <Chip
                         key={i}
                         label={tag}
-                        sx={{ 
-                          bgcolor: isLight ? 'rgba(37, 99, 235, 0.1)' : 'rgba(96, 165, 250, 0.1)', 
-                          color: 'primary.main', 
+                        sx={{
+                          bgcolor: isLight ? 'rgba(37, 99, 235, 0.1)' : 'rgba(96, 165, 250, 0.1)',
+                          color: 'primary.main',
                           fontWeight: 700,
                           borderRadius: 2
                         }}
@@ -204,18 +216,18 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
                   </Typography>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                     {project.teamMembers.map((member, idx) => (
-                      <Box key={idx} sx={{ 
-                        display: 'flex', alignItems: 'center', gap: 2, p: 1.5, 
-                        borderRadius: 3, 
+                      <Box key={idx} sx={{
+                        display: 'flex', alignItems: 'center', gap: 2, p: 1.5,
+                        borderRadius: 3,
                         bgcolor: 'background.default',
                         border: '1px solid', borderColor: 'divider',
                         transition: 'all 0.2s',
                         '&:hover': { borderColor: 'primary.main', transform: 'translateX(4px)' }
                       }}>
-                        <Avatar sx={{ 
-                          width: 40, height: 40, 
-                          fontSize: '1rem', fontWeight: 700, 
-                          bgcolor: ['#2563EB', '#EC4899', '#F59E0B', '#10B981'][idx % 4] 
+                        <Avatar sx={{
+                          width: 40, height: 40,
+                          fontSize: '1rem', fontWeight: 700,
+                          bgcolor: ['#2563EB', '#EC4899', '#F59E0B', '#10B981'][idx % 4]
                         }}>
                           {getAvatarLetter(member)}
                         </Avatar>

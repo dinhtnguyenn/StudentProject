@@ -8,4 +8,5 @@ export interface Project {
   teamMembers: string[];
   semester: string;
   techTags?: string[];
+  isGoldenTicket?: boolean;
 }

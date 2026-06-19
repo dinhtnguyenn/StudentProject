@@ -61,10 +61,14 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
           flexDirection: 'column',
           overflow: 'hidden',
           bgcolor: 'background.paper',
+          border: project.isGoldenTicket ? '2px solid' : '1px solid',
+          borderColor: project.isGoldenTicket ? '#F59E0B' : 'divider',
           transition: 'all 0.3s ease',
           '&:hover': {
-            boxShadow: muiTheme.palette.mode === 'light' ? '0 16px 48px rgba(99, 102, 241, 0.12)' : '0 16px 48px rgba(99, 102, 241, 0.25)',
-            borderColor: 'primary.light',
+            boxShadow: project.isGoldenTicket 
+              ? '0 16px 48px rgba(245, 158, 11, 0.4)'
+              : (muiTheme.palette.mode === 'light' ? '0 16px 48px rgba(99, 102, 241, 0.12)' : '0 16px 48px rgba(99, 102, 241, 0.25)'),
+            borderColor: project.isGoldenTicket ? '#F59E0B' : 'primary.light',
           },
           '&:hover .card-image': {
             transform: 'scale(1.05)',
@@ -81,7 +85,7 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
               alt={project.name}
               sx={{ transition: 'transform 0.5s ease', objectFit: 'cover' }}
             />
-            <Box sx={{ position: 'absolute', top: 12, left: 12 }}>
+            <Box sx={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               <Chip
                 label={project.category}
                 size="small"
@@ -94,6 +98,24 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
                   backdropFilter: 'blur(8px)',
                 }}
               />
+              {project.isGoldenTicket && (
+                <Chip
+                  icon={<span style={{ fontSize: '12px' }}>🌟</span>}
+                  label="GOLDEN TICKET"
+                  size="small"
+                  sx={{
+                    background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                    color: '#FFF',
+                    fontWeight: 800,
+                    fontSize: '0.65rem',
+                    height: 26,
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    boxShadow: '0 2px 10px rgba(245, 158, 11, 0.5)',
+                    backdropFilter: 'blur(8px)',
+                    '& .MuiChip-icon': { color: '#FFF' }
+                  }}
+                />
+              )}
             </Box>
             <IconButton 
               onClick={handleShare}
