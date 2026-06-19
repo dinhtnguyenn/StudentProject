@@ -84,10 +84,10 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
               className="card-image"
               component="img"
               height="200"
-              image={project.thumbnail || 'https://via.placeholder.com/400x200?text=No+Image'}
+              image={project.thumbnail || 'https://placehold.co/400x200?text=No+Image'}
               alt={project.name}
               sx={{ transition: 'transform 0.5s ease', objectFit: 'cover' }}
-              onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/400x200?text=No+Image'; }}
+              onError={(e) => { e.currentTarget.src = 'https://placehold.co/400x200?text=No+Image'; }}
             />
 
             <IconButton 

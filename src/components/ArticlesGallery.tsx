@@ -108,10 +108,10 @@ export default function ArticlesGallery() {
                   <CardMedia
                     component="img"
                     height="200"
-                    image={article.imageUrl || 'https://via.placeholder.com/400x200?text=No+Image'}
+                    image={article.imageUrl || 'https://placehold.co/400x200?text=No+Image'}
                     alt={article.title}
                     sx={{ objectFit: 'cover' }}
-                    onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/400x200?text=No+Image'; }}
+                    onError={(e) => { e.currentTarget.src = 'https://placehold.co/400x200?text=No+Image'; }}
                   />
                   <CardContent sx={{ flexGrow: 1, p: 3 }}>
                     <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
