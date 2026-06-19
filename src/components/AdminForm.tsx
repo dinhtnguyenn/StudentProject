@@ -416,7 +416,9 @@ export default function AdminForm() {
       const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(articleFormData.link.trim())}`;
       const res = await fetch(proxyUrl);
       const html = await res.text();
-      if (!html) throw new Error('Không thể tải trang');
+      if (!html || html.includes('Just a moment...') || html.includes('Cloudflare') || html.includes('challenge-error-text')) {
+        throw new Error('Trang web chặn Bot (Cloudflare). Vui lòng điền thủ công!');
+      }
       let title = '';
       let imageUrl = '';
 
