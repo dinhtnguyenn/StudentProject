@@ -352,6 +352,21 @@ export default function AdminForm() {
   // Form Handlers
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, [e.target.name]: e.target.value });
   const handleQuillChange = (value: string) => setFormData({ ...formData, description: value });
+  const fetchHtmlWithProxy = async (targetUrl: string) => {
+    try {
+      const res = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`);
+      const html = await res.text();
+      if (html.includes('Response exceeds 1MB size limit') || html.includes('{"error":')) {
+        throw new Error('corsproxy limit');
+      }
+      return html;
+    } catch (e) {
+      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`);
+      const data = await res.json();
+      if (data && data.contents) return data.contents;
+      throw new Error('Lỗi Proxy');
+    }
+  };
 
   const fetchSingleVideoData = async (videoId: string, existingData?: any) => {
     const oembedRes = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
@@ -362,9 +377,7 @@ export default function AdminForm() {
     }
 
     const thumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-    const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}`;
-    const pageRes = await fetch(proxyUrl);
-    const html = await pageRes.text();
+    const html = await fetchHtmlWithProxy(`https://www.youtube.com/watch?v=${videoId}`);
 
     let description = '';
     let teamMembers: string[] = [];
@@ -413,9 +426,7 @@ export default function AdminForm() {
     if (!articleFormData.link.trim()) return;
     setFetchingArticle(true);
     try {
-      const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(articleFormData.link.trim())}`;
-      const res = await fetch(proxyUrl);
-      const html = await res.text();
+      const html = await fetchHtmlWithProxy(articleFormData.link.trim());
       if (!html || html.includes('Just a moment...') || html.includes('Cloudflare') || html.includes('challenge-error-text')) {
         throw new Error('Trang web chặn Bot (Cloudflare). Vui lòng điền thủ công!');
       }
@@ -463,9 +474,7 @@ export default function AdminForm() {
       const playlistId = extractPlaylistId(bulkYoutubeUrl.trim());
       if (!playlistId) throw new Error('Link Playlist không hợp lệ. Vui lòng nhập link có chứa ?list=...');
 
-      const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(`https://www.youtube.com/playlist?list=${playlistId}`)}`;
-      const pageRes = await fetch(proxyUrl);
-      const html = await pageRes.text();
+      const html = await fetchHtmlWithProxy(`https://www.youtube.com/playlist?list=${playlistId}`);
       
       const videoIds = new Set<string>();
       const regex = /"videoId":"([a-zA-Z0-9_-]{11})"/g;
