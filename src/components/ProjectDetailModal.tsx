@@ -6,6 +6,8 @@ import CodeIcon from '@mui/icons-material/Code';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import SchoolIcon from '@mui/icons-material/School';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import DOMPurify from 'dompurify';
 import CommentSection from './CommentSection';
 
@@ -205,12 +207,12 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
                 </Box>
                 {project.major && (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Box sx={{ width: 36, height: 36, borderRadius: 2, bgcolor: 'info.main', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                      <Typography variant="caption" sx={{ fontWeight: 800 }}>M</Typography>
+                    <Box sx={{ width: 36, height: 36, borderRadius: 2, bgcolor: project.isGoldenTicket ? 'rgba(245, 158, 11, 0.15)' : 'info.light', display: 'flex', alignItems: 'center', justifyContent: 'center', color: project.isGoldenTicket ? '#F59E0B' : 'info.main', border: project.isGoldenTicket ? '1px solid rgba(245,158,11,0.4)' : 'none' }}>
+                      {project.isGoldenTicket ? <AutoAwesomeIcon fontSize="small" /> : <SchoolIcon fontSize="small" />}
                     </Box>
                     <Box>
                       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>Chuyên ngành</Typography>
-                      <Typography variant="body2" color="text.primary" sx={{ fontWeight: 700 }}>{project.major}</Typography>
+                      <Typography variant="body2" color={project.isGoldenTicket ? '#F59E0B' : 'text.primary'} sx={{ fontWeight: 700 }}>{project.major}</Typography>
                     </Box>
                   </Box>
                 )}
