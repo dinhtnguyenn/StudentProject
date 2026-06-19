@@ -498,6 +498,24 @@
     "major": "Mobile"
   },
   {
+    "id": "1781913109807",
+    "name": "Game NinjaNDice",
+    "description": "",
+    "thumbnail": "https://img.youtube.com/vi/keRTmAKkMRQ/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=keRTmAKkMRQ",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS26915 - Nguyễn Nam An",
+      "PS27310 - Đặng Bình An",
+      "PS27103 - Ngô Lam Nhật",
+      "PS27246 - Nguyễn Thành Quốc"
+    ],
+    "semester": "SUMMER 2024",
+    "techTags": [],
+    "isGoldenTicket": false,
+    "major": "Game"
+  },
+  {
     "id": "1781845008932-30",
     "name": "Ứng dụng mạng xã hội SWEET",
     "description": "",
@@ -610,23 +628,5 @@
     "techTags": [],
     "isGoldenTicket": false,
     "major": "Mobile"
-  },
-  {
-    "id": "1781913109807",
-    "name": "Game NinjaNDice",
-    "description": "",
-    "thumbnail": "https://img.youtube.com/vi/keRTmAKkMRQ/maxresdefault.jpg",
-    "youtubeUrl": "https://www.youtube.com/watch?v=keRTmAKkMRQ",
-    "category": "Dự án tốt nghiệp",
-    "teamMembers": [
-      "PS26915 - Nguyễn Nam An",
-      "PS27310 - Đặng Bình An",
-      "PS27103 - Ngô Lam Nhật",
-      "PS27246 - Nguyễn Thành Quốc"
-    ],
-    "semester": "SUMMER 2024",
-    "techTags": [],
-    "isGoldenTicket": false,
-    "major": "Game"
   }
 ]
