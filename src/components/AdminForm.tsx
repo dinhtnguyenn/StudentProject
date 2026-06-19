@@ -4,7 +4,7 @@ import {
   CircularProgress, Divider, Collapse, IconButton, InputAdornment,
   List, ListItem, ListItemText, Avatar, ListItemAvatar, ListSubheader, ListItemButton,
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
-  FormControl, InputLabel, Select, MenuItem, Chip, Checkbox, FormControlLabel, useTheme
+  FormControl, InputLabel, Select, MenuItem, Chip, Checkbox, FormControlLabel, useTheme, ListItemIcon
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import EditNoteIcon from '@mui/icons-material/EditNote';
@@ -159,10 +159,10 @@ export default function AdminForm() {
 
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('gh_token') || '';
-      const owner = localStorage.getItem('gh_owner') || '';
-      const repo = localStorage.getItem('gh_repo') || '';
-      const geminiKey = localStorage.getItem('gemini_api_key') || '';
+      const token = sessionStorage.getItem('gh_token') || '';
+      const owner = sessionStorage.getItem('gh_owner') || '';
+      const repo = sessionStorage.getItem('gh_repo') || '';
+      const geminiKey = sessionStorage.getItem('gemini_api_key') || '';
       setGithubToken(token);
       setGithubOwner(owner);
       setGithubRepo(repo);
@@ -190,9 +190,9 @@ export default function AdminForm() {
     setIsAuthenticating(true);
     try {
       await verifyToken(githubToken.trim(), githubOwner.trim(), githubRepo.trim());
-      localStorage.setItem('gh_token', githubToken.trim());
-      localStorage.setItem('gh_owner', githubOwner.trim());
-      localStorage.setItem('gh_repo', githubRepo.trim());
+      sessionStorage.setItem('gh_token', githubToken.trim());
+      sessionStorage.setItem('gh_owner', githubOwner.trim());
+      sessionStorage.setItem('gh_repo', githubRepo.trim());
       setIsAuthenticated(true);
       setStatus({ type: 'success', message: 'Đăng nhập thành công!' });
     } catch (err: any) {
@@ -203,9 +203,10 @@ export default function AdminForm() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('gh_token');
-    localStorage.removeItem('gh_owner');
-    localStorage.removeItem('gh_repo');
+    sessionStorage.removeItem('gh_token');
+    sessionStorage.removeItem('gh_owner');
+    sessionStorage.removeItem('gh_repo');
+    sessionStorage.removeItem('gemini_api_key');
     setGithubToken('');
     setGithubOwner('');
     setGithubRepo('');
@@ -307,6 +308,9 @@ export default function AdminForm() {
       body: JSON.stringify({ message, content: newContent, sha: sha || undefined, branch: 'main' })
     });
     if (!putRes.ok) {
+      if (putRes.status === 409) {
+        throw new Error('CONFLICT_409');
+      }
       const errorData = await putRes.json();
       throw new Error(errorData.message || 'Lỗi khi commit lên GitHub');
     }
@@ -473,69 +477,80 @@ export default function AdminForm() {
     }
   };
 
-  const extractPlaylistId = (url: string) => {
-    if (!url) return null;
-    const match = url.match(/[&?]list=([^&]+)/i);
-    return match ? match[1] : null;
-  };
-
   const handleFetchBulkYoutube = async () => {
-    if (!bulkYoutubeUrl.trim()) return;
+    if (!bulkYoutubeUrl) return;
     setIsBulkFetching(true);
+    setStatus({ type: 'info', message: 'Đang lấy danh sách video từ Playlist...' });
     try {
-      const playlistId = extractPlaylistId(bulkYoutubeUrl.trim());
-      if (!playlistId) throw new Error('Link Playlist không hợp lệ. Vui lòng nhập link có chứa ?list=...');
+      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(bulkYoutubeUrl)}`);
+      const data = await res.json();
+      if (!data.contents) throw new Error('Cannot fetch playlist content');
+      
+      const doc = new DOMParser().parseFromString(data.contents, 'text/html');
+      const scriptTags = Array.from(doc.querySelectorAll('script'));
+      const ytInitialDataScript = scriptTags.find(s => s.textContent?.includes('var ytInitialData = '));
+      
+      if (!ytInitialDataScript || !ytInitialDataScript.textContent) throw new Error('Không tìm thấy dữ liệu playlist.');
+      
+      const jsonText = ytInitialDataScript.textContent.replace('var ytInitialData = ', '').replace(/;$/, '');
+      const ytData = JSON.parse(jsonText);
+      
+      const tabs = ytData.contents?.twoColumnBrowseResultsRenderer?.tabs || [];
+      const playlistTab = tabs.find((t: any) => t.tabRenderer?.content?.sectionListRenderer);
+      const items = playlistTab?.tabRenderer?.content?.sectionListRenderer?.contents[0]?.itemSectionRenderer?.contents[0]?.playlistVideoListRenderer?.contents || [];
+      
+      const videos = items.filter((item: any) => item.playlistVideoRenderer).map((item: any) => item.playlistVideoRenderer);
+      
+      if (videos.length === 0) {
+        throw new Error('Không tìm thấy video nào. Đảm bảo Playlist ở trạng thái Công khai (Public).');
+      }
 
-      const html = await fetchHtmlWithProxy(`https://www.youtube.com/playlist?list=${playlistId}`);
-      
-      const videoIds = new Set<string>();
-      const regex = /"videoId":"([a-zA-Z0-9_-]{11})"/g;
-      let m;
-      while ((m = regex.exec(html)) !== null) {
-          videoIds.add(m[1]);
-      }
-      
-      const idList = Array.from(videoIds);
-      if (idList.length === 0) throw new Error('Không tìm thấy video nào trong Playlist, hoặc bị chặn bởi YouTube.');
-      
-      setBulkProgress({ total: idList.length, current: 0 });
-      
+      setBulkProgress({ current: 0, total: videos.length });
       const newProjects: any[] = [];
-      for (let i = 0; i < idList.length; i++) {
-          const vid = idList[i];
-          setBulkProgress({ total: idList.length, current: i + 1 });
+
+      for (let i = 0; i < videos.length; i++) {
+        const video = videos[i];
+        try {
+          const videoId = video.videoId;
+          const title = video.title?.runs?.[0]?.text || 'No title';
+          const thumbnail = video.thumbnail?.thumbnails?.pop()?.url || '';
           
-          try {
-            const videoData = await fetchSingleVideoData(vid);
+          if (!projectsList.some(p => p.id === videoId)) {
             newProjects.push({
-              ...formData, // use default form empty fields
-              id: Date.now().toString() + '-' + i,
-              name: videoData.name,
-              description: videoData.description,
-              thumbnail: videoData.thumbnail,
-              youtubeUrl: videoData.youtubeUrl,
-              teamMembers: videoData.teamMembers ? videoData.teamMembers.split('\n').map((m: string) => m.trim()).filter((m: string) => m) : [],
-              techTags: [], // Empty initially
-              category: '', // Empty initially
-              semester: '', // Empty initially
+              id: videoId,
+              name: title,
+              description: '',
+              thumbnail: thumbnail,
+              youtubeUrl: `https://www.youtube.com/watch?v=${videoId}`,
+              category: '',
+              teamMembers: [],
+              semester: '',
+              major: '',
+              techTags: ''
             });
-            // Delay 500ms to avoid rate limit
-            await new Promise(r => setTimeout(r, 500));
-          } catch (e) {
-            console.error('Error fetching video', vid, e);
           }
+        } catch (e) {
+          console.warn('Lỗi cào 1 video trong playlist', e);
+        }
+        
+        setBulkProgress(prev => ({ ...prev, current: i + 1 }));
+        await new Promise(resolve => setTimeout(resolve, 500)); // Rate limiting
       }
-      
-      setProjectsList(prev => [...newProjects, ...prev]);
-      setStatus({ type: 'success', message: `Đã nhập nháp thành công ${newProjects.length} dự án từ Playlist!` });
-      setTabIndex(1); // Switch to review tab
-      
-    } catch (e: any) {
-      setStatus({ type: 'error', message: e.message });
+
+      if (newProjects.length > 0) {
+        setProjectsList(prev => [...newProjects, ...prev]);
+        setStatus({ type: 'success', message: `Đã nhập nháp thành công ${newProjects.length} dự án từ Playlist!` });
+        setTabIndex(1);
+      } else {
+        setStatus({ type: 'info', message: 'Tất cả video trong Playlist đã tồn tại trong hệ thống.' });
+      }
+      setBulkYoutubeUrl('');
+    } catch (err: any) {
+      console.error(err);
+      setStatus({ type: 'error', message: err.message || 'Lỗi khi cào Playlist' });
     } finally {
       setIsBulkFetching(false);
       setBulkProgress({ total: 0, current: 0 });
-      setBulkYoutubeUrl('');
     }
   };
 
@@ -688,6 +703,45 @@ export default function AdminForm() {
   const [selectedArticleTypes, setSelectedArticleTypes] = useState<string[]>([]);
   const [bulkDeleteArticleTypesConfirm, setBulkDeleteArticleTypesConfirm] = useState(false);
 
+  // --- AI Functions ---
+  const handleGenerateTags = async () => {
+    if (!geminiApiKey) { setStatus({ type: 'error', message: 'Vui lòng cấu hình Gemini API Key ở mục Cài Đặt AI' }); return; }
+    if (!formData.description) { setStatus({ type: 'error', message: 'Vui lòng nhập mô tả dự án để AI phân tích' }); return; }
+    setIsAiLoading(prev => ({ ...prev, tags: true }));
+    try {
+      const prompt = `Dựa vào mô tả đồ án sau, hãy liệt kê tối đa 5 công nghệ cốt lõi được sử dụng, cách nhau bằng dấu phẩy. Trả về đúng định dạng text ngăn cách bằng dấu phẩy, KHÔNG viết dài dòng. Mô tả: ${formData.description}`;
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      });
+      if (!res.ok) throw new Error('Lỗi gọi API');
+      const data = await res.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      setFormData(prev => ({ ...prev, techTags: text.trim().replace(/\.$/, '') }));
+      setStatus({ type: 'success', message: 'AI đã điền Tech Tags thành công!' });
+    } catch (err: any) { setStatus({ type: 'error', message: 'Lỗi AI: ' + err.message }); } 
+    finally { setIsAiLoading(prev => ({ ...prev, tags: false })); }
+  };
+
+  const handleGenerateSummary = async () => {
+    if (!geminiApiKey) { setStatus({ type: 'error', message: 'Vui lòng cấu hình Gemini API Key ở mục Cài Đặt AI' }); return; }
+    if (!formData.description) { setStatus({ type: 'error', message: 'Cần có ít nhất một đoạn văn để tóm tắt' }); return; }
+    setIsAiLoading(prev => ({ ...prev, summary: true }));
+    try {
+      const prompt = `Dựa vào văn bản sau, hãy viết một đoạn mở bài tóm tắt khoảng 2-3 câu thật hấp dẫn, chuyên nghiệp. Không dùng định dạng markdown, chỉ trả về text thuần. Văn bản gốc: ${formData.description}`;
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      });
+      if (!res.ok) throw new Error('Lỗi gọi API');
+      const data = await res.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      setFormData(prev => ({ ...prev, description: text.trim() + '<br><br>' + prev.description }));
+      setStatus({ type: 'success', message: 'AI đã tạo phần tóm tắt mở bài!' });
+    } catch (err: any) { setStatus({ type: 'error', message: 'Lỗi AI: ' + err.message }); } 
+    finally { setIsAiLoading(prev => ({ ...prev, summary: false })); }
+  };
+
   const handleAddArticleType = () => {
     if (!newArticleTypeName.trim()) return;
     const colors = generateCategoryColors();
@@ -731,6 +785,13 @@ export default function AdminForm() {
 
   const handleToggleArticleType = (id: string) => setSelectedArticleTypes(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   const handleToggleAllArticleTypes = () => setSelectedArticleTypes(selectedArticleTypes.length === articleTypesList.length ? [] : articleTypesList.map(c => c.id));
+
+  const autoMergeData = (remoteData: any[], localData: any[]) => {
+    const map = new Map();
+    remoteData.forEach(item => map.set(item.id, item));
+    localData.forEach(item => map.set(item.id, item));
+    return Array.from(map.values());
+  };
 
   // Global Save
   const saveAllChangesToGithub = async () => {
@@ -780,7 +841,47 @@ export default function AdminForm() {
       setStatus({ type: 'success', message: `Commit thành công ${successCount} file lên GitHub! Quá trình build sẽ tự động chạy.` });
     } catch (err: any) {
       console.error(err);
-      setStatus({ type: 'error', message: err.message || 'Lỗi khi commit lên GitHub' });
+      if (err.message === 'CONFLICT_409') {
+        setStatus({ type: 'info', message: 'Phát hiện xung đột dữ liệu từ máy chủ! Đang tiến hành tự động gộp (Auto-merge)...' });
+        try {
+          if (isCategoriesChanged) {
+            const remote = await fetchFile(getCategoriesApiUrl());
+            const merged = autoMergeData(remote.data, categoriesList);
+            const newSha = await commitFile(getCategoriesApiUrl(), merged, remote.sha, `Merge & Update categories [skip ci]`);
+            setCategoriesList(merged); setOriginalCategories(merged); setCategoriesSha(newSha);
+          }
+          if (isProjectsChanged) {
+            const remote = await fetchFile(getProjectsApiUrl());
+            const merged = autoMergeData(remote.data, projectsList);
+            const newSha = await commitFile(getProjectsApiUrl(), merged, remote.sha, `Merge & Update projects [skip ci]`);
+            setProjectsList(merged); setOriginalProjects(merged); setProjectsSha(newSha);
+          }
+          if (isArticlesChanged) {
+            const remote = await fetchFile(getArticlesApiUrl());
+            const merged = autoMergeData(remote.data, articlesList);
+            const newSha = await commitFile(getArticlesApiUrl(), merged, remote.sha, `Merge & Update articles [skip ci]`);
+            setArticlesList(merged); setOriginalArticles(merged); setArticlesSha(newSha);
+          }
+          if (isMajorsChanged) {
+            const remote = await fetchFile(getMajorsApiUrl());
+            const merged = autoMergeData(remote.data, majorsList);
+            const newSha = await commitFile(getMajorsApiUrl(), merged, remote.sha, `Merge & Update majors [skip ci]`);
+            setMajorsList(merged); setOriginalMajors(merged); setMajorsSha(newSha);
+          }
+          if (isArticleTypesChanged) {
+            const remote = await fetchFile(getArticleTypesApiUrl());
+            const merged = autoMergeData(remote.data, articleTypesList);
+            const newSha = await commitFile(getArticleTypesApiUrl(), merged, remote.sha, `Merge & Update article types [skip ci]`);
+            setArticleTypesList(merged); setOriginalArticleTypes(merged); setArticleTypesSha(newSha);
+          }
+          setStatus({ type: 'success', message: `Gộp dữ liệu và Commit thành công lên GitHub! Quá trình build sẽ tự động chạy.` });
+        } catch (mergeErr: any) {
+          console.error(mergeErr);
+          setStatus({ type: 'error', message: 'Tự động gộp thất bại. Vui lòng F5 Tải Lại Trang để tránh mất dữ liệu: ' + mergeErr.message });
+        }
+      } else {
+        setStatus({ type: 'error', message: err.message || 'Lỗi khi commit lên GitHub' });
+      }
     } finally {
       setIsSavingAll(false);
     }
@@ -928,6 +1029,10 @@ export default function AdminForm() {
               <ListItemButton selected={tabIndex === 5} onClick={() => setTabIndex(5)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 5 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Chuyên Ngành</Typography>} />
               </ListItemButton>
+              <ListItemButton selected={tabIndex === 8} onClick={() => setTabIndex(8)} sx={{ mt: 1, bgcolor: tabIndex === 8 ? 'primary.main' : 'rgba(168, 85, 247, 0.05)', borderRadius: 3, '&:hover': { bgcolor: tabIndex === 8 ? 'primary.dark' : 'rgba(168, 85, 247, 0.15)' } }}>
+                <ListItemIcon sx={{ minWidth: 32 }}><AutoAwesomeIcon fontSize="small" sx={{ color: tabIndex === 8 ? '#fff' : '#A855F7' }} /></ListItemIcon>
+                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 8 ? 800 : 700, fontSize: '0.9rem', color: tabIndex === 8 ? '#fff' : '#A855F7' }}>Cài Đặt AI</Typography>} />
+              </ListItemButton>
 
             </List>
           </Box>
@@ -1016,6 +1121,48 @@ export default function AdminForm() {
               </Box>
             )}
 
+            {/* Tab 8: AI Settings */}
+            {tabIndex === 8 && (
+              <Box sx={{ maxWidth: 800, mx: 'auto', py: 2 }}>
+                <Paper elevation={0} sx={{ p: 4, borderRadius: 4, background: 'linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)', border: '1px solid', borderColor: '#E9D5FF' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                    <AutoAwesomeIcon sx={{ fontSize: 40, color: '#9333EA' }} />
+                    <Box>
+                      <Typography variant="h5" sx={{ fontWeight: 800, color: '#6B21A8' }}>Cài Đặt Trợ Lý AI</Typography>
+                      <Typography variant="body2" sx={{ color: '#7E22CE', opacity: 0.8 }}>Tích hợp Google Gemini để tự động hoá nội dung</Typography>
+                    </Box>
+                  </Box>
+
+                  <Typography variant="body1" sx={{ mb: 2, fontWeight: 500, color: '#4C1D95' }}>
+                    Nhập mã Gemini API Key của bạn để sử dụng các tính năng:
+                    <br/>- Tự động phân tích và tạo Tech Tags
+                    <br/>- Tự động tóm tắt mô tả đồ án thành đoạn mở bài hấp dẫn
+                  </Typography>
+
+                  <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+                    <TextField 
+                      fullWidth 
+                      type="password"
+                      label="Gemini API Key" 
+                      value={geminiApiKey} 
+                      onChange={e => setGeminiApiKey(e.target.value)}
+                      sx={{ bgcolor: 'background.paper', borderRadius: 1 }}
+                    />
+                    <Button 
+                      variant="contained" 
+                      onClick={() => {
+                        sessionStorage.setItem('gemini_api_key', geminiApiKey);
+                        setStatus({ type: 'success', message: 'Đã lưu cấu hình AI!' });
+                      }}
+                      sx={{ minWidth: 120, bgcolor: '#9333EA', '&:hover': { bgcolor: '#7E22CE' }, fontWeight: 700, borderRadius: 2 }}
+                    >
+                      Lưu Lại
+                    </Button>
+                  </Box>
+                </Paper>
+              </Box>
+            )}
+
         {/* Tab 0: Add / Edit Form */}
         {tabIndex === 0 && (
           <Box>
@@ -1083,7 +1230,13 @@ export default function AdminForm() {
                     </FormControl>
                   </Grid>
                   <Grid size={{ xs: 12 }}>
-                    <TextField fullWidth label="Tag công nghệ" name="techTags" value={formData.techTags} onChange={handleChange} placeholder="React, Node, AI..." />
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>Tag công nghệ</Typography>
+                      <Button size="small" variant="text" onClick={handleGenerateTags} disabled={isAiLoading.tags} startIcon={isAiLoading.tags ? <CircularProgress size={14} /> : <AutoAwesomeIcon fontSize="small" />} sx={{ textTransform: 'none', fontWeight: 700, color: '#A855F7', '&:hover': { bgcolor: 'rgba(168, 85, 247, 0.1)' } }}>
+                        AI Tự Điền Tags
+                      </Button>
+                    </Box>
+                    <TextField fullWidth name="techTags" value={formData.techTags} onChange={handleChange} placeholder="React, Node, AI..." />
                   </Grid>
                   <Grid size={{ xs: 12 }}>
                     <TextField fullWidth label="Link ảnh Thumbnail" name="thumbnail" value={formData.thumbnail} onChange={handleChange} required />
@@ -1095,7 +1248,12 @@ export default function AdminForm() {
                     <TextField fullWidth label="Thành viên" name="teamMembers" value={formData.teamMembers} onChange={handleChange} multiline rows={4} required placeholder="Mỗi người 1 dòng&#10;Nguyễn Văn A&#10;Trần Thị B" />
                   </Grid>
                   <Grid size={{ xs: 12 }}>
-                    <Typography variant="body2" sx={{ mb: 1, fontWeight: 500, color: 'text.secondary' }}>Mô tả dự án (Không bắt buộc)</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>Mô tả dự án (Không bắt buộc)</Typography>
+                      <Button size="small" variant="text" onClick={handleGenerateSummary} disabled={isAiLoading.summary} startIcon={isAiLoading.summary ? <CircularProgress size={14} /> : <AutoAwesomeIcon fontSize="small" />} sx={{ textTransform: 'none', fontWeight: 700, color: '#A855F7', '&:hover': { bgcolor: 'rgba(168, 85, 247, 0.1)' } }}>
+                        AI Tóm Tắt Mở Bài
+                      </Button>
+                    </Box>
                     <Box sx={{
                       '.ql-container': { borderBottomLeftRadius: 8, borderBottomRightRadius: 8, minHeight: 150, fontSize: '1rem', fontFamily: 'inherit', color: 'text.primary' },
                       '.ql-toolbar': { borderTopLeftRadius: 8, borderTopRightRadius: 8, bgcolor: 'background.default' },
