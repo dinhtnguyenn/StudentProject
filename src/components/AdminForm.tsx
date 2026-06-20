@@ -84,7 +84,7 @@ function generateCategoryColors() {
 }
 
 // --- Sortable Item Component ---
-function SortableProjectItem({ project, idx, isSelected, onToggle, onEdit, onDelete }: any) {
+function SortableProjectItem({ project, idx, isSelected, onToggle, onEdit, onDelete, categoryName }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: project.id });
   const theme = useTheme();
 
@@ -114,7 +114,7 @@ function SortableProjectItem({ project, idx, isSelected, onToggle, onEdit, onDel
               {project.isGoldenTicket && <StarIcon sx={{ color: '#F59E0B', fontSize: 18 }} titleAccess="Golden Ticket" />}
             </Box>
           }
-          secondary={<Typography variant="caption" sx={{ color: 'text.secondary' }}>{project.category} • {project.semester}</Typography>}
+          secondary={<Typography variant="caption" sx={{ color: 'text.secondary' }}>{categoryName || project.category} • {project.semester}</Typography>}
         />
         <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
           <IconButton size="small" onClick={() => onEdit(project)} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
@@ -1209,7 +1209,7 @@ export default function AdminForm() {
                       <InputLabel>Loại dự án</InputLabel>
                       <Select name="category" value={formData.category} label="Loại dự án" onChange={(e) => setFormData({ ...formData, category: e.target.value as string })}>
                         {categoriesList.map(cat => (
-                          <MenuItem key={cat.id} value={cat.name}>{cat.name}</MenuItem>
+                          <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
                         ))}
                         {categoriesList.length === 0 && <MenuItem disabled value="">Chưa có loại dự án nào</MenuItem>}
                       </Select>
@@ -1223,7 +1223,7 @@ export default function AdminForm() {
                       <InputLabel>Chuyên ngành</InputLabel>
                       <Select name="major" value={formData.major} label="Chuyên ngành" onChange={(e) => setFormData({ ...formData, major: e.target.value as string })}>
                         {majorsList.map(major => (
-                          <MenuItem key={major.id} value={major.name}>{major.name}</MenuItem>
+                          <MenuItem key={major.id} value={major.id}>{major.name}</MenuItem>
                         ))}
                         {majorsList.length === 0 && <MenuItem disabled value="">Chưa có chuyên ngành nào</MenuItem>}
                       </Select>
@@ -1326,6 +1326,7 @@ export default function AdminForm() {
                           idx={idx}
                           isSelected={selectedProjects.includes(project.id)}
                           onToggle={handleToggleProject}
+                          categoryName={categoriesList.find(c => c.id === project.category)?.name || project.category}
                           onEdit={(p: any) => {
                             setFormData({
                               id: p.id, name: p.name, description: p.description, thumbnail: p.thumbnail,
@@ -1437,7 +1438,7 @@ export default function AdminForm() {
                         <InputLabel>Loại bài viết</InputLabel>
                         <Select value={articleFormData.type} label="Loại bài viết" onChange={e => setArticleFormData({ ...articleFormData, type: e.target.value as string })}>
                           {articleTypesList.map(type => (
-                            <MenuItem key={type.id} value={type.name}>{type.name}</MenuItem>
+                            <MenuItem key={type.id} value={type.id}>{type.name}</MenuItem>
                           ))}
                           {articleTypesList.length === 0 && <MenuItem disabled value="">Chưa có loại bài viết nào</MenuItem>}
                         </Select>
@@ -1448,7 +1449,7 @@ export default function AdminForm() {
                         <InputLabel>Chuyên ngành</InputLabel>
                         <Select value={articleFormData.major} label="Chuyên ngành" onChange={e => setArticleFormData({ ...articleFormData, major: e.target.value as string })}>
                           {majorsList.map(major => (
-                            <MenuItem key={major.id} value={major.name}>{major.name}</MenuItem>
+                            <MenuItem key={major.id} value={major.id}>{major.name}</MenuItem>
                           ))}
                           {majorsList.length === 0 && <MenuItem disabled value="">Chưa có chuyên ngành nào</MenuItem>}
                         </Select>
@@ -1488,7 +1489,7 @@ export default function AdminForm() {
                         </ListItemAvatar>
                         <ListItemText
                           primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{article.title}</Typography>}
-                          secondary={<Typography variant="caption" sx={{ color: 'text.secondary' }}>{article.type} • {article.major}</Typography>}
+                          secondary={<Typography variant="caption" sx={{ color: 'text.secondary' }}>{articleTypesList.find(t => t.id === article.type)?.name || article.type} • {majorsList.find(m => m.id === article.major)?.name || article.major}</Typography>}
                         />
                         <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
                           <IconButton size="small" onClick={() => { setArticleFormData(article); setTabIndex(3); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>

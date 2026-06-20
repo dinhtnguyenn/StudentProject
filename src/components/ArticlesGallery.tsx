@@ -18,6 +18,8 @@ export default function ArticlesGallery() {
 
   useEffect(() => {
     const localArticlesUrl = `${import.meta.env.BASE_URL}data/articles.json`;
+    const localTypesUrl = `${import.meta.env.BASE_URL}data/articleTypes.json`;
+    const localMajorsUrl = `${import.meta.env.BASE_URL}data/majors.json`;
 
     const fetchWithFallback = async (apiUrl: string, localUrl: string) => {
       try {
@@ -34,18 +36,27 @@ export default function ArticlesGallery() {
     };
 
     let pPromise = fetch(localArticlesUrl).then(res => res.json());
+    let tPromise = fetch(localTypesUrl).then(res => res.json()).catch(() => []);
+    let mPromise = fetch(localMajorsUrl).then(res => res.json()).catch(() => []);
 
     if (window.location.hostname.includes('.github.io')) {
       const owner = window.location.hostname.split('.')[0];
       const repo = window.location.pathname.split('/')[1];
       if (owner && repo) {
         pPromise = fetchWithFallback(`https://api.github.com/repos/${owner}/${repo}/contents/public/data/articles.json`, localArticlesUrl);
+        tPromise = fetchWithFallback(`https://api.github.com/repos/${owner}/${repo}/contents/public/data/articleTypes.json`, localTypesUrl);
+        mPromise = fetchWithFallback(`https://api.github.com/repos/${owner}/${repo}/contents/public/data/majors.json`, localMajorsUrl);
       }
     }
 
-    pPromise
-      .then((data: any) => {
-        setArticles(data || []);
+    Promise.all([pPromise, tPromise, mPromise])
+      .then(([artData, typesData, majorsData]) => {
+        const resolvedArticles = (artData || []).map((a: any) => ({
+          ...a,
+          type: (typesData || []).find((t: any) => t.id === a.type)?.name || a.type,
+          major: (majorsData || []).find((m: any) => m.id === a.major)?.name || a.major,
+        }));
+        setArticles(resolvedArticles);
         setLoading(false);
       })
       .catch((err: any) => {

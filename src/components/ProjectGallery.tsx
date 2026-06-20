@@ -24,6 +24,7 @@ const itemVariants = {
 
 export default function ProjectGallery() {
   const [projects, setProjects] = useState<Project[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [currentTab, setCurrentTab] = useState('All');
@@ -57,6 +58,7 @@ export default function ProjectGallery() {
   useEffect(() => {
     const localProjectsUrl = `${import.meta.env.BASE_URL}data/projects.json`;
     const localCategoriesUrl = `${import.meta.env.BASE_URL}data/categories.json`;
+    const localMajorsUrl = `${import.meta.env.BASE_URL}data/majors.json`;
 
     // Hàm lấy dữ liệu với chiến lược "API First, Fallback Local"
     const fetchWithFallback = async (apiUrl: string, localUrl: string) => {
@@ -77,6 +79,7 @@ export default function ProjectGallery() {
 
     let pPromise = fetch(localProjectsUrl).then(res => res.json());
     let cPromise = fetch(localCategoriesUrl).then(res => res.json()).catch(() => []);
+    let mPromise = fetch(localMajorsUrl).then(res => res.json()).catch(() => []);
 
     if (window.location.hostname.includes('.github.io')) {
       const owner = window.location.hostname.split('.')[0];
@@ -84,13 +87,23 @@ export default function ProjectGallery() {
       if (owner && repo) {
         pPromise = fetchWithFallback(`https://api.github.com/repos/${owner}/${repo}/contents/public/data/projects.json`, localProjectsUrl);
         cPromise = fetchWithFallback(`https://api.github.com/repos/${owner}/${repo}/contents/public/data/categories.json`, localCategoriesUrl);
+        mPromise = fetchWithFallback(`https://api.github.com/repos/${owner}/${repo}/contents/public/data/majors.json`, localMajorsUrl);
       }
     }
 
-    Promise.all([pPromise, cPromise])
-      .then(([projData, catData]) => {
-        setProjects(projData || []);
-        setCategories(catData || []);
+    Promise.all([pPromise, cPromise, mPromise])
+      .then(([projData, catData, majData]) => {
+        const categoriesData = catData || [];
+        const majorsData = majData || [];
+        
+        const resolvedProjects = (projData || []).map((p: any) => ({
+          ...p,
+          category: categoriesData.find((c: any) => c.id === p.category)?.name || p.category,
+          major: majorsData.find((m: any) => m.id === p.major)?.name || p.major,
+        }));
+        
+        setProjects(resolvedProjects);
+        setCategories(categoriesData);
         setLoading(false);
       })
       .catch(err => {
