@@ -97,6 +97,42 @@
     "major": "Game"
   },
   {
+    "id": "1781913660783",
+    "name": "Game Thanh kiếm báo thù",
+    "description": "",
+    "thumbnail": "https://img.youtube.com/vi/XLE9v_7LuuA/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=XLE9v_7LuuA",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS40684 - Nguyễn Văn Sơn",
+      "PS40882 - Lương Gia Hào",
+      "PS43189 - Nguyễn Hoài Nam",
+      "PS42942 - Tô Minh Thành"
+    ],
+    "semester": "FALL 2025",
+    "techTags": [],
+    "isGoldenTicket": false,
+    "major": "Game"
+  },
+  {
+    "id": "1781913501284",
+    "name": "Game Chiến Binh Cyberpunk",
+    "description": "",
+    "thumbnail": "https://img.youtube.com/vi/tOhzkj5sCZ8/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=tOhzkj5sCZ8",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS40150 - Thái Tăng Phúc Hậu",
+      "PS39905 - Nguyễn Huỳnh Trọng Phúc",
+      "PS32434 - Kiều Minh Thuận",
+      "PS39464 - Ngô Thùy Mỹ Duyên"
+    ],
+    "semester": "SUMMER 2025",
+    "techTags": [],
+    "isGoldenTicket": true,
+    "major": "Game"
+  },
+  {
     "id": "1781844965729-8",
     "name": "Game Asteria - Vùng đất lữ hành",
     "description": "",
@@ -302,7 +338,7 @@
     ],
     "semester": "SPRING 2025",
     "techTags": [],
-    "isGoldenTicket": false,
+    "isGoldenTicket": true,
     "major": "Mobile"
   },
   {
@@ -402,6 +438,23 @@
     "major": "Mobile"
   },
   {
+    "id": "1781913216256",
+    "name": "Hệ thống đặt và giao đồ ăn Coody",
+    "description": "",
+    "thumbnail": "https://img.youtube.com/vi/dywXsOXNF3I/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=dywXsOXNF3I",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS36193 - Trần Hữu An Bình",
+      "PS27989 - Nguyễn Minh Khương",
+      "PS28755 - Nguyễn Lê Hùng"
+    ],
+    "semester": "FALL 2024",
+    "techTags": [],
+    "isGoldenTicket": false,
+    "major": "Mobile"
+  },
+  {
     "id": "1781844992710-24",
     "name": "Game khám phá vùng đất bóng tối",
     "description": "",
@@ -474,7 +527,7 @@
     ],
     "semester": "SUMMER 2024",
     "techTags": [],
-    "isGoldenTicket": false,
+    "isGoldenTicket": true,
     "major": "Mobile"
   },
   {
@@ -498,6 +551,24 @@
     "major": "Mobile"
   },
   {
+    "id": "1781913109807",
+    "name": "Game NinjaNDice",
+    "description": "",
+    "thumbnail": "https://img.youtube.com/vi/keRTmAKkMRQ/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=keRTmAKkMRQ",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS26915 - Nguyễn Nam An",
+      "PS27310 - Đặng Bình An",
+      "PS27103 - Ngô Lam Nhật",
+      "PS27246 - Nguyễn Thành Quốc"
+    ],
+    "semester": "SUMMER 2024",
+    "techTags": [],
+    "isGoldenTicket": true,
+    "major": "Game"
+  },
+  {
     "id": "1781845008932-30",
     "name": "Ứng dụng mạng xã hội SWEET",
     "description": "",
@@ -514,7 +585,7 @@
     ],
     "semester": "SPRING 2024",
     "techTags": [],
-    "isGoldenTicket": false,
+    "isGoldenTicket": true,
     "major": "Mobile"
   },
   {
@@ -533,6 +604,42 @@
       "PS21635 - Nguyễn Quốc Nam"
     ],
     "semester": "SPRING 2024",
+    "techTags": [],
+    "isGoldenTicket": false,
+    "major": "Mobile"
+  },
+  {
+    "id": "1781913016046",
+    "name": "Ứng dụng bán giày 5AE",
+    "description": "",
+    "thumbnail": "https://img.youtube.com/vi/eDBrSiBiNqo/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=eDBrSiBiNqo",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS24817 - Hoàng Phi Tùng",
+      "PS24882 - Đặng Văn Việt",
+      "PS24718 - Nguyễn Tấn Thy",
+      "PS24761 - Nguyễn Hữu Hòa"
+    ],
+    "semester": "FALL 2023",
+    "techTags": [],
+    "isGoldenTicket": false,
+    "major": "Mobile"
+  },
+  {
+    "id": "1781912941108",
+    "name": "Ứng dụng thuê xe GoTraffic",
+    "description": "",
+    "thumbnail": "https://img.youtube.com/vi/TNC1_Qg3KNE/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=TNC1_Qg3KNE",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS24943 - Nguyễn Văn Sơn",
+      "PS25024 - Trần Thị Thanh Thuỳ",
+      "PS25048 - Phạm Nguyễn Thế Sơn",
+      "PS24199 - Lê Hoàng Gia Khánh"
+    ],
+    "semester": "FALL 2023",
     "techTags": [],
     "isGoldenTicket": false,
     "major": "Mobile"
