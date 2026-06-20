@@ -4,5 +4,9 @@ export interface Article {
   imageUrl: string;
   link: string;
   type: string;
+  typeBg?: string;
+  typeText?: string;
   major: string;
+  majorBg?: string;
+  majorText?: string;
 }

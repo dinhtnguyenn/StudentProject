@@ -51,11 +51,19 @@ export default function ArticlesGallery() {
 
     Promise.all([pPromise, tPromise, mPromise])
       .then(([artData, typesData, majorsData]) => {
-        const resolvedArticles = (artData || []).map((a: any) => ({
-          ...a,
-          type: (typesData || []).find((t: any) => t.id === a.type)?.name || a.type,
-          major: (majorsData || []).find((m: any) => m.id === a.major)?.name || a.major,
-        }));
+        const resolvedArticles = (artData || []).map((a: any) => {
+          const tObj = (typesData || []).find((t: any) => t.id === a.type);
+          const mObj = (majorsData || []).find((m: any) => m.id === a.major);
+          return {
+            ...a,
+            type: tObj?.name || a.type,
+            typeBg: tObj?.bg || '#E0E7FF',
+            typeText: tObj?.text || '#3730A3',
+            major: mObj?.name || a.major,
+            majorBg: mObj?.bg || 'transparent',
+            majorText: mObj?.text || '#4B5563',
+          };
+        });
         setArticles(resolvedArticles);
         setLoading(false);
       })
@@ -224,10 +232,10 @@ export default function ArticlesGallery() {
                   <CardContent sx={{ flexGrow: 1, p: 3 }}>
                     <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
                       {article.type && (
-                        <Chip label={article.type} size="small" sx={{ fontWeight: 700, bgcolor: 'primary.light', color: 'primary.dark' }} />
+                        <Chip label={article.type} size="small" sx={{ fontWeight: 700, bgcolor: article.typeBg, color: article.typeText }} />
                       )}
                       {article.major && (
-                        <Chip label={article.major} size="small" variant="outlined" sx={{ fontWeight: 700 }} />
+                        <Chip label={article.major} size="small" variant="outlined" sx={{ fontWeight: 700, borderColor: article.majorText !== '#4B5563' ? article.majorText : 'divider', color: article.majorText }} />
                       )}
                     </Box>
                     <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.4, color: 'text.primary' }}>
