@@ -141,7 +141,7 @@ export default function AdminForm() {
 
   // AI State
   const [geminiApiKey, setGeminiApiKey] = useState('');
-  const [isAiLoading, setIsAiLoading] = useState<{tags: boolean, summary: boolean}>({ tags: false, summary: false });
+  const [isAiLoading, setIsAiLoading] = useState<{ tags: boolean, summary: boolean }>({ tags: false, summary: false });
 
   const verifyToken = async (token: string, owner: string, repo: string) => {
     try {
@@ -485,22 +485,22 @@ export default function AdminForm() {
       const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(bulkYoutubeUrl)}`);
       const data = await res.json();
       if (!data.contents) throw new Error('Cannot fetch playlist content');
-      
+
       const doc = new DOMParser().parseFromString(data.contents, 'text/html');
       const scriptTags = Array.from(doc.querySelectorAll('script'));
       const ytInitialDataScript = scriptTags.find(s => s.textContent?.includes('var ytInitialData = '));
-      
+
       if (!ytInitialDataScript || !ytInitialDataScript.textContent) throw new Error('Không tìm thấy dữ liệu playlist.');
-      
+
       const jsonText = ytInitialDataScript.textContent.replace('var ytInitialData = ', '').replace(/;$/, '');
       const ytData = JSON.parse(jsonText);
-      
+
       const tabs = ytData.contents?.twoColumnBrowseResultsRenderer?.tabs || [];
       const playlistTab = tabs.find((t: any) => t.tabRenderer?.content?.sectionListRenderer);
       const items = playlistTab?.tabRenderer?.content?.sectionListRenderer?.contents[0]?.itemSectionRenderer?.contents[0]?.playlistVideoListRenderer?.contents || [];
-      
+
       const videos = items.filter((item: any) => item.playlistVideoRenderer).map((item: any) => item.playlistVideoRenderer);
-      
+
       if (videos.length === 0) {
         throw new Error('Không tìm thấy video nào. Đảm bảo Playlist ở trạng thái Công khai (Public).');
       }
@@ -514,7 +514,7 @@ export default function AdminForm() {
           const videoId = video.videoId;
           const title = video.title?.runs?.[0]?.text || 'No title';
           const thumbnail = video.thumbnail?.thumbnails?.pop()?.url || '';
-          
+
           if (!projectsList.some(p => p.id === videoId)) {
             newProjects.push({
               id: videoId,
@@ -532,7 +532,7 @@ export default function AdminForm() {
         } catch (e) {
           console.warn('Lỗi cào 1 video trong playlist', e);
         }
-        
+
         setBulkProgress(prev => ({ ...prev, current: i + 1 }));
         await new Promise(resolve => setTimeout(resolve, 500)); // Rate limiting
       }
@@ -719,7 +719,7 @@ export default function AdminForm() {
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
       setFormData(prev => ({ ...prev, techTags: text.trim().replace(/\.$/, '') }));
       setStatus({ type: 'success', message: 'AI đã điền Tech Tags thành công!' });
-    } catch (err: any) { setStatus({ type: 'error', message: 'Lỗi AI: ' + err.message }); } 
+    } catch (err: any) { setStatus({ type: 'error', message: 'Lỗi AI: ' + err.message }); }
     finally { setIsAiLoading(prev => ({ ...prev, tags: false })); }
   };
 
@@ -738,7 +738,7 @@ export default function AdminForm() {
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
       setFormData(prev => ({ ...prev, description: text.trim() + '<br><br>' + prev.description }));
       setStatus({ type: 'success', message: 'AI đã tạo phần tóm tắt mở bài!' });
-    } catch (err: any) { setStatus({ type: 'error', message: 'Lỗi AI: ' + err.message }); } 
+    } catch (err: any) { setStatus({ type: 'error', message: 'Lỗi AI: ' + err.message }); }
     finally { setIsAiLoading(prev => ({ ...prev, summary: false })); }
   };
 
@@ -989,7 +989,7 @@ export default function AdminForm() {
           <Box sx={{ width: { xs: '100%', md: 280 }, flexShrink: 0, borderRight: { xs: 'none', md: '1px solid' }, borderBottom: { xs: '1px solid', md: 'none' }, borderColor: 'divider', bgcolor: 'background.default', p: 2 }}>
             {/* Groups */}
             <List sx={{ pt: 0, '& .MuiListItemButton-root': { borderRadius: 3, mb: 0.5, py: 1.2, transition: 'all 0.2s ease', '&.Mui-selected': { bgcolor: 'primary.main', color: 'primary.contrastText', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)', '& .MuiTypography-root': { color: 'primary.contrastText' }, '&:hover': { bgcolor: 'primary.dark' } } } }}>
-              
+
               <ListSubheader sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'primary.main', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
                 <DashboardIcon fontSize="small" /> TỔNG QUAN
               </ListSubheader>
@@ -1098,7 +1098,7 @@ export default function AdminForm() {
 
                 <Grid container spacing={3}>
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 3, color: 'text.primary' }}>Phân Bố Dự Án Theo Chuyên Ngành</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 3, color: 'text.primary' }}>Dự Án</Typography>
                     <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid', borderColor: 'divider', height: '100%' }}>
                       {majorsList.length === 0 ? (
                         <Typography color="text.secondary">Chưa có dữ liệu chuyên ngành.</Typography>
@@ -1123,7 +1123,7 @@ export default function AdminForm() {
                   </Grid>
 
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 3, color: 'text.primary' }}>Phân Bố Bài Viết Theo Thể Loại</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 3, color: 'text.primary' }}>Bài Viết</Typography>
                     <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid', borderColor: 'divider', height: '100%' }}>
                       {articleTypesList.length === 0 ? (
                         <Typography color="text.secondary">Chưa có dữ liệu loại bài viết.</Typography>
@@ -1164,21 +1164,21 @@ export default function AdminForm() {
 
                   <Typography variant="body1" sx={{ mb: 2, fontWeight: 500, color: '#4C1D95' }}>
                     Nhập mã Gemini API Key của bạn để sử dụng các tính năng:
-                    <br/>- Tự động phân tích và tạo Tech Tags
-                    <br/>- Tự động tóm tắt mô tả đồ án thành đoạn mở bài hấp dẫn
+                    <br />- Tự động phân tích và tạo Tech Tags
+                    <br />- Tự động tóm tắt mô tả đồ án thành đoạn mở bài hấp dẫn
                   </Typography>
 
                   <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
-                    <TextField 
-                      fullWidth 
+                    <TextField
+                      fullWidth
                       type="password"
-                      label="Gemini API Key" 
-                      value={geminiApiKey} 
+                      label="Gemini API Key"
+                      value={geminiApiKey}
                       onChange={e => setGeminiApiKey(e.target.value)}
                       sx={{ bgcolor: 'background.paper', borderRadius: 1 }}
                     />
-                    <Button 
-                      variant="contained" 
+                    <Button
+                      variant="contained"
                       onClick={() => {
                         sessionStorage.setItem('gemini_api_key', geminiApiKey);
                         setStatus({ type: 'success', message: 'Đã lưu cấu hình AI!' });
@@ -1192,459 +1192,459 @@ export default function AdminForm() {
               </Box>
             )}
 
-        {/* Tab 0: Add / Edit Form */}
-        {tabIndex === 0 && (
-          <Box>
-            {!formData.id && (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
-                <Paper elevation={0} sx={{ p: 3, border: `2px dashed ${muiTheme.palette.primary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'text.secondary' }}>Nhập một Video</Typography>
-                  <Box sx={{ display: 'flex', gap: 1.5 }}>
-                    <TextField fullWidth size="small" placeholder="Dán link YouTube để tự động điền..." value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleFetchYoutube())} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} />
-                    <Button variant="contained" onClick={handleFetchYoutube} disabled={fetching || !youtubeUrl.trim()} startIcon={fetching ? <CircularProgress size={18} color="inherit" /> : <AutoFixHighIcon />} sx={{ minWidth: 150, whiteSpace: 'nowrap', borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.39)', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
-                      {fetching ? 'Đang cào...' : 'Tự động điền'}
-                    </Button>
-                  </Box>
-                </Paper>
-
-                <Paper elevation={0} sx={{ p: 3, border: `2px dashed ${muiTheme.palette.secondary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'text.secondary' }}>Nhập hàng loạt từ Playlist</Typography>
-                  <Box sx={{ display: 'flex', gap: 1.5 }}>
-                    <TextField fullWidth size="small" placeholder="Dán link Playlist YouTube..." value={bulkYoutubeUrl} onChange={e => setBulkYoutubeUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleFetchBulkYoutube())} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} />
-                    <Button variant="contained" color="secondary" onClick={handleFetchBulkYoutube} disabled={isBulkFetching || !bulkYoutubeUrl.trim()} startIcon={isBulkFetching ? <CircularProgress size={18} color="inherit" /> : <CloudUploadIcon />} sx={{ minWidth: 150, whiteSpace: 'nowrap', borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(156, 39, 176, 0.39)', background: 'linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
-                      {isBulkFetching ? `Đang cào (${bulkProgress.current}/${bulkProgress.total})...` : 'Nhập Playlist'}
-                    </Button>
-                  </Box>
-                  {isBulkFetching && bulkProgress.total > 0 && (
-                    <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Box sx={{ flex: 1, height: 8, bgcolor: 'action.hover', borderRadius: 4, overflow: 'hidden' }}>
-                        <Box sx={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%`, height: '100%', bgcolor: 'secondary.main', transition: 'width 0.3s ease' }} />
+            {/* Tab 0: Add / Edit Form */}
+            {tabIndex === 0 && (
+              <Box>
+                {!formData.id && (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
+                    <Paper elevation={0} sx={{ p: 3, border: `2px dashed ${muiTheme.palette.primary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
+                      <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'text.secondary' }}>Nhập một Video</Typography>
+                      <Box sx={{ display: 'flex', gap: 1.5 }}>
+                        <TextField fullWidth size="small" placeholder="Dán link YouTube để tự động điền..." value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleFetchYoutube())} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} />
+                        <Button variant="contained" onClick={handleFetchYoutube} disabled={fetching || !youtubeUrl.trim()} startIcon={fetching ? <CircularProgress size={18} color="inherit" /> : <AutoFixHighIcon />} sx={{ minWidth: 150, whiteSpace: 'nowrap', borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.39)', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
+                          {fetching ? 'Đang cào...' : 'Tự động điền'}
+                        </Button>
                       </Box>
-                      <Typography variant="caption" sx={{ fontWeight: 700 }}>{Math.round((bulkProgress.current / bulkProgress.total) * 100)}%</Typography>
+                    </Paper>
+
+                    <Paper elevation={0} sx={{ p: 3, border: `2px dashed ${muiTheme.palette.secondary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
+                      <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'text.secondary' }}>Nhập hàng loạt từ Playlist</Typography>
+                      <Box sx={{ display: 'flex', gap: 1.5 }}>
+                        <TextField fullWidth size="small" placeholder="Dán link Playlist YouTube..." value={bulkYoutubeUrl} onChange={e => setBulkYoutubeUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleFetchBulkYoutube())} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} />
+                        <Button variant="contained" color="secondary" onClick={handleFetchBulkYoutube} disabled={isBulkFetching || !bulkYoutubeUrl.trim()} startIcon={isBulkFetching ? <CircularProgress size={18} color="inherit" /> : <CloudUploadIcon />} sx={{ minWidth: 150, whiteSpace: 'nowrap', borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(156, 39, 176, 0.39)', background: 'linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
+                          {isBulkFetching ? `Đang cào (${bulkProgress.current}/${bulkProgress.total})...` : 'Nhập Playlist'}
+                        </Button>
+                      </Box>
+                      {isBulkFetching && bulkProgress.total > 0 && (
+                        <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Box sx={{ flex: 1, height: 8, bgcolor: 'action.hover', borderRadius: 4, overflow: 'hidden' }}>
+                            <Box sx={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%`, height: '100%', bgcolor: 'secondary.main', transition: 'width 0.3s ease' }} />
+                          </Box>
+                          <Typography variant="caption" sx={{ fontWeight: 700 }}>{Math.round((bulkProgress.current / bulkProgress.total) * 100)}%</Typography>
+                        </Box>
+                      )}
+                    </Paper>
+                  </Box>
+                )}
+
+                <Paper elevation={0} sx={{ p: { xs: 3, md: 4.5 }, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper' }}>
+                  <form onSubmit={handleSubmitProject}>
+                    <Grid container spacing={2.5}>
+                      <Grid size={{ xs: 12 }}>
+                        <TextField fullWidth label="Tên dự án" name="name" value={formData.name} onChange={handleChange} required />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 4 }}>
+                        <FormControl fullWidth required>
+                          <InputLabel>Loại dự án</InputLabel>
+                          <Select name="category" value={formData.category} label="Loại dự án" onChange={(e) => setFormData({ ...formData, category: e.target.value as string })}>
+                            {categoriesList.map(cat => (
+                              <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
+                            ))}
+                            {categoriesList.length === 0 && <MenuItem disabled value="">Chưa có loại dự án nào</MenuItem>}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 4 }}>
+                        <TextField fullWidth label="Học kỳ" name="semester" value={formData.semester} onChange={handleChange} required />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 4 }}>
+                        <FormControl fullWidth required>
+                          <InputLabel>Chuyên ngành</InputLabel>
+                          <Select name="major" value={formData.major} label="Chuyên ngành" onChange={(e) => setFormData({ ...formData, major: e.target.value as string })}>
+                            {majorsList.map(major => (
+                              <MenuItem key={major.id} value={major.id}>{major.name}</MenuItem>
+                            ))}
+                            {majorsList.length === 0 && <MenuItem disabled value="">Chưa có chuyên ngành nào</MenuItem>}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid size={{ xs: 12 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>Tag công nghệ</Typography>
+                          <Button size="small" variant="text" onClick={handleGenerateTags} disabled={isAiLoading.tags} startIcon={isAiLoading.tags ? <CircularProgress size={14} /> : <AutoAwesomeIcon fontSize="small" />} sx={{ textTransform: 'none', fontWeight: 700, color: '#A855F7', '&:hover': { bgcolor: 'rgba(168, 85, 247, 0.1)' } }}>
+                            AI Tự Điền Tags
+                          </Button>
+                        </Box>
+                        <TextField fullWidth name="techTags" value={formData.techTags} onChange={handleChange} placeholder="React, Node, AI..." />
+                      </Grid>
+                      <Grid size={{ xs: 12 }}>
+                        <TextField fullWidth label="Link ảnh Thumbnail" name="thumbnail" value={formData.thumbnail} onChange={handleChange} required />
+                      </Grid>
+                      <Grid size={{ xs: 12 }}>
+                        <TextField fullWidth label="Link YouTube" name="youtubeUrl" value={formData.youtubeUrl} onChange={handleChange} />
+                      </Grid>
+                      <Grid size={{ xs: 12 }}>
+                        <TextField fullWidth label="Thành viên" name="teamMembers" value={formData.teamMembers} onChange={handleChange} multiline rows={4} required placeholder="Mỗi người 1 dòng&#10;Nguyễn Văn A&#10;Trần Thị B" />
+                      </Grid>
+                      <Grid size={{ xs: 12 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>Mô tả dự án (Không bắt buộc)</Typography>
+                          <Button size="small" variant="text" onClick={handleGenerateSummary} disabled={isAiLoading.summary} startIcon={isAiLoading.summary ? <CircularProgress size={14} /> : <AutoAwesomeIcon fontSize="small" />} sx={{ textTransform: 'none', fontWeight: 700, color: '#A855F7', '&:hover': { bgcolor: 'rgba(168, 85, 247, 0.1)' } }}>
+                            AI Tóm Tắt Mở Bài
+                          </Button>
+                        </Box>
+                        <Box sx={{
+                          '.ql-container': { borderBottomLeftRadius: 8, borderBottomRightRadius: 8, minHeight: 150, fontSize: '1rem', fontFamily: 'inherit', color: 'text.primary' },
+                          '.ql-toolbar': { borderTopLeftRadius: 8, borderTopRightRadius: 8, bgcolor: 'background.default' },
+                          '.ql-stroke': { stroke: muiTheme.palette.text.primary },
+                          '.ql-fill': { fill: muiTheme.palette.text.primary },
+                          '.ql-picker': { color: muiTheme.palette.text.primary },
+                        }}>
+                          <ReactQuill theme="snow" value={formData.description} onChange={handleQuillChange} />
+                        </Box>
+                      </Grid>
+                      <Grid size={{ xs: 12 }}>
+                        <FormControlLabel
+                          control={<Checkbox checked={formData.isGoldenTicket} onChange={(e) => setFormData({ ...formData, isGoldenTicket: e.target.checked })} sx={{ color: '#F59E0B', '&.Mui-checked': { color: '#F59E0B' } }} />}
+                          label={
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <WorkspacePremiumIcon sx={{ color: '#F59E0B', fontSize: 20 }} />
+                              <Typography variant="body1" sx={{ fontWeight: 600, color: '#B45309' }}>Golden Ticket (Dự án xuất sắc)</Typography>
+                            </Box>
+                          }
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12 }} sx={{ mt: 1, display: 'flex', gap: 2 }}>
+                        {formData.id && (
+                          <Button variant="outlined" size="large" onClick={resetForm} sx={{ py: 1.6, flex: 1, fontWeight: 700, borderRadius: 3, textTransform: 'none', borderWidth: 2, color: 'text.secondary', borderColor: 'divider', '&:hover': { borderColor: 'text.primary', color: 'text.primary', borderWidth: 2 } }}>Huỷ</Button>
+                        )}
+                        <motion.div style={{ flex: 2 }} whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.985 }}>
+                          <Button type="submit" variant="contained" size="large" startIcon={<SaveIcon />} fullWidth sx={{ py: 1.6, fontSize: '1rem', fontWeight: 700, borderRadius: 3, textTransform: 'none', boxShadow: '0 6px 20px rgba(37, 99, 235, 0.4)', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
+                            {formData.id ? 'Cập Nhật Nháp' : 'Lưu Nháp Dự Án'}
+                          </Button>
+                        </motion.div>
+                      </Grid>
+                    </Grid>
+                  </form>
+                </Paper>
+              </Box>
+            )}
+
+            {/* Tab 1: Manage Projects List */}
+            {tabIndex === 1 && (
+              <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
+                {loadingList ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}><CircularProgress sx={{ color: 'primary.main' }} /></Box>
+                ) : projectsList.length === 0 ? (
+                  <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có dự án nào.</Typography></Box>
+                ) : (
+                  <>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <FormControlLabel
+                          control={<Checkbox checked={selectedProjects.length > 0 && selectedProjects.length === projectsList.length} indeterminate={selectedProjects.length > 0 && selectedProjects.length < projectsList.length} onChange={handleToggleAllProjects} />}
+                          label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Chọn tất cả</Typography>}
+                          sx={{ ml: 0.5 }}
+                        />
+                      </Box>
+                      {selectedProjects.length > 0 && (
+                        <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteProjectsConfirm(true)} startIcon={<DeleteIcon />} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
+                          Xoá {selectedProjects.length} mục
+                        </Button>
+                      )}
                     </Box>
+
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                      <SortableContext items={projectsList.map(p => p.id)} strategy={verticalListSortingStrategy}>
+                        <List sx={{ p: 0 }}>
+                          {projectsList.map((project, idx) => (
+                            <SortableProjectItem
+                              key={project.id}
+                              id={project.id}
+                              project={project}
+                              idx={idx}
+                              isSelected={selectedProjects.includes(project.id)}
+                              onToggle={handleToggleProject}
+                              categoryName={categoriesList.find(c => c.id === project.category)?.name || project.category}
+                              onEdit={(p: any) => {
+                                setFormData({
+                                  id: p.id, name: p.name, description: p.description, thumbnail: p.thumbnail,
+                                  youtubeUrl: p.youtubeUrl || '', category: p.category,
+                                  teamMembers: Array.isArray(p.teamMembers) ? p.teamMembers.join('\n') : p.teamMembers,
+                                  semester: p.semester,
+                                  techTags: Array.isArray(p.techTags) ? p.techTags.join(', ') : (p.techTags || ''),
+                                  isGoldenTicket: !!p.isGoldenTicket,
+                                  major: p.major || '',
+                                });
+                                setTabIndex(0);
+                              }}
+                              onDelete={(id: string) => { setProjectToDelete(id); setDeleteConfirmOpen(true); }}
+                            />
+                          ))}
+                        </List>
+                      </SortableContext>
+                    </DndContext>
+                  </>
+                )}
+              </Paper>
+            )}
+
+            {/* Tab 2: Manage Categories */}
+            {tabIndex === 2 && (
+              <Box>
+                <Paper elevation={0} sx={{ p: 3, mb: 3, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper' }}>
+                  <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+                    <TextField fullWidth size="small" label="Tên loại dự án mới" value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddCategory())} />
+                    <Button variant="contained" onClick={handleAddCategory} disabled={!newCategoryName.trim()} startIcon={<AddIcon />} sx={{ minWidth: 150, borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(16, 185, 129, 0.39)', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
+                      Thêm Nháp
+                    </Button>
+                  </Box>
+                </Paper>
+
+                <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
+                  {loadingCategories ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}><CircularProgress sx={{ color: '#10B981' }} /></Box>
+                  ) : categoriesList.length === 0 ? (
+                    <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có loại dự án nào.</Typography></Box>
+                  ) : (
+                    <>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
+                        <FormControlLabel
+                          control={<Checkbox checked={selectedCategories.length > 0 && selectedCategories.length === categoriesList.length} indeterminate={selectedCategories.length > 0 && selectedCategories.length < categoriesList.length} onChange={handleToggleAllCategories} />}
+                          label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Chọn tất cả</Typography>}
+                          sx={{ ml: 0.5 }}
+                        />
+                        {selectedCategories.length > 0 && (
+                          <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteCategoriesConfirm(true)} startIcon={<DeleteIcon />} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
+                            Xoá {selectedCategories.length} mục
+                          </Button>
+                        )}
+                      </Box>
+                      <List sx={{ p: 0 }}>
+                        {categoriesList.map((cat, idx) => (
+                          <Box key={cat.id}>
+                            {idx > 0 && <Divider />}
+                            <ListItem sx={{ py: 2 }}>
+                              <Checkbox checked={selectedCategories.includes(cat.id)} onChange={() => handleToggleCategory(cat.id)} sx={{ mr: 1 }} />
+                              <ListItemText
+                                primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{cat.name}</Typography>}
+                                secondary={<Box sx={{ mt: 1 }}><Chip label="Giao diện nhãn" size="small" sx={{ background: cat.bg, color: cat.text, fontWeight: 700 }} /></Box>}
+                                disableTypography
+                              />
+                              <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                                <IconButton size="small" onClick={() => { setEditCategoryType('category'); setEditCategoryItem(cat); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
+                                <IconButton size="small" onClick={() => { setCategoryToDelete(cat.id); setDeleteConfirmOpen(true); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
+                              </Box>
+                            </ListItem>
+                          </Box>
+                        ))}
+                      </List>
+                    </>
                   )}
                 </Paper>
               </Box>
             )}
 
-            <Paper elevation={0} sx={{ p: { xs: 3, md: 4.5 }, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper' }}>
-              <form onSubmit={handleSubmitProject}>
-                <Grid container spacing={2.5}>
-                  <Grid size={{ xs: 12 }}>
-                    <TextField fullWidth label="Tên dự án" name="name" value={formData.name} onChange={handleChange} required />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 4 }}>
-                    <FormControl fullWidth required>
-                      <InputLabel>Loại dự án</InputLabel>
-                      <Select name="category" value={formData.category} label="Loại dự án" onChange={(e) => setFormData({ ...formData, category: e.target.value as string })}>
-                        {categoriesList.map(cat => (
-                          <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
-                        ))}
-                        {categoriesList.length === 0 && <MenuItem disabled value="">Chưa có loại dự án nào</MenuItem>}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 4 }}>
-                    <TextField fullWidth label="Học kỳ" name="semester" value={formData.semester} onChange={handleChange} required />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 4 }}>
-                    <FormControl fullWidth required>
-                      <InputLabel>Chuyên ngành</InputLabel>
-                      <Select name="major" value={formData.major} label="Chuyên ngành" onChange={(e) => setFormData({ ...formData, major: e.target.value as string })}>
-                        {majorsList.map(major => (
-                          <MenuItem key={major.id} value={major.id}>{major.name}</MenuItem>
-                        ))}
-                        {majorsList.length === 0 && <MenuItem disabled value="">Chưa có chuyên ngành nào</MenuItem>}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>Tag công nghệ</Typography>
-                      <Button size="small" variant="text" onClick={handleGenerateTags} disabled={isAiLoading.tags} startIcon={isAiLoading.tags ? <CircularProgress size={14} /> : <AutoAwesomeIcon fontSize="small" />} sx={{ textTransform: 'none', fontWeight: 700, color: '#A855F7', '&:hover': { bgcolor: 'rgba(168, 85, 247, 0.1)' } }}>
-                        AI Tự Điền Tags
+            {/* Tab 3: Add / Edit Article Form */}
+            {tabIndex === 3 && (
+              <Box>
+                {!articleFormData.id && (
+                  <Paper elevation={0} sx={{ p: 3, mb: 3, border: `2px dashed ${muiTheme.palette.primary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
+                    <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'text.secondary' }}>Tự động lấy thông tin bài viết</Typography>
+                    <Box sx={{ display: 'flex', gap: 1.5 }}>
+                      <TextField fullWidth size="small" placeholder="Dán link bài viết..." value={articleFormData.link} onChange={e => setArticleFormData({ ...articleFormData, link: e.target.value })} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleFetchArticle())} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} />
+                      <Button variant="contained" onClick={handleFetchArticle} disabled={fetchingArticle || !articleFormData.link.trim()} startIcon={fetchingArticle ? <CircularProgress size={18} color="inherit" /> : <AutoFixHighIcon />} sx={{ minWidth: 150, whiteSpace: 'nowrap', borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.39)', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
+                        {fetchingArticle ? 'Đang cào...' : 'Tự động điền'}
                       </Button>
                     </Box>
-                    <TextField fullWidth name="techTags" value={formData.techTags} onChange={handleChange} placeholder="React, Node, AI..." />
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <TextField fullWidth label="Link ảnh Thumbnail" name="thumbnail" value={formData.thumbnail} onChange={handleChange} required />
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <TextField fullWidth label="Link YouTube" name="youtubeUrl" value={formData.youtubeUrl} onChange={handleChange} />
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <TextField fullWidth label="Thành viên" name="teamMembers" value={formData.teamMembers} onChange={handleChange} multiline rows={4} required placeholder="Mỗi người 1 dòng&#10;Nguyễn Văn A&#10;Trần Thị B" />
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>Mô tả dự án (Không bắt buộc)</Typography>
-                      <Button size="small" variant="text" onClick={handleGenerateSummary} disabled={isAiLoading.summary} startIcon={isAiLoading.summary ? <CircularProgress size={14} /> : <AutoAwesomeIcon fontSize="small" />} sx={{ textTransform: 'none', fontWeight: 700, color: '#A855F7', '&:hover': { bgcolor: 'rgba(168, 85, 247, 0.1)' } }}>
-                        AI Tóm Tắt Mở Bài
-                      </Button>
-                    </Box>
-                    <Box sx={{
-                      '.ql-container': { borderBottomLeftRadius: 8, borderBottomRightRadius: 8, minHeight: 150, fontSize: '1rem', fontFamily: 'inherit', color: 'text.primary' },
-                      '.ql-toolbar': { borderTopLeftRadius: 8, borderTopRightRadius: 8, bgcolor: 'background.default' },
-                      '.ql-stroke': { stroke: muiTheme.palette.text.primary },
-                      '.ql-fill': { fill: muiTheme.palette.text.primary },
-                      '.ql-picker': { color: muiTheme.palette.text.primary },
-                    }}>
-                      <ReactQuill theme="snow" value={formData.description} onChange={handleQuillChange} />
-                    </Box>
-                  </Grid>
-                  <Grid size={{ xs: 12 }}>
-                    <FormControlLabel
-                      control={<Checkbox checked={formData.isGoldenTicket} onChange={(e) => setFormData({ ...formData, isGoldenTicket: e.target.checked })} sx={{ color: '#F59E0B', '&.Mui-checked': { color: '#F59E0B' } }} />}
-                      label={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <WorkspacePremiumIcon sx={{ color: '#F59E0B', fontSize: 20 }} />
-                          <Typography variant="body1" sx={{ fontWeight: 600, color: '#B45309' }}>Golden Ticket (Dự án xuất sắc)</Typography>
-                        </Box>
-                      }
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12 }} sx={{ mt: 1, display: 'flex', gap: 2 }}>
-                    {formData.id && (
-                      <Button variant="outlined" size="large" onClick={resetForm} sx={{ py: 1.6, flex: 1, fontWeight: 700, borderRadius: 3, textTransform: 'none', borderWidth: 2, color: 'text.secondary', borderColor: 'divider', '&:hover': { borderColor: 'text.primary', color: 'text.primary', borderWidth: 2 } }}>Huỷ</Button>
-                    )}
-                    <motion.div style={{ flex: 2 }} whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.985 }}>
-                      <Button type="submit" variant="contained" size="large" startIcon={<SaveIcon />} fullWidth sx={{ py: 1.6, fontSize: '1rem', fontWeight: 700, borderRadius: 3, textTransform: 'none', boxShadow: '0 6px 20px rgba(37, 99, 235, 0.4)', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
-                        {formData.id ? 'Cập Nhật Nháp' : 'Lưu Nháp Dự Án'}
-                      </Button>
-                    </motion.div>
-                  </Grid>
-                </Grid>
-              </form>
-            </Paper>
-          </Box>
-        )}
+                  </Paper>
+                )}
 
-        {/* Tab 1: Manage Projects List */}
-        {tabIndex === 1 && (
-          <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
-            {loadingList ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}><CircularProgress sx={{ color: 'primary.main' }} /></Box>
-            ) : projectsList.length === 0 ? (
-              <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có dự án nào.</Typography></Box>
-            ) : (
-              <>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <FormControlLabel
-                      control={<Checkbox checked={selectedProjects.length > 0 && selectedProjects.length === projectsList.length} indeterminate={selectedProjects.length > 0 && selectedProjects.length < projectsList.length} onChange={handleToggleAllProjects} />}
-                      label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Chọn tất cả</Typography>}
-                      sx={{ ml: 0.5 }}
-                    />
-                  </Box>
-                  {selectedProjects.length > 0 && (
-                    <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteProjectsConfirm(true)} startIcon={<DeleteIcon />} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
-                      Xoá {selectedProjects.length} mục
-                    </Button>
-                  )}
-                </Box>
-
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                  <SortableContext items={projectsList.map(p => p.id)} strategy={verticalListSortingStrategy}>
-                    <List sx={{ p: 0 }}>
-                      {projectsList.map((project, idx) => (
-                        <SortableProjectItem
-                          key={project.id}
-                          id={project.id}
-                          project={project}
-                          idx={idx}
-                          isSelected={selectedProjects.includes(project.id)}
-                          onToggle={handleToggleProject}
-                          categoryName={categoriesList.find(c => c.id === project.category)?.name || project.category}
-                          onEdit={(p: any) => {
-                            setFormData({
-                              id: p.id, name: p.name, description: p.description, thumbnail: p.thumbnail,
-                              youtubeUrl: p.youtubeUrl || '', category: p.category,
-                              teamMembers: Array.isArray(p.teamMembers) ? p.teamMembers.join('\n') : p.teamMembers,
-                              semester: p.semester,
-                              techTags: Array.isArray(p.techTags) ? p.techTags.join(', ') : (p.techTags || ''),
-                              isGoldenTicket: !!p.isGoldenTicket,
-                              major: p.major || '',
-                            });
-                            setTabIndex(0);
-                          }}
-                          onDelete={(id: string) => { setProjectToDelete(id); setDeleteConfirmOpen(true); }}
-                        />
-                      ))}
-                    </List>
-                  </SortableContext>
-                </DndContext>
-              </>
-            )}
-          </Paper>
-        )}
-
-        {/* Tab 2: Manage Categories */}
-        {tabIndex === 2 && (
-          <Box>
-            <Paper elevation={0} sx={{ p: 3, mb: 3, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper' }}>
-              <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
-                <TextField fullWidth size="small" label="Tên loại dự án mới" value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddCategory())} />
-                <Button variant="contained" onClick={handleAddCategory} disabled={!newCategoryName.trim()} startIcon={<AddIcon />} sx={{ minWidth: 150, borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(16, 185, 129, 0.39)', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
-                  Thêm Nháp
-                </Button>
+                <Paper elevation={0} sx={{ p: { xs: 3, md: 4.5 }, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper' }}>
+                  <form onSubmit={handleSubmitArticle}>
+                    <Grid container spacing={2.5}>
+                      <Grid size={{ xs: 12 }}>
+                        <TextField fullWidth label="Link gốc bài viết" value={articleFormData.link} onChange={e => setArticleFormData({ ...articleFormData, link: e.target.value })} required />
+                      </Grid>
+                      <Grid size={{ xs: 12 }}>
+                        <TextField fullWidth label="Tên bài viết" value={articleFormData.title} onChange={e => setArticleFormData({ ...articleFormData, title: e.target.value })} required />
+                      </Grid>
+                      <Grid size={{ xs: 12 }}>
+                        <TextField fullWidth label="Link ảnh bài viết (Không bắt buộc)" value={articleFormData.imageUrl} onChange={e => setArticleFormData({ ...articleFormData, imageUrl: e.target.value })} />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <FormControl fullWidth required>
+                          <InputLabel>Loại bài viết</InputLabel>
+                          <Select value={articleFormData.type} label="Loại bài viết" onChange={e => setArticleFormData({ ...articleFormData, type: e.target.value as string })}>
+                            {articleTypesList.map(type => (
+                              <MenuItem key={type.id} value={type.id}>{type.name}</MenuItem>
+                            ))}
+                            {articleTypesList.length === 0 && <MenuItem disabled value="">Chưa có loại bài viết nào</MenuItem>}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <FormControl fullWidth required>
+                          <InputLabel>Chuyên ngành</InputLabel>
+                          <Select value={articleFormData.major} label="Chuyên ngành" onChange={e => setArticleFormData({ ...articleFormData, major: e.target.value as string })}>
+                            {majorsList.map(major => (
+                              <MenuItem key={major.id} value={major.id}>{major.name}</MenuItem>
+                            ))}
+                            {majorsList.length === 0 && <MenuItem disabled value="">Chưa có chuyên ngành nào</MenuItem>}
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid size={{ xs: 12 }} sx={{ mt: 1, display: 'flex', gap: 2 }}>
+                        {articleFormData.id && (
+                          <Button variant="outlined" size="large" onClick={resetArticleForm} sx={{ py: 1.6, flex: 1, fontWeight: 700, borderRadius: 3, textTransform: 'none', borderWidth: 2, color: 'text.secondary', borderColor: 'divider', '&:hover': { borderColor: 'text.primary', color: 'text.primary', borderWidth: 2 } }}>Huỷ</Button>
+                        )}
+                        <motion.div style={{ flex: 2 }} whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.985 }}>
+                          <Button type="submit" variant="contained" size="large" fullWidth startIcon={<SaveIcon />} sx={{ py: 1.6, borderRadius: 3, textTransform: 'none', fontWeight: 800, fontSize: '1.05rem', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', boxShadow: '0 6px 20px rgba(37, 99, 235, 0.4)' }}>
+                            {articleFormData.id ? 'Cập Nhật Nháp' : 'Lưu Nháp Mới'}
+                          </Button>
+                        </motion.div>
+                      </Grid>
+                    </Grid>
+                  </form>
+                </Paper>
               </Box>
-            </Paper>
+            )}
 
-            <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
-              {loadingCategories ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}><CircularProgress sx={{ color: '#10B981' }} /></Box>
-              ) : categoriesList.length === 0 ? (
-                <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có loại dự án nào.</Typography></Box>
-              ) : (
-                <>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
-                    <FormControlLabel
-                      control={<Checkbox checked={selectedCategories.length > 0 && selectedCategories.length === categoriesList.length} indeterminate={selectedCategories.length > 0 && selectedCategories.length < categoriesList.length} onChange={handleToggleAllCategories} />}
-                      label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Chọn tất cả</Typography>}
-                      sx={{ ml: 0.5 }}
-                    />
-                    {selectedCategories.length > 0 && (
-                      <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteCategoriesConfirm(true)} startIcon={<DeleteIcon />} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
-                        Xoá {selectedCategories.length} mục
-                      </Button>
-                    )}
-                  </Box>
+            {/* Tab 4: Manage Articles */}
+            {tabIndex === 4 && (
+              <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
+                {loadingArticles ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}><CircularProgress /></Box>
+                ) : articlesList.length === 0 ? (
+                  <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có bài viết nào.</Typography></Box>
+                ) : (
                   <List sx={{ p: 0 }}>
-                    {categoriesList.map((cat, idx) => (
-                      <Box key={cat.id}>
+                    {articlesList.map((article, idx) => (
+                      <Box key={article.id}>
                         {idx > 0 && <Divider />}
                         <ListItem sx={{ py: 2 }}>
-                          <Checkbox checked={selectedCategories.includes(cat.id)} onChange={() => handleToggleCategory(cat.id)} sx={{ mr: 1 }} />
+                          <ListItemAvatar>
+                            <Avatar src={article.imageUrl} variant="rounded" sx={{ width: 80, height: 50, mr: 2, border: '1px solid', borderColor: 'divider' }} />
+                          </ListItemAvatar>
                           <ListItemText
-                            primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{cat.name}</Typography>}
-                            secondary={<Box sx={{ mt: 1 }}><Chip label="Giao diện nhãn" size="small" sx={{ background: cat.bg, color: cat.text, fontWeight: 700 }} /></Box>}
-                            disableTypography
+                            primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{article.title}</Typography>}
+                            secondary={<Typography variant="caption" sx={{ color: 'text.secondary' }}>{articleTypesList.find(t => t.id === article.type)?.name || article.type} • {majorsList.find(m => m.id === article.major)?.name || article.major}</Typography>}
                           />
                           <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
-                            <IconButton size="small" onClick={() => { setEditCategoryType('category'); setEditCategoryItem(cat); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
-                            <IconButton size="small" onClick={() => { setCategoryToDelete(cat.id); setDeleteConfirmOpen(true); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
+                            <IconButton size="small" onClick={() => { setArticleFormData(article); setTabIndex(3); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
+                            <IconButton size="small" onClick={() => setArticlesList(prev => prev.filter(a => a.id !== article.id))} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
                           </Box>
                         </ListItem>
                       </Box>
                     ))}
                   </List>
-                </>
-              )}
-            </Paper>
-          </Box>
-        )}
+                )}
+              </Paper>
+            )}
 
-          {/* Tab 3: Add / Edit Article Form */}
-          {tabIndex === 3 && (
-            <Box>
-              {!articleFormData.id && (
+            {/* Tab 5: QL Chuyên Ngành */}
+            {tabIndex === 5 && (
+              <Box>
                 <Paper elevation={0} sx={{ p: 3, mb: 3, border: `2px dashed ${muiTheme.palette.primary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'text.secondary' }}>Tự động lấy thông tin bài viết</Typography>
-                  <Box sx={{ display: 'flex', gap: 1.5 }}>
-                    <TextField fullWidth size="small" placeholder="Dán link bài viết..." value={articleFormData.link} onChange={e => setArticleFormData({ ...articleFormData, link: e.target.value })} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleFetchArticle())} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} />
-                    <Button variant="contained" onClick={handleFetchArticle} disabled={fetchingArticle || !articleFormData.link.trim()} startIcon={fetchingArticle ? <CircularProgress size={18} color="inherit" /> : <AutoFixHighIcon />} sx={{ minWidth: 150, whiteSpace: 'nowrap', borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.39)', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
-                      {fetchingArticle ? 'Đang cào...' : 'Tự động điền'}
+                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'text.secondary' }}>Thêm Chuyên Ngành Mới</Typography>
+                  <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+                    <TextField fullWidth size="small" label="Tên chuyên ngành mới" value={newMajorName} onChange={e => setNewMajorName(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddMajor())} />
+                    <Button variant="contained" onClick={handleAddMajor} disabled={!newMajorName.trim()} startIcon={<AddIcon />} sx={{ minWidth: 150, borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(16, 185, 129, 0.39)', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
+                      Thêm Nháp
                     </Button>
                   </Box>
                 </Paper>
-              )}
 
-              <Paper elevation={0} sx={{ p: { xs: 3, md: 4.5 }, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper' }}>
-                <form onSubmit={handleSubmitArticle}>
-                  <Grid container spacing={2.5}>
-                    <Grid size={{ xs: 12 }}>
-                      <TextField fullWidth label="Link gốc bài viết" value={articleFormData.link} onChange={e => setArticleFormData({ ...articleFormData, link: e.target.value })} required />
-                    </Grid>
-                    <Grid size={{ xs: 12 }}>
-                      <TextField fullWidth label="Tên bài viết" value={articleFormData.title} onChange={e => setArticleFormData({ ...articleFormData, title: e.target.value })} required />
-                    </Grid>
-                    <Grid size={{ xs: 12 }}>
-                      <TextField fullWidth label="Link ảnh bài viết" value={articleFormData.imageUrl} onChange={e => setArticleFormData({ ...articleFormData, imageUrl: e.target.value })} required />
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <FormControl fullWidth required>
-                        <InputLabel>Loại bài viết</InputLabel>
-                        <Select value={articleFormData.type} label="Loại bài viết" onChange={e => setArticleFormData({ ...articleFormData, type: e.target.value as string })}>
-                          {articleTypesList.map(type => (
-                            <MenuItem key={type.id} value={type.id}>{type.name}</MenuItem>
-                          ))}
-                          {articleTypesList.length === 0 && <MenuItem disabled value="">Chưa có loại bài viết nào</MenuItem>}
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <FormControl fullWidth required>
-                        <InputLabel>Chuyên ngành</InputLabel>
-                        <Select value={articleFormData.major} label="Chuyên ngành" onChange={e => setArticleFormData({ ...articleFormData, major: e.target.value as string })}>
-                          {majorsList.map(major => (
-                            <MenuItem key={major.id} value={major.id}>{major.name}</MenuItem>
-                          ))}
-                          {majorsList.length === 0 && <MenuItem disabled value="">Chưa có chuyên ngành nào</MenuItem>}
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                    <Grid size={{ xs: 12 }} sx={{ mt: 1, display: 'flex', gap: 2 }}>
-                      {articleFormData.id && (
-                        <Button variant="outlined" size="large" onClick={resetArticleForm} sx={{ py: 1.6, flex: 1, fontWeight: 700, borderRadius: 3, textTransform: 'none', borderWidth: 2, color: 'text.secondary', borderColor: 'divider', '&:hover': { borderColor: 'text.primary', color: 'text.primary', borderWidth: 2 } }}>Huỷ</Button>
-                      )}
-                      <motion.div style={{ flex: 2 }} whileHover={{ scale: 1.015 }} whileTap={{ scale: 0.985 }}>
-                        <Button type="submit" variant="contained" size="large" fullWidth startIcon={<SaveIcon />} sx={{ py: 1.6, borderRadius: 3, textTransform: 'none', fontWeight: 800, fontSize: '1.05rem', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', boxShadow: '0 6px 20px rgba(37, 99, 235, 0.4)' }}>
-                          {articleFormData.id ? 'Cập Nhật Nháp' : 'Lưu Nháp Mới'}
-                        </Button>
-                      </motion.div>
-                    </Grid>
-                  </Grid>
-                </form>
-              </Paper>
-            </Box>
-          )}
-
-          {/* Tab 4: Manage Articles */}
-          {tabIndex === 4 && (
-            <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
-              {loadingArticles ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}><CircularProgress /></Box>
-              ) : articlesList.length === 0 ? (
-                <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có bài viết nào.</Typography></Box>
-              ) : (
-                <List sx={{ p: 0 }}>
-                  {articlesList.map((article, idx) => (
-                    <Box key={article.id}>
-                      {idx > 0 && <Divider />}
-                      <ListItem sx={{ py: 2 }}>
-                        <ListItemAvatar>
-                          <Avatar src={article.imageUrl} variant="rounded" sx={{ width: 80, height: 50, mr: 2, border: '1px solid', borderColor: 'divider' }} />
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{article.title}</Typography>}
-                          secondary={<Typography variant="caption" sx={{ color: 'text.secondary' }}>{articleTypesList.find(t => t.id === article.type)?.name || article.type} • {majorsList.find(m => m.id === article.major)?.name || article.major}</Typography>}
+                <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
+                  {loadingMajors ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}><CircularProgress sx={{ color: '#10B981' }} /></Box>
+                  ) : majorsList.length === 0 ? (
+                    <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có chuyên ngành nào.</Typography></Box>
+                  ) : (
+                    <>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
+                        <FormControlLabel
+                          control={<Checkbox checked={selectedMajors.length > 0 && selectedMajors.length === majorsList.length} indeterminate={selectedMajors.length > 0 && selectedMajors.length < majorsList.length} onChange={handleToggleAllMajors} />}
+                          label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Chọn tất cả</Typography>}
+                          sx={{ ml: 0.5 }}
                         />
-                        <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
-                          <IconButton size="small" onClick={() => { setArticleFormData(article); setTabIndex(3); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
-                          <IconButton size="small" onClick={() => setArticlesList(prev => prev.filter(a => a.id !== article.id))} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
-                        </Box>
-                      </ListItem>
-                    </Box>
-                  ))}
-                </List>
-              )}
-            </Paper>
-          )}
+                        {selectedMajors.length > 0 && (
+                          <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteMajorsConfirm(true)} startIcon={<DeleteIcon />} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
+                            Xoá {selectedMajors.length} mục
+                          </Button>
+                        )}
+                      </Box>
+                      <List sx={{ p: 0 }}>
+                        {majorsList.map((cat, idx) => (
+                          <Box key={cat.id}>
+                            {idx > 0 && <Divider />}
+                            <ListItem sx={{ py: 2 }}>
+                              <Checkbox checked={selectedMajors.includes(cat.id)} onChange={() => handleToggleMajor(cat.id)} sx={{ mr: 1 }} />
+                              <ListItemText
+                                primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{cat.name}</Typography>}
+                                secondary={<Box sx={{ mt: 1 }}><Chip label="Giao diện nhãn" size="small" sx={{ background: cat.bg, color: cat.text, fontWeight: 700 }} /></Box>}
+                                disableTypography
+                              />
+                              <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                                <IconButton size="small" onClick={() => { setEditCategoryType('major'); setEditCategoryItem(cat); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
+                                <IconButton size="small" onClick={() => { setMajorToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
+                              </Box>
+                            </ListItem>
+                          </Box>
+                        ))}
+                      </List>
+                    </>
+                  )}
+                </Paper>
+              </Box>
+            )}
 
-          {/* Tab 5: QL Chuyên Ngành */}
-          {tabIndex === 5 && (
-            <Box>
-              <Paper elevation={0} sx={{ p: 3, mb: 3, border: `2px dashed ${muiTheme.palette.primary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
-                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'text.secondary' }}>Thêm Chuyên Ngành Mới</Typography>
-                <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
-                  <TextField fullWidth size="small" label="Tên chuyên ngành mới" value={newMajorName} onChange={e => setNewMajorName(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddMajor())} />
-                  <Button variant="contained" onClick={handleAddMajor} disabled={!newMajorName.trim()} startIcon={<AddIcon />} sx={{ minWidth: 150, borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(16, 185, 129, 0.39)', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
-                    Thêm Nháp
-                  </Button>
-                </Box>
-              </Paper>
+            {/* Tab 6: QL Loại Bài Viết */}
+            {tabIndex === 6 && (
+              <Box>
+                <Paper elevation={0} sx={{ p: 3, mb: 3, border: `2px dashed ${muiTheme.palette.primary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'text.secondary' }}>Thêm Loại Bài Viết Mới</Typography>
+                  <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+                    <TextField fullWidth size="small" label="Tên loại bài viết mới" value={newArticleTypeName} onChange={e => setNewArticleTypeName(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddArticleType())} />
+                    <Button variant="contained" onClick={handleAddArticleType} disabled={!newArticleTypeName.trim()} startIcon={<AddIcon />} sx={{ minWidth: 150, borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(16, 185, 129, 0.39)', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
+                      Thêm Nháp
+                    </Button>
+                  </Box>
+                </Paper>
 
-              <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
-                {loadingMajors ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}><CircularProgress sx={{ color: '#10B981' }} /></Box>
-                ) : majorsList.length === 0 ? (
-                  <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có chuyên ngành nào.</Typography></Box>
-                ) : (
-                  <>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
-                      <FormControlLabel
-                        control={<Checkbox checked={selectedMajors.length > 0 && selectedMajors.length === majorsList.length} indeterminate={selectedMajors.length > 0 && selectedMajors.length < majorsList.length} onChange={handleToggleAllMajors} />}
-                        label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Chọn tất cả</Typography>}
-                        sx={{ ml: 0.5 }}
-                      />
-                      {selectedMajors.length > 0 && (
-                        <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteMajorsConfirm(true)} startIcon={<DeleteIcon />} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
-                          Xoá {selectedMajors.length} mục
-                        </Button>
-                      )}
-                    </Box>
-                    <List sx={{ p: 0 }}>
-                      {majorsList.map((cat, idx) => (
-                        <Box key={cat.id}>
-                          {idx > 0 && <Divider />}
-                          <ListItem sx={{ py: 2 }}>
-                            <Checkbox checked={selectedMajors.includes(cat.id)} onChange={() => handleToggleMajor(cat.id)} sx={{ mr: 1 }} />
-                            <ListItemText
-                              primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{cat.name}</Typography>}
-                              secondary={<Box sx={{ mt: 1 }}><Chip label="Giao diện nhãn" size="small" sx={{ background: cat.bg, color: cat.text, fontWeight: 700 }} /></Box>}
-                              disableTypography
-                            />
-                            <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
-                              <IconButton size="small" onClick={() => { setEditCategoryType('major'); setEditCategoryItem(cat); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
-                              <IconButton size="small" onClick={() => { setMajorToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
-                            </Box>
-                          </ListItem>
-                        </Box>
-                      ))}
-                    </List>
-                  </>
-                )}
-              </Paper>
-            </Box>
-          )}
-
-          {/* Tab 6: QL Loại Bài Viết */}
-          {tabIndex === 6 && (
-            <Box>
-              <Paper elevation={0} sx={{ p: 3, mb: 3, border: `2px dashed ${muiTheme.palette.primary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
-                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'text.secondary' }}>Thêm Loại Bài Viết Mới</Typography>
-                <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
-                  <TextField fullWidth size="small" label="Tên loại bài viết mới" value={newArticleTypeName} onChange={e => setNewArticleTypeName(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddArticleType())} />
-                  <Button variant="contained" onClick={handleAddArticleType} disabled={!newArticleTypeName.trim()} startIcon={<AddIcon />} sx={{ minWidth: 150, borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(16, 185, 129, 0.39)', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
-                    Thêm Nháp
-                  </Button>
-                </Box>
-              </Paper>
-
-              <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
-                {loadingArticleTypes ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}><CircularProgress sx={{ color: '#10B981' }} /></Box>
-                ) : articleTypesList.length === 0 ? (
-                  <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có loại bài viết nào.</Typography></Box>
-                ) : (
-                  <>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
-                      <FormControlLabel
-                        control={<Checkbox checked={selectedArticleTypes.length > 0 && selectedArticleTypes.length === articleTypesList.length} indeterminate={selectedArticleTypes.length > 0 && selectedArticleTypes.length < articleTypesList.length} onChange={handleToggleAllArticleTypes} />}
-                        label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Chọn tất cả</Typography>}
-                        sx={{ ml: 0.5 }}
-                      />
-                      {selectedArticleTypes.length > 0 && (
-                        <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteArticleTypesConfirm(true)} startIcon={<DeleteIcon />} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
-                          Xoá {selectedArticleTypes.length} mục
-                        </Button>
-                      )}
-                    </Box>
-                    <List sx={{ p: 0 }}>
-                      {articleTypesList.map((cat, idx) => (
-                        <Box key={cat.id}>
-                          {idx > 0 && <Divider />}
-                          <ListItem sx={{ py: 2 }}>
-                            <Checkbox checked={selectedArticleTypes.includes(cat.id)} onChange={() => handleToggleArticleType(cat.id)} sx={{ mr: 1 }} />
-                            <ListItemText
-                              primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{cat.name}</Typography>}
-                              secondary={<Box sx={{ mt: 1 }}><Chip label="Giao diện nhãn" size="small" sx={{ background: cat.bg, color: cat.text, fontWeight: 700 }} /></Box>}
-                              disableTypography
-                            />
-                            <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
-                              <IconButton size="small" onClick={() => { setEditCategoryType('articleType'); setEditCategoryItem(cat); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
-                              <IconButton size="small" onClick={() => { setArticleTypeToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
-                            </Box>
-                          </ListItem>
-                        </Box>
-                      ))}
-                    </List>
-                  </>
-                )}
-              </Paper>
-            </Box>
-          )}
+                <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
+                  {loadingArticleTypes ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}><CircularProgress sx={{ color: '#10B981' }} /></Box>
+                  ) : articleTypesList.length === 0 ? (
+                    <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có loại bài viết nào.</Typography></Box>
+                  ) : (
+                    <>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
+                        <FormControlLabel
+                          control={<Checkbox checked={selectedArticleTypes.length > 0 && selectedArticleTypes.length === articleTypesList.length} indeterminate={selectedArticleTypes.length > 0 && selectedArticleTypes.length < articleTypesList.length} onChange={handleToggleAllArticleTypes} />}
+                          label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Chọn tất cả</Typography>}
+                          sx={{ ml: 0.5 }}
+                        />
+                        {selectedArticleTypes.length > 0 && (
+                          <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteArticleTypesConfirm(true)} startIcon={<DeleteIcon />} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
+                            Xoá {selectedArticleTypes.length} mục
+                          </Button>
+                        )}
+                      </Box>
+                      <List sx={{ p: 0 }}>
+                        {articleTypesList.map((cat, idx) => (
+                          <Box key={cat.id}>
+                            {idx > 0 && <Divider />}
+                            <ListItem sx={{ py: 2 }}>
+                              <Checkbox checked={selectedArticleTypes.includes(cat.id)} onChange={() => handleToggleArticleType(cat.id)} sx={{ mr: 1 }} />
+                              <ListItemText
+                                primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{cat.name}</Typography>}
+                                secondary={<Box sx={{ mt: 1 }}><Chip label="Giao diện nhãn" size="small" sx={{ background: cat.bg, color: cat.text, fontWeight: 700 }} /></Box>}
+                                disableTypography
+                              />
+                              <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                                <IconButton size="small" onClick={() => { setEditCategoryType('articleType'); setEditCategoryItem(cat); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
+                                <IconButton size="small" onClick={() => { setArticleTypeToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
+                              </Box>
+                            </ListItem>
+                          </Box>
+                        ))}
+                      </List>
+                    </>
+                  )}
+                </Paper>
+              </Box>
+            )}
 
           </Box>
         </Paper>
@@ -1752,9 +1752,9 @@ export default function AdminForm() {
                   value={editCategoryItem.bg}
                   onChange={e => setEditCategoryItem({ ...editCategoryItem, bg: e.target.value })}
                 />
-                <input 
-                  type="color" 
-                  value={editCategoryItem.bg.startsWith('#') && editCategoryItem.bg.length === 7 ? editCategoryItem.bg : '#ffffff'} 
+                <input
+                  type="color"
+                  value={editCategoryItem.bg.startsWith('#') && editCategoryItem.bg.length === 7 ? editCategoryItem.bg : '#ffffff'}
                   onChange={e => setEditCategoryItem({ ...editCategoryItem, bg: e.target.value })}
                   style={{ width: 40, height: 40, padding: 0, border: 'none', borderRadius: 8, cursor: 'pointer', flexShrink: 0 }}
                   title="Chọn Màu Nền"
@@ -1768,18 +1768,18 @@ export default function AdminForm() {
                   value={editCategoryItem.text}
                   onChange={e => setEditCategoryItem({ ...editCategoryItem, text: e.target.value })}
                 />
-                <input 
-                  type="color" 
-                  value={editCategoryItem.text.startsWith('#') && editCategoryItem.text.length === 7 ? editCategoryItem.text : '#000000'} 
+                <input
+                  type="color"
+                  value={editCategoryItem.text.startsWith('#') && editCategoryItem.text.length === 7 ? editCategoryItem.text : '#000000'}
                   onChange={e => setEditCategoryItem({ ...editCategoryItem, text: e.target.value })}
                   style={{ width: 40, height: 40, padding: 0, border: 'none', borderRadius: 8, cursor: 'pointer', flexShrink: 0 }}
                   title="Chọn Màu Chữ"
                 />
               </Box>
               <Box sx={{ mt: 2, p: 2, borderRadius: 2, border: '1px dashed', borderColor: 'divider', display: 'flex', justifyContent: 'center' }}>
-                <Chip 
-                  label={editCategoryItem.name || 'Xem Trước'} 
-                  sx={{ background: editCategoryItem.bg, color: editCategoryItem.text, fontWeight: 700 }} 
+                <Chip
+                  label={editCategoryItem.name || 'Xem Trước'}
+                  sx={{ background: editCategoryItem.bg, color: editCategoryItem.text, fontWeight: 700 }}
                 />
               </Box>
             </>
