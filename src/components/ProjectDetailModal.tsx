@@ -12,8 +12,10 @@ import DOMPurify from 'dompurify';
 import CommentSection from './CommentSection';
 import ImageWithFallback from './ImageWithFallback';
 
+import React from "react";
 interface Props {
   project: Project;
+  allProjects?: Project[];
   open: boolean;
   onClose: () => void;
   onShare?: (e?: any) => void;
@@ -21,13 +23,22 @@ interface Props {
 
 const getAvatarLetter = (name: string) => name ? name.charAt(0).toUpperCase() : '?';
 
-export default function ProjectDetailModal({ project, open, onClose, onShare }: Props) {
+export default function ProjectDetailModal({ project, allProjects = [], open, onClose, onShare }: Props) {
+  const [activeProject, setActiveProject] = React.useState(project);
+  React.useEffect(() => { setActiveProject(project); }, [project]);
+
   const muiTheme = useTheme();
   const isLight = muiTheme.palette.mode === 'light';
 
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-  const match = project.youtubeUrl?.match(regExp);
+  const match = activeProject.youtubeUrl?.match(regExp);
   const youtubeId = (match && match[2].length === 11) ? match[2] : null;
+
+  
+  const relatedProjects = React.useMemo(() => {
+    const filtered = allProjects.filter((p: Project) => p.id !== activeProject.id && (p.category === activeProject.category || p.major === activeProject.major));
+    return [...filtered].sort(() => 0.5 - Math.random()).slice(0, 3);
+  }, [allProjects, activeProject]);
 
   return (
     <Dialog
@@ -47,9 +58,9 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
       {/* Hero Banner Area */}
       <Box sx={{ position: 'relative', width: '100%', height: { xs: 200, md: 320 }, bgcolor: 'background.default' }}>
         <ImageWithFallback
-          src={project.thumbnail}
-          alt={project.name}
-          fallbackText={project.major}
+          src={activeProject.thumbnail}
+          alt={activeProject.name}
+          fallbackText={activeProject.major}
           height="100%"
           sx={{
             position: 'absolute',
@@ -70,7 +81,7 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
         {/* Action Buttons Overlay */}
         <Box sx={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: 1 }}>
           {onShare && (
-            <IconButton onClick={onShare} sx={{ bgcolor: 'rgba(0,0,0,0.4)', color: '#fff', '&:hover': { bgcolor: project.isGoldenTicket ? '#F59E0B' : 'primary.main' }, backdropFilter: 'blur(8px)' }}>
+            <IconButton onClick={onShare} sx={{ bgcolor: 'rgba(0,0,0,0.4)', color: '#fff', '&:hover': { bgcolor: activeProject.isGoldenTicket ? '#F59E0B' : 'primary.main' }, backdropFilter: 'blur(8px)' }}>
               <ShareIcon fontSize="small" />
             </IconButton>
           )}
@@ -92,20 +103,20 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
               zIndex: 1,
               display: 'flex',
               alignItems: 'center',
-              background: project.isGoldenTicket
+              background: activeProject.isGoldenTicket
                 ? 'linear-gradient(90deg, #D97706 0%, #FBBF24 50%, #D97706 100%)'
                 : (isLight ? 'linear-gradient(90deg, #1E293B, #2563EB)' : 'linear-gradient(90deg, #F8FAFC, #60A5FA)'),
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              backgroundSize: project.isGoldenTicket ? '200% auto' : 'auto',
-              animation: project.isGoldenTicket ? 'golden-shine 3s linear infinite' : 'none',
+              backgroundSize: activeProject.isGoldenTicket ? '200% auto' : 'auto',
+              animation: activeProject.isGoldenTicket ? 'golden-shine 3s linear infinite' : 'none',
               fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' }
             }}>
-              {project.isGoldenTicket && <WorkspacePremiumIcon sx={{ color: '#F59E0B', fontSize: { xs: '1.8rem', md: '2.8rem' }, mr: 1.5, filter: 'drop-shadow(0 0px 8px rgba(245,158,11,0.6))', animation: 'golden-float 3s ease-in-out infinite' }} />}
-              {project.name}
+              {activeProject.isGoldenTicket && <WorkspacePremiumIcon sx={{ color: '#F59E0B', fontSize: { xs: '1.8rem', md: '2.8rem' }, mr: 1.5, filter: 'drop-shadow(0 0px 8px rgba(245,158,11,0.6))', animation: 'golden-float 3s ease-in-out infinite' }} />}
+              {activeProject.name}
             </Typography>
 
-            {project.isGoldenTicket && (
+            {activeProject.isGoldenTicket && (
               <Box sx={{ 
                 mb: 4, p: 2, borderRadius: 3, 
                 background: 'linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(217,119,6,0.05) 100%)', 
@@ -128,14 +139,14 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
               </Box>
             )}
 
-            {project.description && (project.description.includes('<img') || project.description.includes('<iframe') || project.description.replace(/<[^>]*>?/gm, '').trim().length > 0) && (
+            {activeProject.description && (activeProject.description.includes('<img') || activeProject.description.includes('<iframe') || activeProject.description.replace(/<[^>]*>?/gm, '').trim().length > 0) && (
               <>
                 <Typography variant="h6" sx={{ fontWeight: 800, mb: 2, color: 'text.primary' }}>
                   Tổng quan dự án
                 </Typography>
 
                 <Box
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(project.description) }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(activeProject.description) }}
                   sx={{
                     color: 'text.secondary',
                     lineHeight: 1.8,
@@ -168,7 +179,40 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
               </Box>
             )}
 
-            <CommentSection projectId={project.id} />
+            
+            {relatedProjects.length > 0 && (
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="h6" sx={{ fontWeight: 800, mb: 2, color: 'text.primary' }}>
+                  Có thể bạn cũng quan tâm
+                </Typography>
+                <Grid container spacing={2}>
+                  {relatedProjects.map((rp: Project) => (
+                    <Grid size={{ xs: 12, sm: 4 }} key={rp.id}>
+                      <Box 
+                        onClick={() => {
+                          const container = document.querySelector('.MuiDialogContent-root');
+                          if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
+                          setActiveProject(rp);
+                        }}
+                        sx={{ 
+                          p: 1.5, borderRadius: 3, border: '1px solid', borderColor: 'divider',
+                          bgcolor: 'background.default', cursor: 'pointer',
+                          transition: 'all 0.2s', '&:hover': { borderColor: 'primary.main', transform: 'translateY(-4px)' }
+                        }}
+                      >
+                        <Box sx={{ width: '100%', height: 100, borderRadius: 2, overflow: 'hidden', mb: 1.5 }}>
+                          <ImageWithFallback src={rp.thumbnail} alt={rp.name} height={100} />
+                        </Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, display: '-webkit-box', WebkitLineClamp: 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          {rp.name}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            )}
+            <CommentSection projectId={activeProject.id} />
           </Grid>
 
           {/* RIGHT COLUMN: Meta, Tech Stack, Team */}
@@ -181,50 +225,50 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
                   Thông tin chung
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                  <Box sx={{ width: 36, height: 36, borderRadius: 2, bgcolor: project.isGoldenTicket ? '#F59E0B' : 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                  <Box sx={{ width: 36, height: 36, borderRadius: 2, bgcolor: activeProject.isGoldenTicket ? '#F59E0B' : 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
                     <CalendarTodayIcon fontSize="small" />
                   </Box>
                   <Box>
                     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>Học kỳ</Typography>
-                    <Typography variant="body2" color="text.primary" sx={{ fontWeight: 700 }}>{project.semester}</Typography>
+                    <Typography variant="body2" color="text.primary" sx={{ fontWeight: 700 }}>{activeProject.semester}</Typography>
                   </Box>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: project.major ? 2 : 0 }}>
-                  <Box sx={{ width: 36, height: 36, borderRadius: 2, bgcolor: project.isGoldenTicket ? '#D97706' : 'secondary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: activeProject.major ? 2 : 0 }}>
+                  <Box sx={{ width: 36, height: 36, borderRadius: 2, bgcolor: activeProject.isGoldenTicket ? '#D97706' : 'secondary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
                     <CodeIcon fontSize="small" />
                   </Box>
                   <Box>
                     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>Danh mục</Typography>
-                    <Typography variant="body2" color="text.primary" sx={{ fontWeight: 700 }}>{project.category}</Typography>
+                    <Typography variant="body2" color="text.primary" sx={{ fontWeight: 700 }}>{activeProject.category}</Typography>
                   </Box>
                 </Box>
-                {project.major && (
+                {activeProject.major && (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Box sx={{ width: 36, height: 36, borderRadius: 2, bgcolor: project.isGoldenTicket ? 'rgba(245, 158, 11, 0.15)' : 'info.light', display: 'flex', alignItems: 'center', justifyContent: 'center', color: project.isGoldenTicket ? '#F59E0B' : 'info.main', border: project.isGoldenTicket ? '1px solid rgba(245,158,11,0.4)' : 'none' }}>
-                      {project.isGoldenTicket ? <AutoAwesomeIcon fontSize="small" /> : <SchoolIcon fontSize="small" />}
+                    <Box sx={{ width: 36, height: 36, borderRadius: 2, bgcolor: activeProject.isGoldenTicket ? 'rgba(245, 158, 11, 0.15)' : 'info.light', display: 'flex', alignItems: 'center', justifyContent: 'center', color: activeProject.isGoldenTicket ? '#F59E0B' : 'info.main', border: activeProject.isGoldenTicket ? '1px solid rgba(245,158,11,0.4)' : 'none' }}>
+                      {activeProject.isGoldenTicket ? <AutoAwesomeIcon fontSize="small" /> : <SchoolIcon fontSize="small" />}
                     </Box>
                     <Box>
                       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>Chuyên ngành</Typography>
-                      <Typography variant="body2" color={project.isGoldenTicket ? '#F59E0B' : 'text.primary'} sx={{ fontWeight: 700 }}>{project.major}</Typography>
+                      <Typography variant="body2" color={activeProject.isGoldenTicket ? '#F59E0B' : 'text.primary'} sx={{ fontWeight: 700 }}>{activeProject.major}</Typography>
                     </Box>
                   </Box>
                 )}
               </Box>
 
               {/* Tech Stack */}
-              {project.techTags && project.techTags.length > 0 && (
+              {activeProject.techTags && activeProject.techTags.length > 0 && (
                 <Box>
                   <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 2 }}>
                     Công nghệ sử dụng
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                    {project.techTags.map((tag, i) => (
+                    {activeProject.techTags.map((tag, i) => (
                       <Chip
                         key={i}
                         label={tag}
                         sx={{
-                          bgcolor: project.isGoldenTicket ? 'rgba(245, 158, 11, 0.1)' : (isLight ? 'rgba(37, 99, 235, 0.1)' : 'rgba(96, 165, 250, 0.1)'),
-                          color: project.isGoldenTicket ? '#F59E0B' : 'primary.main',
+                          bgcolor: activeProject.isGoldenTicket ? 'rgba(245, 158, 11, 0.1)' : (isLight ? 'rgba(37, 99, 235, 0.1)' : 'rgba(96, 165, 250, 0.1)'),
+                          color: activeProject.isGoldenTicket ? '#F59E0B' : 'primary.main',
                           fontWeight: 700,
                           borderRadius: 2
                         }}
@@ -235,20 +279,20 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
               )}
 
               {/* Team Members */}
-              {project.teamMembers && project.teamMembers.length > 0 && (
+              {activeProject.teamMembers && activeProject.teamMembers.length > 0 && (
                 <Box>
                   <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 2 }}>
-                    Team thực hiện ({project.teamMembers.length})
+                    Team thực hiện ({activeProject.teamMembers.length})
                   </Typography>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                    {project.teamMembers.map((member, idx) => (
+                    {activeProject.teamMembers.map((member, idx) => (
                       <Box key={idx} sx={{
                         display: 'flex', alignItems: 'center', gap: 2, p: 1.5,
                         borderRadius: 3,
                         bgcolor: 'background.default',
                         border: '1px solid', borderColor: 'divider',
                         transition: 'all 0.2s',
-                        '&:hover': { borderColor: project.isGoldenTicket ? '#F59E0B' : 'primary.main', transform: 'translateX(4px)' }
+                        '&:hover': { borderColor: activeProject.isGoldenTicket ? '#F59E0B' : 'primary.main', transform: 'translateX(4px)' }
                       }}>
                         <Avatar sx={{
                           width: 40, height: 40,

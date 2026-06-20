@@ -18,6 +18,7 @@ import ImageWithFallback from './ImageWithFallback';
 
 interface Props {
   project: Project;
+  allProjects?: Project[];
   categoryColors?: Record<string, { bg: string; text: string }>;
 }
 
@@ -37,7 +38,7 @@ const getAvatarLetter = (name: string) => {
   return lastWord.charAt(0).toUpperCase();
 };
 
-export default function ProjectCard({ project, categoryColors = {} }: Props) {
+export default function ProjectCard({ project, allProjects = [], categoryColors = {} }: Props) {
   const [openVideo, setOpenVideo] = useState(false);
   const [openDetail, setOpenDetail] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
@@ -256,6 +257,7 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
 
       <ProjectDetailModal 
         project={project}
+        allProjects={allProjects}
         open={openDetail}
         onClose={() => setOpenDetail(false)}
         onShare={handleShare}
