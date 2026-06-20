@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Box, Typography, Grid, Card, CardContent, Chip, CircularProgress, Alert, Stack, FormControl, InputLabel, Select, MenuItem, TextField, InputAdornment } from '@mui/material';
 import { motion } from 'framer-motion';
 import type { Article } from '../types/Article';
 import ImageWithFallback from './ImageWithFallback';
 import SearchIcon from '@mui/icons-material/Search';
+import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
 
 export default function ArticlesGallery() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -14,7 +15,27 @@ export default function ArticlesGallery() {
   const [currentType, setCurrentType] = useState('All');
   const [currentMajor, setCurrentMajor] = useState('All');
 
+  const [isFiltering, setIsFiltering] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(9);
 
+  const observer = useRef<IntersectionObserver | null>(null);
+  const lastElementRef = (node: HTMLDivElement | null) => {
+    if (loading || isFiltering) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) {
+        setVisibleCount(prev => prev + 9);
+      }
+    }, { threshold: 0.1 });
+    if (node) observer.current.observe(node);
+  };
+
+  useEffect(() => {
+    setVisibleCount(9);
+    setIsFiltering(true);
+    const timer = setTimeout(() => setIsFiltering(false), 500);
+    return () => clearTimeout(timer);
+  }, [search, currentType, currentMajor]);
 
   useEffect(() => {
     const localArticlesUrl = `${import.meta.env.BASE_URL}data/articles.json`;
@@ -93,12 +114,17 @@ export default function ArticlesGallery() {
   const types = ['All', ...Array.from(new Set(articles.map(a => a.type).filter(Boolean)))];
   const majors = ['All', ...Array.from(new Set(articles.map(a => a.major).filter(Boolean)))];
 
+  const getTypeCount = (type: string) => type === 'All' ? articles.length : articles.filter(a => a.type === type).length;
+  const getMajorCount = (major: string) => major === 'All' ? articles.length : articles.filter(a => a.major === major).length;
+
   const filteredArticles = articles.filter(a => {
     const matchesSearch = a.title.toLowerCase().includes(search.toLowerCase());
     const matchesType = currentType === 'All' || a.type === currentType;
     const matchesMajor = currentMajor === 'All' || a.major === currentMajor;
     return matchesSearch && matchesType && matchesMajor;
   });
+
+  const displayedArticles = filteredArticles.slice(0, visibleCount);
 
   return (
     <Box>
@@ -123,7 +149,7 @@ export default function ArticlesGallery() {
               {types.map(cat => (
                 <Chip
                   key={cat}
-                  label={cat === 'All' ? 'Tất cả loại bài' : cat}
+                  label={`${cat === 'All' ? 'Tất cả loại bài' : cat} (${getTypeCount(cat)})`}
                   onClick={() => setCurrentType(cat)}
                   variant={currentType === cat ? 'filled' : 'outlined'}
                   sx={{
@@ -155,7 +181,7 @@ export default function ArticlesGallery() {
                   sx={{ borderRadius: 2, bgcolor: 'background.default' }}
                 >
                   {majors.map(major => (
-                    <MenuItem key={major} value={major}>{major === 'All' ? 'Tất cả chuyên ngành' : major}</MenuItem>
+                    <MenuItem key={major} value={major}>{(major === 'All' ? 'Tất cả chuyên ngành' : major)} ({getMajorCount(major)})</MenuItem>
                   ))}
                 </Select>
               </FormControl>
@@ -187,18 +213,32 @@ export default function ArticlesGallery() {
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 3, px: 1 }}>
         <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
-          Hiển thị {filteredArticles.length} / {articles.length} bài viết
+          Hiển thị {filteredArticles.length} bài viết
         </Typography>
       </Box>
 
-
-      {filteredArticles.length === 0 ? (
-        <Box sx={{ p: 6, textAlign: 'center' }}>
-          <Typography color="text.secondary">Không tìm thấy bài viết nào phù hợp.</Typography>
+      {/* Grid */}
+      {isFiltering ? (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 10, gap: 2 }}>
+          <CircularProgress size={40} thickness={4} sx={{ color: 'primary.main' }} />
+          <Typography color="text.secondary">Đang tải dữ liệu...</Typography>
         </Box>
+      ) : filteredArticles.length === 0 ? (
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+          <Box sx={{ textAlign: 'center', py: 10, px: 3, bgcolor: 'background.paper', borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
+            <SentimentDissatisfiedIcon sx={{ fontSize: 56, color: 'text.disabled', mb: 2 }} />
+            <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 600 }}>
+              Không tìm thấy bài viết nào
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              Hãy thử tìm kiếm với từ khoá hoặc phân loại khác.
+            </Typography>
+          </Box>
+        </motion.div>
       ) : (
-        <Grid container spacing={4}>
-          {filteredArticles.map((article, index) => (
+        <>
+          <Grid container spacing={4}>
+            {displayedArticles.map((article, index) => (
             <Grid size={{ xs: 12, sm: 6, md: 4 }} key={article.id}>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -238,7 +278,7 @@ export default function ArticlesGallery() {
                         <Chip label={article.major} size="small" variant="outlined" sx={{ fontWeight: 700, borderColor: article.majorText !== '#4B5563' ? article.majorText : 'divider', color: article.majorText }} />
                       )}
                     </Box>
-                    <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.4, color: 'text.primary' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.4, color: 'text.primary', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                       {article.title}
                     </Typography>
                   </CardContent>
@@ -246,7 +286,13 @@ export default function ArticlesGallery() {
               </motion.div>
             </Grid>
           ))}
-        </Grid>
+          </Grid>
+          {visibleCount < filteredArticles.length && (
+            <Box ref={lastElementRef} sx={{ textAlign: 'center', mt: 5, py: 2 }}>
+              <CircularProgress size={32} sx={{ color: 'primary.main' }} />
+            </Box>
+          )}
+        </>
       )}
     </Box>
   );

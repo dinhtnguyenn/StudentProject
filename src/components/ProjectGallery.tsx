@@ -155,6 +155,10 @@ export default function ProjectGallery() {
   const majors = ['All', ...Array.from(new Set(projects.map(p => p.major).filter(Boolean)))];
   const allTags = Array.from(new Set(projects.flatMap(p => p.techTags || [])));
 
+  const getCategoryCount = (cat: string | undefined) => cat === 'All' ? projects.length : projects.filter(p => p.category === cat).length;
+  const getSemesterCount = (sem: string | undefined) => sem === 'All' ? projects.length : projects.filter(p => p.semester === sem).length;
+  const getMajorCount = (major: string | undefined) => major === 'All' ? projects.length : projects.filter(p => p.major === major).length;
+
   const categoryColors = categories.reduce((acc, cat) => {
     acc[cat.name] = { bg: cat.bg, text: cat.text };
     return acc;
@@ -205,7 +209,7 @@ export default function ProjectGallery() {
               {categoryNames.map(cat => (
                 <Chip
                   key={cat}
-                  label={cat === 'All' ? 'Tất cả' : cat}
+                  label={`${cat === 'All' ? 'Tất cả' : cat} (${getCategoryCount(cat)})`}
                   onClick={() => setCurrentTab(cat)}
                   variant={currentTab === cat ? 'filled' : 'outlined'}
                   sx={{
@@ -237,7 +241,7 @@ export default function ProjectGallery() {
                   sx={{ borderRadius: 2, bgcolor: 'background.default' }}
                 >
                   {semesters.map(sem => (
-                    <MenuItem key={sem} value={sem}>{sem === 'All' ? 'Tất cả học kỳ' : sem}</MenuItem>
+                    <MenuItem key={sem} value={sem}>{sem === 'All' ? 'Tất cả học kỳ' : sem} ({getSemesterCount(sem)})</MenuItem>
                   ))}
                 </Select>
               </FormControl>
@@ -253,7 +257,7 @@ export default function ProjectGallery() {
                   sx={{ borderRadius: 2, bgcolor: 'background.default' }}
                 >
                   {majors.map(major => (
-                    <MenuItem key={major} value={major}>{major === 'All' ? 'Tất cả chuyên ngành' : major}</MenuItem>
+                    <MenuItem key={major} value={major}>{major === 'All' ? 'Tất cả chuyên ngành' : major} ({getMajorCount(major)})</MenuItem>
                   ))}
                 </Select>
               </FormControl>
@@ -344,7 +348,7 @@ export default function ProjectGallery() {
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 3, px: 1 }}>
         <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
-          Hiển thị {filteredProjects.length} / {projects.length} dự án
+          Hiển thị {filteredProjects.length} dự án
         </Typography>
       </Box>
 

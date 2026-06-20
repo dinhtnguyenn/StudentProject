@@ -17,6 +17,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -664,6 +666,24 @@ export default function AdminForm() {
   const handleToggleCategory = (id: string) => setSelectedCategories(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   const handleToggleAllCategories = () => setSelectedCategories(selectedCategories.length === categoriesList.length ? [] : categoriesList.map(c => c.id));
 
+  const moveItem = <T,>(list: T[], index: number, direction: 'up' | 'down'): T[] => {
+    if (direction === 'up' && index > 0) {
+      const newList = [...list];
+      [newList[index - 1], newList[index]] = [newList[index], newList[index - 1]];
+      return newList;
+    }
+    if (direction === 'down' && index < list.length - 1) {
+      const newList = [...list];
+      [newList[index], newList[index + 1]] = [newList[index + 1], newList[index]];
+      return newList;
+    }
+    return list;
+  };
+
+  const handleMoveCategory = (index: number, direction: 'up' | 'down') => {
+    setCategoriesList(prev => moveItem(prev, index, direction));
+  };
+
   // Majors Draft Actions
   const [newMajorName, setNewMajorName] = useState('');
   const [majorToDelete, setMajorToDelete] = useState<string | null>(null);
@@ -696,6 +716,10 @@ export default function AdminForm() {
 
   const handleToggleMajor = (id: string) => setSelectedMajors(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   const handleToggleAllMajors = () => setSelectedMajors(selectedMajors.length === majorsList.length ? [] : majorsList.map(c => c.id));
+
+  const handleMoveMajor = (index: number, direction: 'up' | 'down') => {
+    setMajorsList(prev => moveItem(prev, index, direction));
+  };
 
   // ArticleTypes Draft Actions
   const [newArticleTypeName, setNewArticleTypeName] = useState('');
@@ -785,6 +809,10 @@ export default function AdminForm() {
 
   const handleToggleArticleType = (id: string) => setSelectedArticleTypes(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   const handleToggleAllArticleTypes = () => setSelectedArticleTypes(selectedArticleTypes.length === articleTypesList.length ? [] : articleTypesList.map(c => c.id));
+
+  const handleMoveArticleType = (index: number, direction: 'up' | 'down') => {
+    setArticleTypesList(prev => moveItem(prev, index, direction));
+  };
 
   const autoMergeData = (remoteData: any[], localData: any[]) => {
     const map = new Map();
@@ -1422,6 +1450,8 @@ export default function AdminForm() {
                                 disableTypography
                               />
                               <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                                <IconButton size="small" onClick={() => handleMoveCategory(idx, 'up')} disabled={idx === 0} sx={{ color: 'action.active' }}><ArrowUpwardIcon fontSize="small" /></IconButton>
+                                <IconButton size="small" onClick={() => handleMoveCategory(idx, 'down')} disabled={idx === categoriesList.length - 1} sx={{ color: 'action.active' }}><ArrowDownwardIcon fontSize="small" /></IconButton>
                                 <IconButton size="small" onClick={() => { setEditCategoryType('category'); setEditCategoryItem(cat); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
                                 <IconButton size="small" onClick={() => { setCategoryToDelete(cat.id); setDeleteConfirmOpen(true); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
                               </Box>
@@ -1576,6 +1606,8 @@ export default function AdminForm() {
                                 disableTypography
                               />
                               <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                                <IconButton size="small" onClick={() => handleMoveMajor(idx, 'up')} disabled={idx === 0} sx={{ color: 'action.active' }}><ArrowUpwardIcon fontSize="small" /></IconButton>
+                                <IconButton size="small" onClick={() => handleMoveMajor(idx, 'down')} disabled={idx === majorsList.length - 1} sx={{ color: 'action.active' }}><ArrowDownwardIcon fontSize="small" /></IconButton>
                                 <IconButton size="small" onClick={() => { setEditCategoryType('major'); setEditCategoryItem(cat); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
                                 <IconButton size="small" onClick={() => { setMajorToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
                               </Box>
@@ -1633,6 +1665,8 @@ export default function AdminForm() {
                                 disableTypography
                               />
                               <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                                <IconButton size="small" onClick={() => handleMoveArticleType(idx, 'up')} disabled={idx === 0} sx={{ color: 'action.active' }}><ArrowUpwardIcon fontSize="small" /></IconButton>
+                                <IconButton size="small" onClick={() => handleMoveArticleType(idx, 'down')} disabled={idx === articleTypesList.length - 1} sx={{ color: 'action.active' }}><ArrowDownwardIcon fontSize="small" /></IconButton>
                                 <IconButton size="small" onClick={() => { setEditCategoryType('articleType'); setEditCategoryItem(cat); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
                                 <IconButton size="small" onClick={() => { setArticleTypeToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
                               </Box>
