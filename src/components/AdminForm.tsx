@@ -1096,28 +1096,57 @@ export default function AdminForm() {
                   </Grid>
                 </Grid>
 
-                <Typography variant="h6" sx={{ fontWeight: 800, mb: 3, color: 'text.primary' }}>Phân Bố Dự Án Theo Chuyên Ngành</Typography>
-                <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
-                  {majorsList.length === 0 ? (
-                    <Typography color="text.secondary">Chưa có dữ liệu chuyên ngành.</Typography>
-                  ) : (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      {majorsList.map(major => {
-                        const count = projectsList.filter(p => p.major === major.name).length;
-                        const percentage = projectsList.length > 0 ? (count / projectsList.length) * 100 : 0;
-                        return (
-                          <Box key={major.id} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <Typography sx={{ width: 150, fontWeight: 600, fontSize: '0.85rem' }} noWrap>{major.name}</Typography>
-                            <Box sx={{ flexGrow: 1, height: 12, bgcolor: 'action.hover', borderRadius: 10, overflow: 'hidden' }}>
-                              <Box sx={{ width: `${percentage}%`, height: '100%', bgcolor: major.bg !== 'transparent' ? major.bg : 'primary.main', transition: 'width 1s ease-in-out' }} />
-                            </Box>
-                            <Typography sx={{ width: 40, textAlign: 'right', fontWeight: 800, fontSize: '0.85rem' }}>{count}</Typography>
-                          </Box>
-                        );
-                      })}
-                    </Box>
-                  )}
-                </Paper>
+                <Grid container spacing={3}>
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 3, color: 'text.primary' }}>Phân Bố Dự Án Theo Chuyên Ngành</Typography>
+                    <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid', borderColor: 'divider', height: '100%' }}>
+                      {majorsList.length === 0 ? (
+                        <Typography color="text.secondary">Chưa có dữ liệu chuyên ngành.</Typography>
+                      ) : (
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          {majorsList.map(major => {
+                            const count = projectsList.filter(p => p.major === major.id).length;
+                            const percentage = projectsList.length > 0 ? (count / projectsList.length) * 100 : 0;
+                            return (
+                              <Box key={major.id} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Typography sx={{ width: 100, fontWeight: 600, fontSize: '0.85rem' }} noWrap>{major.name}</Typography>
+                                <Box sx={{ flexGrow: 1, height: 12, bgcolor: 'action.hover', borderRadius: 10, overflow: 'hidden' }}>
+                                  <Box sx={{ width: `${percentage}%`, height: '100%', bgcolor: major.bg !== 'transparent' ? major.bg : 'primary.main', transition: 'width 1s ease-in-out' }} />
+                                </Box>
+                                <Typography sx={{ width: 30, textAlign: 'right', fontWeight: 800, fontSize: '0.85rem' }}>{count}</Typography>
+                              </Box>
+                            );
+                          })}
+                        </Box>
+                      )}
+                    </Paper>
+                  </Grid>
+
+                  <Grid size={{ xs: 12, md: 6 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 3, color: 'text.primary' }}>Phân Bố Bài Viết Theo Thể Loại</Typography>
+                    <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid', borderColor: 'divider', height: '100%' }}>
+                      {articleTypesList.length === 0 ? (
+                        <Typography color="text.secondary">Chưa có dữ liệu loại bài viết.</Typography>
+                      ) : (
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          {articleTypesList.map(type => {
+                            const count = articlesList.filter(a => a.type === type.id).length;
+                            const percentage = articlesList.length > 0 ? (count / articlesList.length) * 100 : 0;
+                            return (
+                              <Box key={type.id} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                <Typography sx={{ width: 150, fontWeight: 600, fontSize: '0.85rem' }} noWrap>{type.name}</Typography>
+                                <Box sx={{ flexGrow: 1, height: 12, bgcolor: 'action.hover', borderRadius: 10, overflow: 'hidden' }}>
+                                  <Box sx={{ width: `${percentage}%`, height: '100%', bgcolor: type.bg !== 'transparent' ? type.bg : 'secondary.main', transition: 'width 1s ease-in-out' }} />
+                                </Box>
+                                <Typography sx={{ width: 30, textAlign: 'right', fontWeight: 800, fontSize: '0.85rem' }}>{count}</Typography>
+                              </Box>
+                            );
+                          })}
+                        </Box>
+                      )}
+                    </Paper>
+                  </Grid>
+                </Grid>
               </Box>
             )}
 
