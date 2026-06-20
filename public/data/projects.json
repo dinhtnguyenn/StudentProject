@@ -97,6 +97,24 @@
     "major": "Game"
   },
   {
+    "id": "1781913660783",
+    "name": "Game Thanh kiếm báo thù",
+    "description": "",
+    "thumbnail": "https://img.youtube.com/vi/XLE9v_7LuuA/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=XLE9v_7LuuA",
+    "category": "Dự án tốt nghiệp",
+    "teamMembers": [
+      "PS40684 - Nguyễn Văn Sơn",
+      "PS40882 - Lương Gia Hào",
+      "PS43189 - Nguyễn Hoài Nam",
+      "PS42942 - Tô Minh Thành"
+    ],
+    "semester": "FALL 2025",
+    "techTags": [],
+    "isGoldenTicket": false,
+    "major": "Game"
+  },
+  {
     "id": "1781913501284",
     "name": "Game Chiến Binh Cyberpunk",
     "description": "",
