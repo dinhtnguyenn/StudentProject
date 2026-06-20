@@ -338,7 +338,7 @@
     ],
     "semester": "SPRING 2025",
     "techTags": [],
-    "isGoldenTicket": false,
+    "isGoldenTicket": true,
     "major": "Mobile"
   },
   {
@@ -527,7 +527,7 @@
     ],
     "semester": "SUMMER 2024",
     "techTags": [],
-    "isGoldenTicket": false,
+    "isGoldenTicket": true,
     "major": "Mobile"
   },
   {
@@ -565,7 +565,7 @@
     ],
     "semester": "SUMMER 2024",
     "techTags": [],
-    "isGoldenTicket": false,
+    "isGoldenTicket": true,
     "major": "Game"
   },
   {
