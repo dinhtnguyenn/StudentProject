@@ -1,13 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
-import { Box, Typography, Grid, Card, CardContent, Chip, CircularProgress, Alert, Stack, FormControl, InputLabel, Select, MenuItem, TextField, InputAdornment } from '@mui/material';
+import { Box, Typography, Grid, Card, CardContent, CardActions, Button, IconButton, Chip, CircularProgress, Alert, Stack, FormControl, InputLabel, Select, MenuItem, TextField, InputAdornment, Dialog, DialogTitle, DialogContent } from '@mui/material';
 import { motion } from 'framer-motion';
 import type { Article } from '../types/Article';
 import ImageWithFallback from './ImageWithFallback';
 import SearchIcon from '@mui/icons-material/Search';
 import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
+import CloseIcon from '@mui/icons-material/Close';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 export default function ArticlesGallery() {
   const [articles, setArticles] = useState<Article[]>([]);
+  const [articleTypes, setArticleTypes] = useState<any[]>([]);
+  const [articleMajors, setArticleMajors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -86,6 +90,8 @@ export default function ArticlesGallery() {
           };
         });
         setArticles(resolvedArticles);
+        setArticleTypes(typesData || []);
+        setArticleMajors(majorsData || []);
         setLoading(false);
       })
       .catch((err: any) => {
@@ -111,8 +117,8 @@ export default function ArticlesGallery() {
     );
   }
 
-  const types = ['All', ...Array.from(new Set(articles.map(a => a.type).filter(Boolean)))];
-  const majors = ['All', ...Array.from(new Set(articles.map(a => a.major).filter(Boolean)))];
+  const types = ['All', ...Array.from(new Set([...articleTypes.map(t => t.name), ...articles.map(a => a.type).filter(Boolean)]))];
+  const majors = ['All', ...Array.from(new Set([...articleMajors.map(m => m.name), ...articles.map(a => a.major).filter(Boolean)]))];
 
   const getTypeCount = (type: string) => type === 'All' ? articles.length : articles.filter(a => a.type === type).length;
   const getMajorCount = (major: string) => major === 'All' ? articles.length : articles.filter(a => a.major === major).length;
