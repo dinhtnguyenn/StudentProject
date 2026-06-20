@@ -218,7 +218,7 @@ export default function ArticlesGallery() {
                   <ImageWithFallback
                     src={article.imageUrl}
                     alt={article.title}
-                    major={article.major}
+                    fallbackText={article.type}
                     height={200}
                   />
                   <CardContent sx={{ flexGrow: 1, p: 3 }}>

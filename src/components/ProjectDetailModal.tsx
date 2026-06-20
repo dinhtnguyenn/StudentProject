@@ -49,7 +49,7 @@ export default function ProjectDetailModal({ project, open, onClose, onShare }: 
         <ImageWithFallback
           src={project.thumbnail}
           alt={project.name}
-          major={project.major}
+          fallbackText={project.major}
           height="100%"
           sx={{
             position: 'absolute',

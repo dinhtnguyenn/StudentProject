@@ -85,7 +85,7 @@ export default function ProjectCard({ project, categoryColors = {} }: Props) {
               className="card-image"
               src={project.thumbnail}
               alt={project.name}
-              major={project.major}
+              fallbackText={project.major}
               height={200}
               sx={{ transition: 'transform 0.5s ease' }}
             />
