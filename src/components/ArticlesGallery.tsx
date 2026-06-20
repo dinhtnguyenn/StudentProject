@@ -1,12 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Box, Typography, Grid, Card, CardContent, CardActions, Button, IconButton, Chip, CircularProgress, Alert, Stack, FormControl, InputLabel, Select, MenuItem, TextField, InputAdornment, Dialog, DialogTitle, DialogContent } from '@mui/material';
+import { Box, Typography, Grid, Card, CardContent, Chip, CircularProgress, Alert, Stack, FormControl, InputLabel, Select, MenuItem, TextField, InputAdornment } from '@mui/material';
 import { motion } from 'framer-motion';
 import type { Article } from '../types/Article';
 import ImageWithFallback from './ImageWithFallback';
 import SearchIcon from '@mui/icons-material/Search';
 import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
-import CloseIcon from '@mui/icons-material/Close';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 export default function ArticlesGallery() {
   const [articles, setArticles] = useState<Article[]>([]);

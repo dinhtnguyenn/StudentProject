@@ -1,12 +1,14 @@
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
 import ProjectGallery from './components/ProjectGallery';
 import ArticlesGallery from './components/ArticlesGallery';
 import AdminForm from './components/AdminForm';
-import { AppBar, Toolbar, Typography, Button, Container, Box, IconButton, useTheme } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, Container, Box, IconButton, useTheme, Menu, MenuItem, Divider } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
+import MenuIcon from '@mui/icons-material/Menu';
 import { useAppTheme } from './ThemeContext';
 
 function App() {
@@ -14,6 +16,7 @@ function App() {
   const location = useLocation();
   const { mode, toggleTheme } = useAppTheme();
   const theme = useTheme();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
@@ -33,8 +36,35 @@ function App() {
               sx={{ flexGrow: 1, cursor: 'pointer', fontWeight: 800, fontSize: { xs: '1rem', sm: '1.15rem' } }}
               onClick={() => navigate('/')}
             >
-              Student<span style={{ color: '#2563EB' }}> Projects</span>
+              Uni<span style={{ color: '#2563EB' }}>Folio</span>
             </Typography>
+
+            {/* Mobile Menu */}
+            <IconButton
+              sx={{ display: { xs: 'flex', sm: 'none' }, color: 'text.secondary' }}
+              onClick={(e) => setAnchorEl(e.currentTarget)}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={() => setAnchorEl(null)}
+              sx={{ display: { xs: 'block', sm: 'none' }, mt: 1, '& .MuiPaper-root': { borderRadius: 3, minWidth: 200, boxShadow: '0 10px 40px rgba(0,0,0,0.1)' } }}
+            >
+              <MenuItem onClick={() => { navigate('/'); setAnchorEl(null); }} sx={{ fontWeight: location.pathname === '/' ? 700 : 500, color: location.pathname === '/' ? 'primary.main' : 'text.primary', py: 1.5 }}>
+                Dự án
+              </MenuItem>
+              <MenuItem onClick={() => { navigate('/articles'); setAnchorEl(null); }} sx={{ fontWeight: location.pathname === '/articles' ? 700 : 500, color: location.pathname === '/articles' ? 'primary.main' : 'text.primary', py: 1.5 }}>
+                Bài viết
+              </MenuItem>
+              <Divider sx={{ my: 1 }} />
+              <MenuItem onClick={() => { navigate('/admin'); setAnchorEl(null); }} sx={{ fontWeight: location.pathname === '/admin' ? 700 : 500, color: location.pathname === '/admin' ? 'primary.main' : 'text.primary', py: 1.5 }}>
+                <DashboardIcon sx={{ mr: 1, fontSize: 20 }} /> Quản Trị
+              </MenuItem>
+            </Menu>
+
+            {/* Desktop Navigation */}
             <Button
               onClick={() => navigate('/')}
               sx={{
