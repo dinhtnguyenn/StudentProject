@@ -329,6 +329,12 @@ export default function ProjectGallery() {
         </Box>
       </motion.div>
 
+      <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 3, px: 1 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
+          Hiển thị {filteredProjects.length} / {projects.length} dự án
+        </Typography>
+      </Box>
+
       {/* Grid */}
       {isFiltering ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 10, gap: 2 }}>
