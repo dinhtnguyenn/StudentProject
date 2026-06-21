@@ -79,38 +79,46 @@ export default function TechNetworkGraph({ projects, onTechClick, onClose }: Tec
   // Node paint function to make it look cool
   const paintNode = (node: any, ctx: CanvasRenderingContext2D, globalScale: number) => {
     const label = node.name;
-    const fontSize = node.group === 'tech' ? Math.max(12 / globalScale, 4) : Math.max(8 / globalScale, 2);
+    const isTech = node.group === 'tech';
+    const fontSize = isTech ? Math.max(12 / globalScale, 4) : Math.max(8 / globalScale, 2);
     ctx.font = `${fontSize}px Inter, sans-serif`;
-    
-    // Draw circle
-    ctx.beginPath();
-    ctx.arc(node.x, node.y, node.val, 0, 2 * Math.PI, false);
-    
-    if (node.group === 'tech') {
-      ctx.fillStyle = theme.palette.mode === 'dark' ? '#3B82F6' : '#2563EB'; // Blue
-      ctx.fill();
-      ctx.strokeStyle = theme.palette.mode === 'dark' ? '#93C5FD' : '#BFDBFE';
-      ctx.lineWidth = 1 / globalScale;
-      ctx.stroke();
-    } else {
-      ctx.fillStyle = theme.palette.mode === 'dark' ? '#475569' : '#CBD5E1'; // Slate
-      ctx.fill();
-    }
-
-    // Draw text
-    const textWidth = ctx.measureText(label).width;
-    const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2);
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    
-    // Text background
-    if (node.group === 'tech') {
-      ctx.fillStyle = theme.palette.mode === 'dark' ? 'rgba(15, 23, 42, 0.8)' : 'rgba(255, 255, 255, 0.8)';
-      ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y - node.val - fontSize - 2, bckgDimensions[0], bckgDimensions[1]);
-      ctx.fillStyle = theme.palette.mode === 'dark' ? '#FFF' : '#1E293B';
-      ctx.fillText(label, node.x, node.y - node.val - fontSize / 2 - 2);
+
+    if (isTech) {
+      const colors = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#22c55e', '#06b6d4', '#3b82f6', '#6366f1', '#a855f7', '#ec4899'];
+      const colorHash = Math.abs(label.split('').reduce((a: number, b: string) => a + b.charCodeAt(0), 0)) % colors.length;
+      const nodeColor = colors[colorHash];
+
+      const textWidth = ctx.measureText(label).width;
+      const paddingX = fontSize * 0.8;
+      const paddingY = fontSize * 0.5;
+      const boxWidth = textWidth + paddingX * 2;
+      const boxHeight = fontSize + paddingY * 2;
+
+      // Draw rounded rect (pill shape)
+      ctx.fillStyle = nodeColor;
+      ctx.beginPath();
+      ctx.roundRect(node.x - boxWidth / 2, node.y - boxHeight / 2, boxWidth, boxHeight, boxHeight / 2);
+      ctx.fill();
+
+      ctx.strokeStyle = theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)';
+      ctx.lineWidth = 1 / globalScale;
+      ctx.stroke();
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText(label, node.x, node.y);
+
+      // Store dimensions for hit testing if needed
+      node.__bckgDimensions = [boxWidth, boxHeight];
     } else {
+      // Project node: small circle
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, node.val, 0, 2 * Math.PI, false);
+      ctx.fillStyle = theme.palette.mode === 'dark' ? '#94A3B8' : '#CBD5E1';
+      ctx.fill();
+
       // Show project text only if zoomed in enough
       if (globalScale > 1.5) {
         ctx.fillStyle = theme.palette.text.secondary;
@@ -120,25 +128,35 @@ export default function TechNetworkGraph({ projects, onTechClick, onClose }: Tec
   };
 
   return (
-    <Box sx={{ 
-      position: 'relative', 
-      width: '100%', 
-      height: '100%', 
-      bgcolor: theme.palette.mode === 'dark' ? '#0F172A' : '#F8FAFC',
+    <Box sx={{
+      position: 'relative',
+      width: '100%',
+      height: '100%',
+      bgcolor: theme.palette.mode === 'dark' ? '#0B1120' : '#F8FAFC',
+      backgroundImage: theme.palette.mode === 'dark'
+        ? 'radial-gradient(circle at center, #1E293B 0%, #0F172A 100%)'
+        : 'radial-gradient(circle at center, #FFFFFF 0%, #F8FAFC 100%)',
       borderRadius: 4,
       overflow: 'hidden'
     }}>
-      <Box sx={{ 
-        position: 'absolute', top: 0, left: 0, right: 0, 
-        p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        background: theme.palette.mode === 'dark' ? 'linear-gradient(to bottom, rgba(15,23,42,0.9), transparent)' : 'linear-gradient(to bottom, rgba(248,250,252,0.9), transparent)',
+      <Box sx={{
+        position: 'absolute', top: 0, left: 0, right: 0,
+        p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        background: theme.palette.mode === 'dark' ? 'rgba(15,23,42,0.4)' : 'rgba(255,255,255,0.4)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid',
+        borderColor: 'divider',
         zIndex: 10
       }}>
         <Box>
-          <Typography variant="h6" sx={{ fontWeight: 800 }}>Sơ đồ Mạng lưới Công nghệ</Typography>
-          <Typography variant="body2" color="text.secondary">Kéo thả các node hoặc Click vào một Công nghệ để lọc dự án</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
+            Sơ đồ công nghệ
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Kéo thả các Node để tương tác. Click vào công nghệ để lọc các dự án.
+          </Typography>
         </Box>
-        <IconButton onClick={onClose} sx={{ bgcolor: 'background.paper', boxShadow: 1 }}>
+        <IconButton onClick={onClose} sx={{ bgcolor: 'background.paper', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', '&:hover': { bgcolor: 'error.main', color: '#FFF' } }}>
           <CloseIcon />
         </IconButton>
       </Box>
@@ -149,15 +167,31 @@ export default function TechNetworkGraph({ projects, onTechClick, onClose }: Tec
           width={dimensions.width}
           height={dimensions.height}
           graphData={graphData}
-          nodeLabel={() => ''} // Disable default tooltip since we draw text
+          nodeLabel={() => ''}
           nodeCanvasObject={paintNode}
-          linkColor={() => theme.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.2)' : 'rgba(37, 99, 235, 0.2)'}
-          linkWidth={1}
+          nodePointerAreaPaint={(node: any, color: string, ctx: CanvasRenderingContext2D) => {
+            if (node.group === 'tech' && node.__bckgDimensions) {
+              ctx.fillStyle = color;
+              const [w, h] = node.__bckgDimensions;
+              ctx.fillRect(node.x - w / 2, node.y - h / 2, w, h);
+            } else {
+              ctx.fillStyle = color;
+              ctx.beginPath();
+              ctx.arc(node.x, node.y, node.val, 0, 2 * Math.PI, false);
+              ctx.fill();
+            }
+          }}
+          linkColor={() => theme.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(37, 99, 235, 0.15)'}
+          linkWidth={1.5}
+          linkDirectionalParticles={2}
+          linkDirectionalParticleWidth={2}
+          linkDirectionalParticleSpeed={0.005}
+          linkDirectionalParticleColor={() => theme.palette.mode === 'dark' ? '#60A5FA' : '#3B82F6'}
           onNodeClick={handleNodeClick}
           cooldownTicks={100}
           onEngineStop={() => {
             if (graphRef.current) {
-              graphRef.current.zoomToFit(400, 50);
+              graphRef.current.zoomToFit(600, 50);
             }
           }}
         />

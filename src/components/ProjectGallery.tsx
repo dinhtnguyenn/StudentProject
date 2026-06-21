@@ -333,8 +333,8 @@ export default function ProjectGallery() {
           boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
           p: { xs: 2.5, sm: 3.5 }, mb: 5,
         }}>
-          <Box sx={{ mb: 3 }}>
-            <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1, '&::-webkit-scrollbar': { display: 'none' }, msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+            <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1, '&::-webkit-scrollbar': { display: 'none' }, msOverflowStyle: 'none', scrollbarWidth: 'none', flexGrow: 1, flexBasis: '70%' }}>
               {categoryNames.map(cat => (
                 <Chip
                   key={cat}
@@ -471,13 +471,19 @@ export default function ProjectGallery() {
 
           {allTags.length > 0 && (
             <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', mr: 1, flexShrink: 0 }}>Công nghệ:</Typography>
-                <IconButton size="small" onClick={() => setIsGraphOpen(true)} sx={{ bgcolor: 'action.hover', color: 'primary.main', mr: 1 }} title="Sơ đồ Mạng lưới Công nghệ">
-                  <HubIcon fontSize="small" />
-                </IconButton>
+              <Box sx={{ display: 'flex', alignItems: 'center', mr: 2, flexShrink: 0 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', mr: 1 }}>Công nghệ:</Typography>
+                <Button 
+                  size="small" 
+                  variant="outlined" 
+                  onClick={() => setIsGraphOpen(true)} 
+                  startIcon={<HubIcon fontSize="small" />}
+                  sx={{ borderRadius: 4, textTransform: 'none', py: 0, height: 26, fontSize: '0.75rem', px: 1.5, borderColor: 'primary.light' }}
+                >
+                  Sơ đồ
+                </Button>
               </Box>
-              <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1, '&::-webkit-scrollbar': { display: 'none' }, msOverflowStyle: 'none', scrollbarWidth: 'none', flexGrow: 1 }}>
+              <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' }, msOverflowStyle: 'none', scrollbarWidth: 'none', flexGrow: 1, py: 0.5 }}>
                 {allTags.map(tag => (
                   <Chip
                     key={tag}
