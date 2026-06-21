@@ -200,7 +200,7 @@ export default function ArticlesGallery() {
         }}>
           {/* Types Row */}
           <Box sx={{ mb: 3 }}>
-            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+            <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1, '&::-webkit-scrollbar': { display: 'none' }, msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
               {types.map(cat => (
                 <Chip
                   key={cat}
@@ -208,7 +208,7 @@ export default function ArticlesGallery() {
                   onClick={() => setCurrentType(cat)}
                   variant={currentType === cat ? 'filled' : 'outlined'}
                   sx={{
-                    fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', height: 32, px: 0.5,
+                    fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', height: 32, px: 0.5, flexShrink: 0,
                     ...(currentType === cat
                       ? {
                         background: 'linear-gradient(135deg, #2563EB, #1D4ED8)',

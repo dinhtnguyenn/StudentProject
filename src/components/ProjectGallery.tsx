@@ -340,7 +340,7 @@ export default function ProjectGallery() {
         }}>
           {/* Categories Row */}
           <Box sx={{ mb: 3 }}>
-            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+            <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1, '&::-webkit-scrollbar': { display: 'none' }, msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
               {categoryNames.map(cat => (
                 <Chip
                   key={cat}
@@ -348,7 +348,7 @@ export default function ProjectGallery() {
                   onClick={() => setCurrentTab(cat)}
                   variant={currentTab === cat ? 'filled' : 'outlined'}
                   sx={{
-                    fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', height: 32, px: 0.5,
+                    fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', height: 32, px: 0.5, flexShrink: 0,
                     ...(currentTab === cat
                       ? {
                         background: 'linear-gradient(135deg, #2563EB, #1D4ED8)',
@@ -478,21 +478,23 @@ export default function ProjectGallery() {
 
           {/* Tech Tags Filter */}
           {allTags.length > 0 && (
-            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-              <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', mr: 1 }}>Công nghệ:</Typography>
-              {allTags.map(tag => (
-                <Chip
-                  key={tag}
-                  label={tag}
-                  size="small"
-                  onClick={() => setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])}
-                  variant={selectedTags.includes(tag) ? 'filled' : 'outlined'}
-                  sx={{
-                    fontSize: '0.75rem',
-                    ...(selectedTags.includes(tag) ? { bgcolor: 'primary.main', color: '#FFF' } : { borderColor: 'divider', color: 'text.secondary' })
-                  }}
-                />
-              ))}
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', mr: 1, flexShrink: 0 }}>Công nghệ:</Typography>
+              <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1, '&::-webkit-scrollbar': { display: 'none' }, msOverflowStyle: 'none', scrollbarWidth: 'none', flexGrow: 1 }}>
+                {allTags.map(tag => (
+                  <Chip
+                    key={tag}
+                    label={tag}
+                    size="small"
+                    onClick={() => setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])}
+                    variant={selectedTags.includes(tag) ? 'filled' : 'outlined'}
+                    sx={{
+                      fontSize: '0.75rem', flexShrink: 0,
+                      ...(selectedTags.includes(tag) ? { bgcolor: 'primary.main', color: '#FFF' } : { borderColor: 'divider', color: 'text.secondary' })
+                    }}
+                  />
+                ))}
+              </Stack>
             </Box>
           )}
         </Box>
