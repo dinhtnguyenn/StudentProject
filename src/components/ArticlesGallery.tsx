@@ -192,8 +192,11 @@ export default function ArticlesGallery() {
       {/* Filter Bar */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
         <Box sx={{
-          bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', borderRadius: 4, boxShadow: 1,
-          p: 3, mb: 5,
+          background: muiTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(30, 41, 59, 0.7)',
+          backdropFilter: 'blur(24px)',
+          border: '1px solid', borderColor: 'divider', borderRadius: 4, 
+          boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
+          p: { xs: 2.5, sm: 3.5 }, mb: 5,
         }}>
           {/* Types Row */}
           <Box sx={{ mb: 3 }}>
@@ -230,7 +233,12 @@ export default function ArticlesGallery() {
                   value={currentMajor}
                   label="Chuyên ngành"
                   onChange={e => setCurrentMajor(e.target.value)}
-                  sx={{ borderRadius: 2, bgcolor: 'background.default' }}
+                  sx={{ 
+                    borderRadius: 3, 
+                    bgcolor: muiTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(15, 23, 42, 0.5)',
+                    '&:hover': { bgcolor: 'background.paper' },
+                    transition: 'all 0.3s'
+                  }}
                 >
                   {majors.map(major => (
                     <MenuItem key={major} value={major}>{(major === 'All' ? 'Tất cả chuyên ngành' : major)} ({getMajorCount(major)})</MenuItem>
@@ -242,11 +250,18 @@ export default function ArticlesGallery() {
             <Grid size={{ xs: 12, sm: 6, md: 8 }}>
               <TextField
                 fullWidth
+                size="small"
                 placeholder="Tìm kiếm bài viết..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                variant="outlined"
-                size="small"
+                sx={{
+                  '& .MuiOutlinedInput-root': { 
+                    borderRadius: 3, 
+                    bgcolor: muiTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(15, 23, 42, 0.5)',
+                    '&:hover': { bgcolor: 'background.paper' },
+                    transition: 'all 0.3s'
+                  },
+                }}
                 slotProps={{
                   input: {
                     startAdornment: (
