@@ -5,7 +5,6 @@ import ArticlesGallery from './components/ArticlesGallery';
 import AdminForm from './components/AdminForm';
 import { AppBar, Toolbar, Typography, Button, Container, Box, IconButton, useTheme, Menu, MenuItem, Divider } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -30,7 +29,7 @@ function App() {
       }}>
         <Container maxWidth="lg">
           <Toolbar disableGutters sx={{ gap: 1 }}>
-            <AutoAwesomeIcon sx={{ color: 'primary.main', mr: { xs: 0.5, sm: 1 }, fontSize: { xs: 24, sm: 28 } }} />
+            <Box component="img" src={`${import.meta.env.BASE_URL}logo.svg?v=5`} alt="UniFolio Logo" sx={{ width: { xs: 32, sm: 36 }, height: { xs: 32, sm: 36 }, mr: { xs: 0.5, sm: 0.75 }, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }} />
             <Typography
               variant="h6" component="div"
               sx={{ flexGrow: 1, cursor: 'pointer', fontWeight: 800, fontSize: { xs: '1rem', sm: '1.15rem' } }}
@@ -129,7 +128,15 @@ function App() {
         bgcolor: 'background.paper',
       }}>
         <Typography variant="body2" color="text.secondary">
-          © {new Date().getFullYear()} | Một sản phẩm được xây dựng bởi DinhNT24
+          © {new Date().getFullYear()} | Một sản phẩm được xây dựng bởi{' '}
+          <a 
+            href="https://www.facebook.com/tridinhnee/" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            style={{ color: 'inherit', fontWeight: 700, textDecoration: 'none' }}
+          >
+            DinhNT24
+          </a>
         </Typography>
       </Box>
     </Box>

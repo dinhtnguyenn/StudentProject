@@ -36,17 +36,17 @@ export default function ProjectGallery() {
   const [currentMajor, setCurrentMajor] = useState('All');
   const [showOnlyGoldenTicket, setShowOnlyGoldenTicket] = useState(false);
   const [isFiltering, setIsFiltering] = useState(false);
-  
+
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  
+
   const [visibleCount, setVisibleCount] = useState(9);
   const [sharedProject, setSharedProject] = useState<Project | null>(null);
 
   const location = useLocation();
   const navigate = useNavigate();
   const muiTheme = useTheme();
-  
+
   const observer = useRef<IntersectionObserver | null>(null);
   const lastElementRef = (node: HTMLDivElement | null) => {
     if (loading) return;
@@ -99,13 +99,13 @@ export default function ProjectGallery() {
       .then(([projData, catData, majData]) => {
         const categoriesData = catData || [];
         const majorsData = majData || [];
-        
+
         const resolvedProjects = (projData || []).map((p: any) => ({
           ...p,
           category: categoriesData.find((c: any) => c.id === p.category)?.name || p.category,
           major: majorsData.find((m: any) => m.id === p.major)?.name || p.major,
         }));
-        
+
         setProjects(resolvedProjects);
         setCategories(categoriesData);
         setLoading(false);
@@ -193,10 +193,10 @@ export default function ProjectGallery() {
             </Typography>
           </Box>
           <Typography variant="h3" component="h1" sx={{ mb: 1.5, fontWeight: 800, color: 'text.primary' }}>
-            Dự Án <span style={{ color: muiTheme.palette.primary.main }}>Xuất Sắc</span>
+            Dự án <span style={{ color: muiTheme.palette.primary.main }}>tiêu biểu</span>
           </Typography>
           <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 560, mx: 'auto', lineHeight: 1.7 }}>
-            Khám phá những dự án xuất sắc, giải pháp công nghệ ấn tượng được phát triển bởi sinh viên của tớ ❤️.
+            Khám phá các dự án tiêu biểu và những giải pháp công nghệ sáng tạo được phát triển bởi các sinh viên tài năng ❤️
           </Typography>
         </Box>
       </motion.div>
@@ -339,9 +339,9 @@ export default function ProjectGallery() {
                   size="small"
                   onClick={() => setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])}
                   variant={selectedTags.includes(tag) ? 'filled' : 'outlined'}
-                  sx={{ 
-                    fontSize: '0.75rem', 
-                    ...(selectedTags.includes(tag) ? { bgcolor: 'primary.main', color: '#FFF' } : { borderColor: 'divider', color: 'text.secondary' }) 
+                  sx={{
+                    fontSize: '0.75rem',
+                    ...(selectedTags.includes(tag) ? { bgcolor: 'primary.main', color: '#FFF' } : { borderColor: 'divider', color: 'text.secondary' })
                   }}
                 />
               ))}
@@ -406,7 +406,7 @@ export default function ProjectGallery() {
                     return (
                       <motion.div key={project.id} variants={itemVariants} style={{ position: 'relative', marginBottom: '3rem' }}>
                         <Box sx={{
-                          display: 'flex', 
+                          display: 'flex',
                           flexDirection: { xs: 'column', md: isEven ? 'row-reverse' : 'row' },
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -419,11 +419,11 @@ export default function ProjectGallery() {
                             transform: { xs: 'none', md: 'translateX(-50%)' },
                             zIndex: 1, border: '4px solid', borderColor: 'background.paper'
                           }} />
-                          
+
                           <Box sx={{ width: { xs: '100%', md: '45%' }, px: { xs: 2, md: 4 } }}>
                             <ProjectCard project={project} allProjects={projects} categoryColors={categoryColors} />
                           </Box>
-                          
+
                           <Box sx={{ display: { xs: 'none', md: 'block' }, width: '45%' }} />
                         </Box>
                       </motion.div>
@@ -433,7 +433,7 @@ export default function ProjectGallery() {
               </Box>
             )}
           </motion.div>
-          
+
           {visibleCount < filteredProjects.length && (
             <Box ref={lastElementRef} sx={{ textAlign: 'center', mt: 5, py: 2 }}>
               <CircularProgress size={32} sx={{ color: 'primary.main' }} />
@@ -444,7 +444,7 @@ export default function ProjectGallery() {
 
       {/* Shared Project Modal */}
       {sharedProject && (
-        <ProjectDetailModal 
+        <ProjectDetailModal
           project={sharedProject}
           allProjects={projects}
           open={true}

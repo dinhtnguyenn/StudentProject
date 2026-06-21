@@ -934,23 +934,23 @@ export default function AdminForm() {
               <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Dừng lại!!!</Typography>
             </Box>
             <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary', mb: 1 }}>
-              Đăng Nhập <span style={{ color: muiTheme.palette.primary.main }}>Hệ Thống</span>
+              Đăng <span style={{ color: muiTheme.palette.primary.main }}> nhập</span>
             </Typography>
-            <Typography color="text.secondary">Vui lòng cung cấp GitHub Token để tiếp tục.</Typography>
+            <Typography color="text.secondary">Vui lòng cung cấp thông tin để tiếp tục.</Typography>
           </Box>
 
           <Paper elevation={0} sx={{ p: 4, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', boxShadow: '0 8px 30px rgba(0,0,0,0.04)' }}>
             <form onSubmit={handleLogin}>
               <Grid container spacing={3}>
                 <Grid size={{ xs: 12 }}>
-                  <TextField fullWidth label="GitHub Username" value={githubOwner} onChange={e => setGithubOwner(e.target.value)} required />
+                  <TextField fullWidth label="Thông tin tài khoản" value={githubOwner} onChange={e => setGithubOwner(e.target.value)} required />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
-                  <TextField fullWidth label="Tên Repository" value={githubRepo} onChange={e => setGithubRepo(e.target.value)} required />
+                  <TextField fullWidth label="Thông tin Repo" value={githubRepo} onChange={e => setGithubRepo(e.target.value)} required />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                   <TextField
-                    fullWidth label="Personal Access Token" type={showPassword ? 'text' : 'password'} required
+                    fullWidth label="Token truy cập" type={showPassword ? 'text' : 'password'} required
                     value={githubToken} onChange={e => setGithubToken(e.target.value)}
                     slotProps={{ input: { endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">{showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}</IconButton></InputAdornment>) } }}
                   />
