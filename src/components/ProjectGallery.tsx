@@ -2,7 +2,9 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { Typography, TextField, Box, CircularProgress, InputAdornment, Grid, Chip, Stack, FormControl, Select, MenuItem, InputLabel, useTheme, Button } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
+import HubIcon from '@mui/icons-material/Hub';
 import ProjectCard from './ProjectCard';
+import TechNetworkGraph from './TechNetworkGraph';
 import type { Project } from '../types/Project';
 import type { Category } from '../types/Category';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
@@ -108,6 +110,7 @@ export default function ProjectGallery() {
   const [currentMajor, setCurrentMajor] = useState('All');
   const [showOnlyGoldenTicket, setShowOnlyGoldenTicket] = useState(false);
   const [isFiltering, setIsFiltering] = useState(false);
+  const [isGraphOpen, setIsGraphOpen] = useState(false);
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -136,17 +139,14 @@ export default function ProjectGallery() {
     const localCategoriesUrl = `${import.meta.env.BASE_URL}data/categories.json`;
     const localMajorsUrl = `${import.meta.env.BASE_URL}data/majors.json`;
 
-    // Hàm lấy dữ liệu với chiến lược "API First, Fallback Local"
     const fetchWithFallback = async (apiUrl: string, localUrl: string) => {
       try {
         const res = await fetch(apiUrl);
         if (!res.ok) throw new Error('API limit reached or error');
         const json = await res.json();
-        // GitHub API trả về nội dung mã hoá Base64
         const decoded = decodeURIComponent(escape(atob(json.content)));
         return JSON.parse(decoded);
       } catch (err) {
-        // Nếu API lỗi (Hết 60 lượt/giờ), tự động lùi về đọc file tĩnh (chậm 1 chút nhưng an toàn)
         const localRes = await fetch(localUrl);
         if (!localRes.ok) return [];
         return localRes.json();
@@ -189,7 +189,6 @@ export default function ProjectGallery() {
       });
   }, []);
 
-  // Handle Shared Link
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const projectId = params.get('project');
@@ -208,7 +207,6 @@ export default function ProjectGallery() {
     navigate({ search: params.toString() }, { replace: true });
   };
 
-  // Reset Load More and trigger loading when filters change
   useEffect(() => {
     setVisibleCount(9);
     setIsFiltering(true);
@@ -271,7 +269,6 @@ export default function ProjectGallery() {
 
   return (
     <Box>
-      {/* Hero */}
       <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <Box sx={{ mb: 5, textAlign: 'center', mt: 2 }}>
           <Typography variant="h3" component="h1" sx={{ mb: 1.5, fontWeight: 800, color: 'text.primary', fontSize: { xs: '2.25rem', sm: '3rem' } }}>
@@ -291,7 +288,6 @@ export default function ProjectGallery() {
         </Box>
       </motion.div>
 
-      {/* Golden Ticket Carousel */}
       {isDefaultView && randomizedGoldenTickets.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
           <Box sx={{ mb: 6 }}>
@@ -329,7 +325,6 @@ export default function ProjectGallery() {
         </motion.div>
       )}
 
-      {/* Filter Bar */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }}>
         <Box sx={{
           background: muiTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(30, 41, 59, 0.7)',
@@ -338,7 +333,6 @@ export default function ProjectGallery() {
           boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
           p: { xs: 2.5, sm: 3.5 }, mb: 5,
         }}>
-          {/* Categories Row */}
           <Box sx={{ mb: 3 }}>
             <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1, '&::-webkit-scrollbar': { display: 'none' }, msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
               {categoryNames.map(cat => (
@@ -364,7 +358,6 @@ export default function ProjectGallery() {
             </Stack>
           </Box>
 
-          {/* Filters & Search Row */}
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <FormControl size="small" fullWidth>
@@ -476,10 +469,14 @@ export default function ProjectGallery() {
             </Grid>
           </Grid>
 
-          {/* Tech Tags Filter */}
           {allTags.length > 0 && (
             <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-              <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', mr: 1, flexShrink: 0 }}>Công nghệ:</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', mr: 1, flexShrink: 0 }}>Công nghệ:</Typography>
+                <IconButton size="small" onClick={() => setIsGraphOpen(true)} sx={{ bgcolor: 'action.hover', color: 'primary.main', mr: 1 }} title="Sơ đồ Mạng lưới Công nghệ">
+                  <HubIcon fontSize="small" />
+                </IconButton>
+              </Box>
               <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1, '&::-webkit-scrollbar': { display: 'none' }, msOverflowStyle: 'none', scrollbarWidth: 'none', flexGrow: 1 }}>
                 {allTags.map(tag => (
                   <Chip
@@ -514,7 +511,6 @@ export default function ProjectGallery() {
         </Box>
       </Box>
 
-      {/* Grid */}
       {isFiltering ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 10, gap: 2 }}>
           <CircularProgress size={40} thickness={4} sx={{ color: 'primary.main' }} />
@@ -592,7 +588,6 @@ export default function ProjectGallery() {
         </>
       )}
 
-      {/* Shared Project Modal */}
       {sharedProject && (
         <ProjectDetailModal
           project={sharedProject}
@@ -600,6 +595,32 @@ export default function ProjectGallery() {
           open={true}
           onClose={closeSharedProject}
         />
+      )}
+
+      {/* Tech Network Graph Modal */}
+      {isGraphOpen && (
+        <Box sx={{ 
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
+          bgcolor: 'rgba(0,0,0,0.8)', zIndex: 1300, 
+          display: 'flex', alignItems: 'center', justifyContent: 'center', p: { xs: 2, md: 4 }
+        }}>
+          <Box sx={{ 
+            width: '100%', height: '100%', maxWidth: 1200, maxHeight: 800, 
+            bgcolor: 'background.paper', borderRadius: 4, overflow: 'hidden',
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)'
+          }}>
+            <TechNetworkGraph 
+              projects={projects} 
+              onClose={() => setIsGraphOpen(false)} 
+              onTechClick={(tech) => {
+                if (!selectedTags.includes(tech)) {
+                  setSelectedTags(prev => [...prev, tech]);
+                }
+                setIsGraphOpen(false);
+              }}
+            />
+          </Box>
+        </Box>
       )}
     </Box>
   );

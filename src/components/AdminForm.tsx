@@ -4,7 +4,7 @@ import {
   CircularProgress, Divider, Collapse, IconButton, InputAdornment,
   List, ListItem, ListItemText, Avatar, ListItemAvatar, ListSubheader, ListItemButton,
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
-  FormControl, InputLabel, Select, MenuItem, Chip, Checkbox, FormControlLabel, useTheme, ListItemIcon
+  FormControl, InputLabel, Select, MenuItem, Chip, Checkbox, FormControlLabel, useTheme, ListItemIcon, Autocomplete
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import EditNoteIcon from '@mui/icons-material/EditNote';
@@ -86,7 +86,7 @@ function generateCategoryColors() {
 }
 
 // --- Sortable Item Component ---
-function SortableProjectItem({ project, idx, isSelected, onToggle, onEdit, onDelete, categoryName }: any) {
+function SortableProjectItem({ project, idx, isSelected, onToggle, onEdit, onDelete, categoryName, onUpdateTechTags, allTags = [] }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: project.id });
   const theme = useTheme();
 
@@ -117,7 +117,44 @@ function SortableProjectItem({ project, idx, isSelected, onToggle, onEdit, onDel
                 {project.isGoldenTicket && <StarIcon sx={{ color: '#F59E0B', fontSize: 18 }} titleAccess="Golden Ticket" />}
               </Box>
             }
-            secondary={<Typography variant="caption" sx={{ color: 'text.secondary' }}>{categoryName || project.category} • {project.semester}</Typography>}
+            secondary={
+              <Box>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>{categoryName || project.category} • {project.semester}</Typography>
+                <Box 
+                  sx={{ mt: 0.5, display: 'flex', width: '100%' }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Autocomplete
+                    multiple
+                    freeSolo
+                    size="small"
+                    options={allTags}
+                    value={project.techTags || []}
+                    onChange={(_, newValue) => onUpdateTechTags(newValue as string[])}
+                    sx={{ width: '100%', mt: 1, maxWidth: 600 }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        variant="outlined"
+                        placeholder="+ Thêm công nghệ..."
+                        sx={{ 
+                          '& .MuiOutlinedInput-root': {
+                            padding: '4px',
+                            borderRadius: 2,
+                            fontSize: '0.8rem',
+                            bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                            transition: 'all 0.2s',
+                            '&:hover': {
+                              bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+                            }
+                          }
+                        }}
+                      />
+                    )}
+                  />
+                </Box>
+              </Box>
+            }
           />
         </Box>
         <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
@@ -270,7 +307,7 @@ export default function AdminForm() {
 
   // Form State
   const [formData, setFormData] = useState({
-    id: '', name: '', description: '', thumbnail: '', youtubeUrl: '', category: '', teamMembers: '', semester: '', techTags: '', isGoldenTicket: false, major: '',
+    id: '', name: '', description: '', thumbnail: '', youtubeUrl: '', category: '', teamMembers: '', semester: '', techTags: [] as string[], isGoldenTicket: false, major: '',
   });
 
   const [articleFormData, setArticleFormData] = useState({
@@ -575,7 +612,7 @@ export default function AdminForm() {
               teamMembers: [],
               semester: '',
               major: '',
-              techTags: ''
+              techTags: [] as string[]
             });
           }
         } catch (e) {
@@ -617,7 +654,7 @@ export default function AdminForm() {
       ...formData,
       id: isEdit ? formData.id : Date.now().toString(),
       teamMembers: formData.teamMembers.split('\n').map(m => m.trim()).filter(m => m),
-      techTags: formData.techTags.split(',').map(m => m.trim()).filter(m => m),
+      techTags: formData.techTags,
     };
 
     setProjectsList(prev => isEdit ? prev.map(p => p.id === formData.id ? projectToSave : p) : [projectToSave, ...prev]);
@@ -627,7 +664,7 @@ export default function AdminForm() {
   };
 
   const resetForm = () => {
-    setFormData({ id: '', name: '', description: '', thumbnail: '', youtubeUrl: '', category: '', teamMembers: '', semester: '', techTags: '', isGoldenTicket: false, major: '' });
+    setFormData({ id: '', name: '', description: '', thumbnail: '', youtubeUrl: '', category: '', teamMembers: '', semester: '', techTags: [] as string[], isGoldenTicket: false, major: '' });
     setYoutubeUrl('');
   };
 
@@ -798,7 +835,7 @@ export default function AdminForm() {
       if (!res.ok) throw new Error('Lỗi gọi API');
       const data = await res.json();
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      setFormData(prev => ({ ...prev, techTags: text.trim().replace(/\.$/, '') }));
+      setFormData(prev => ({ ...prev, techTags: text.split(',').map((t: string) => t.trim()).filter((t: string) => t) }));
       setStatus({ type: 'success', message: 'AI đã điền Tech Tags thành công!' });
     } catch (err: any) { setStatus({ type: 'error', message: 'Lỗi AI: ' + err.message }); }
     finally { setIsAiLoading(prev => ({ ...prev, tags: false })); }
@@ -1350,7 +1387,19 @@ export default function AdminForm() {
                             AI Tự Điền Tags
                           </Button>
                         </Box>
-                        <TextField fullWidth name="techTags" value={formData.techTags} onChange={handleChange} placeholder="React, Node, AI..." />
+                        <Autocomplete
+                          multiple
+                          freeSolo
+                          options={Array.from(new Set(projectsList.flatMap(p => p.techTags || [])))}
+                          value={formData.techTags as string[]}
+                          onChange={(_, newValue) => setFormData({ ...formData, techTags: newValue as string[] })}
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              placeholder="React, Node, AI..."
+                            />
+                          )}
+                        />
                       </Grid>
                       <Grid size={{ xs: 12 }}>
                         <TextField fullWidth label="Link ảnh Thumbnail" name="thumbnail" value={formData.thumbnail} onChange={handleChange} required />
@@ -1432,7 +1481,9 @@ export default function AdminForm() {
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                       <SortableContext items={projectsList.map(p => p.id)} strategy={verticalListSortingStrategy}>
                         <List sx={{ p: 0 }}>
-                          {projectsList.map((project, idx) => (
+                          {projectsList.map((project, idx) => {
+                            const allTags = Array.from(new Set(projectsList.flatMap(p => p.techTags || [])));
+                            return (
                             <SortableProjectItem
                               key={project.id}
                               id={project.id}
@@ -1441,13 +1492,17 @@ export default function AdminForm() {
                               isSelected={selectedProjects.includes(project.id)}
                               onToggle={handleToggleProject}
                               categoryName={categoriesList.find(c => c.id === project.category)?.name || project.category}
+                              allTags={allTags}
+                              onUpdateTechTags={(newTags: string[]) => {
+                                setProjectsList(prev => prev.map(p => p.id === project.id ? { ...p, techTags: newTags } : p));
+                              }}
                               onEdit={(p: any) => {
                                 setFormData({
                                   id: p.id, name: p.name, description: p.description, thumbnail: p.thumbnail,
                                   youtubeUrl: p.youtubeUrl || '', category: p.category,
                                   teamMembers: Array.isArray(p.teamMembers) ? p.teamMembers.join('\n') : p.teamMembers,
                                   semester: p.semester,
-                                  techTags: Array.isArray(p.techTags) ? p.techTags.join(', ') : (p.techTags || ''),
+                                  techTags: Array.isArray(p.techTags) ? p.techTags : [],
                                   isGoldenTicket: !!p.isGoldenTicket,
                                   major: p.major || '',
                                 });
@@ -1455,7 +1510,8 @@ export default function AdminForm() {
                               }}
                               onDelete={(id: string) => { setProjectToDelete(id); setDeleteConfirmOpen(true); }}
                             />
-                          ))}
+                            );
+                          })}
                         </List>
                       </SortableContext>
                     </DndContext>
