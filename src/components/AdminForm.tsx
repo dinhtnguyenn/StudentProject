@@ -127,6 +127,42 @@ function SortableProjectItem({ project, idx, isSelected, onToggle, onEdit, onDel
   );
 }
 
+// --- Sortable Article Item Component ---
+function SortableArticleItem({ article, idx, onEdit, onDelete, typeName, majorName }: any) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: article.id });
+  const theme = useTheme();
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 100 : 1,
+    opacity: isDragging ? 0.8 : 1,
+    backgroundColor: isDragging ? theme.palette.action.hover : 'transparent',
+  };
+
+  return (
+    <Box ref={setNodeRef} style={style}>
+      {idx > 0 && <Divider />}
+      <ListItem sx={{ py: 2 }}>
+        <Box {...attributes} {...listeners} sx={{ cursor: 'grab', mr: 1, display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
+          <DragIndicatorIcon />
+        </Box>
+        <ListItemAvatar>
+          <Avatar src={article.imageUrl} variant="rounded" sx={{ width: 80, height: 50, mr: 2, border: '1px solid', borderColor: 'divider' }} />
+        </ListItemAvatar>
+        <ListItemText
+          primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{article.title}</Typography>}
+          secondary={<Typography variant="caption" sx={{ color: 'text.secondary' }}>{typeName || article.type} • {majorName || article.major}</Typography>}
+        />
+        <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+          <IconButton size="small" onClick={() => onEdit(article)} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
+          <IconButton size="small" onClick={() => onDelete(article.id)} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
+        </Box>
+      </ListItem>
+    </Box>
+  );
+}
+
 // --- Main Component ---
 export default function AdminForm() {
   const [tabIndex, setTabIndex] = useState(7);
@@ -573,7 +609,7 @@ export default function AdminForm() {
       techTags: formData.techTags.split(',').map(m => m.trim()).filter(m => m),
     };
 
-    setProjectsList(prev => isEdit ? prev.map(p => p.id === formData.id ? projectToSave : p) : [...prev, projectToSave]);
+    setProjectsList(prev => isEdit ? prev.map(p => p.id === formData.id ? projectToSave : p) : [projectToSave, ...prev]);
     setStatus({ type: 'success', message: `Đã lưu nháp dự án ${isEdit ? '(Cập nhật)' : '(Mới)'}!` });
     resetForm();
     if (!isEdit) setTabIndex(1);
@@ -595,7 +631,7 @@ export default function AdminForm() {
       ...articleFormData,
       id: isEdit ? articleFormData.id : Date.now().toString(),
     };
-    setArticlesList(prev => isEdit ? prev.map(a => a.id === articleFormData.id ? articleToSave : a) : [...prev, articleToSave]);
+    setArticlesList(prev => isEdit ? prev.map(a => a.id === articleFormData.id ? articleToSave : a) : [articleToSave, ...prev]);
     setStatus({ type: 'success', message: `Đã lưu nháp bài viết ${isEdit ? '(Cập nhật)' : '(Mới)'}!` });
     resetArticleForm();
     if (!isEdit) setTabIndex(4);
@@ -612,6 +648,16 @@ export default function AdminForm() {
     const { active, over } = event;
     if (active.id !== over?.id) {
       setProjectsList((items) => {
+        const oldIndex = items.findIndex(i => i.id === active.id);
+        const newIndex = items.findIndex(i => i.id === over?.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+  const handleArticleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (active.id !== over?.id) {
+      setArticlesList((items) => {
         const oldIndex = items.findIndex(i => i.id === active.id);
         const newIndex = items.findIndex(i => i.id === over?.id);
         return arrayMove(items, oldIndex, newIndex);
@@ -1538,26 +1584,23 @@ export default function AdminForm() {
                 ) : articlesList.length === 0 ? (
                   <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có bài viết nào.</Typography></Box>
                 ) : (
-                  <List sx={{ p: 0 }}>
-                    {articlesList.map((article, idx) => (
-                      <Box key={article.id}>
-                        {idx > 0 && <Divider />}
-                        <ListItem sx={{ py: 2 }}>
-                          <ListItemAvatar>
-                            <Avatar src={article.imageUrl} variant="rounded" sx={{ width: 80, height: 50, mr: 2, border: '1px solid', borderColor: 'divider' }} />
-                          </ListItemAvatar>
-                          <ListItemText
-                            primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{article.title}</Typography>}
-                            secondary={<Typography variant="caption" sx={{ color: 'text.secondary' }}>{articleTypesList.find(t => t.id === article.type)?.name || article.type} • {majorsList.find(m => m.id === article.major)?.name || article.major}</Typography>}
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleArticleDragEnd}>
+                    <SortableContext items={articlesList.map(a => a.id)} strategy={verticalListSortingStrategy}>
+                      <List sx={{ p: 0 }}>
+                        {articlesList.map((article, idx) => (
+                          <SortableArticleItem
+                            key={article.id}
+                            article={article}
+                            idx={idx}
+                            typeName={articleTypesList.find(t => t.id === article.type)?.name}
+                            majorName={majorsList.find(m => m.id === article.major)?.name}
+                            onEdit={(a: any) => { setArticleFormData(a); setTabIndex(3); }}
+                            onDelete={(id: string) => setArticlesList(prev => prev.filter(item => item.id !== id))}
                           />
-                          <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
-                            <IconButton size="small" onClick={() => { setArticleFormData(article); setTabIndex(3); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
-                            <IconButton size="small" onClick={() => setArticlesList(prev => prev.filter(a => a.id !== article.id))} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
-                          </Box>
-                        </ListItem>
-                      </Box>
-                    ))}
-                  </List>
+                        ))}
+                      </List>
+                    </SortableContext>
+                  </DndContext>
                 )}
               </Paper>
             )}
