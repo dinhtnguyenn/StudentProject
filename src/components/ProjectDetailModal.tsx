@@ -256,13 +256,13 @@ export default function ProjectDetailModal({ project, allProjects = [], open, on
               </Box>
 
               {/* Tech Stack */}
-              {activeProject.techTags && activeProject.techTags.length > 0 && (
+              {Array.isArray(activeProject.techTags) && activeProject.techTags.length > 0 ? (
                 <Box>
                   <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 2 }}>
                     Công nghệ sử dụng
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                    {activeProject.techTags.map((tag, i) => (
+                    {activeProject.techTags.map((tag: string, i: number) => (
                       <Chip
                         key={i}
                         label={tag}
@@ -276,7 +276,27 @@ export default function ProjectDetailModal({ project, allProjects = [], open, on
                     ))}
                   </Box>
                 </Box>
-              )}
+              ) : typeof activeProject.techTags === 'string' && activeProject.techTags ? (
+                <Box>
+                  <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 2 }}>
+                    Công nghệ sử dụng
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    {(activeProject.techTags as string).split(',').map(t=>t.trim()).filter(t=>t).map((tag: string, i: number) => (
+                      <Chip
+                        key={i}
+                        label={tag}
+                        sx={{
+                          bgcolor: activeProject.isGoldenTicket ? 'rgba(245, 158, 11, 0.1)' : (isLight ? 'rgba(37, 99, 235, 0.1)' : 'rgba(96, 165, 250, 0.1)'),
+                          color: activeProject.isGoldenTicket ? '#F59E0B' : 'primary.main',
+                          fontWeight: 700,
+                          borderRadius: 2
+                        }}
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              ) : null}
 
               {/* Team Members */}
               {activeProject.teamMembers && activeProject.teamMembers.length > 0 && (

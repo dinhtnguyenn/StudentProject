@@ -166,7 +166,7 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
             </Typography>
 
             {/* Tech Tags */}
-            {project.techTags && project.techTags.length > 0 && (
+            {Array.isArray(project.techTags) && project.techTags.length > 0 ? (
               <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1.5 }}>
                 {project.techTags.slice(0, 3).map((tag, i) => (
                   <Chip key={i} label={tag} size="small" variant="outlined" sx={{ fontSize: '0.65rem', height: 20, borderColor: 'divider', color: 'text.secondary' }} />
@@ -175,7 +175,16 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
                   <Chip label={`+${project.techTags.length - 3}`} size="small" sx={{ fontSize: '0.65rem', height: 20, bgcolor: 'action.hover' }} />
                 )}
               </Box>
-            )}
+            ) : typeof project.techTags === 'string' && project.techTags ? (
+              <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1.5 }}>
+                {(project.techTags as string).split(',').map(t=>t.trim()).filter(t=>t).slice(0, 3).map((tag, i) => (
+                  <Chip key={i} label={tag} size="small" variant="outlined" sx={{ fontSize: '0.65rem', height: 20, borderColor: 'divider', color: 'text.secondary' }} />
+                ))}
+                {(project.techTags as string).split(',').filter(t=>t.trim()).length > 3 && (
+                  <Chip label={`+${(project.techTags as string).split(',').filter(t=>t.trim()).length - 3}`} size="small" sx={{ fontSize: '0.65rem', height: 20, bgcolor: 'action.hover' }} />
+                )}
+              </Box>
+            ) : null}
 
             {/* Team preview */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>

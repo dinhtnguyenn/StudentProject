@@ -129,7 +129,7 @@ function SortableProjectItem({ project, idx, isSelected, onToggle, onEdit, onDel
                     freeSolo
                     size="small"
                     options={allTags}
-                    value={project.techTags || []}
+                    value={Array.isArray(project.techTags) ? project.techTags : (typeof project.techTags === 'string' && project.techTags ? (project.techTags as string).split(',').map(t=>t.trim()) : [])}
                     onChange={(_, newValue) => onUpdateTechTags(newValue as string[])}
                     sx={{ width: '100%', mt: 1, maxWidth: 600 }}
                     renderInput={(params) => (
@@ -1390,8 +1390,8 @@ export default function AdminForm() {
                         <Autocomplete
                           multiple
                           freeSolo
-                          options={Array.from(new Set(projectsList.flatMap(p => p.techTags || [])))}
-                          value={formData.techTags as string[]}
+                          options={Array.from(new Set(projectsList.flatMap(p => Array.isArray(p.techTags) ? p.techTags : (typeof p.techTags === 'string' && p.techTags ? (p.techTags as string).split(',').map(t=>t.trim()) : []))))}
+                          value={Array.isArray(formData.techTags) ? formData.techTags : (typeof formData.techTags === 'string' && formData.techTags ? (formData.techTags as string).split(',').map(t=>t.trim()) : [])}
                           onChange={(_, newValue) => setFormData({ ...formData, techTags: newValue as string[] })}
                           renderInput={(params) => (
                             <TextField
@@ -1482,7 +1482,7 @@ export default function AdminForm() {
                       <SortableContext items={projectsList.map(p => p.id)} strategy={verticalListSortingStrategy}>
                         <List sx={{ p: 0 }}>
                           {projectsList.map((project, idx) => {
-                            const allTags = Array.from(new Set(projectsList.flatMap(p => p.techTags || [])));
+                            const allTags = Array.from(new Set(projectsList.flatMap(p => Array.isArray(p.techTags) ? p.techTags : (typeof p.techTags === 'string' && p.techTags ? (p.techTags as string).split(',').map(t=>t.trim()) : []))));
                             return (
                             <SortableProjectItem
                               key={project.id}
