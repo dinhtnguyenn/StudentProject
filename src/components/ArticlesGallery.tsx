@@ -281,6 +281,9 @@ export default function ArticlesGallery() {
                       {article.major && (
                         <Chip label={article.major} size="small" variant="outlined" sx={{ fontWeight: 700, borderColor: article.majorText !== '#4B5563' ? article.majorText : 'divider', color: article.majorText }} />
                       )}
+                      {article.year && (
+                        <Chip label={article.year} size="small" variant="outlined" sx={{ fontWeight: 700, borderColor: 'divider', color: 'text.secondary' }} />
+                      )}
                     </Box>
                     <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.4, color: 'text.primary', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                       {article.title}

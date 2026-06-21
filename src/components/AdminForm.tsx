@@ -106,18 +106,20 @@ function SortableProjectItem({ project, idx, isSelected, onToggle, onEdit, onDel
           <DragIndicatorIcon />
         </Box>
         <Checkbox checked={isSelected} onChange={() => onToggle(project.id)} sx={{ mr: 1 }} />
-        <ListItemAvatar>
-          <Avatar src={project.thumbnail} variant="rounded" sx={{ width: 64, height: 40, mr: 1, border: '1px solid', borderColor: 'divider' }} />
-        </ListItemAvatar>
-        <ListItemText
-          primary={
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{project.name}</Typography>
-              {project.isGoldenTicket && <StarIcon sx={{ color: '#F59E0B', fontSize: 18 }} titleAccess="Golden Ticket" />}
-            </Box>
-          }
-          secondary={<Typography variant="caption" sx={{ color: 'text.secondary' }}>{categoryName || project.category} • {project.semester}</Typography>}
-        />
+        <Box sx={{ display: 'flex', flexGrow: 1, cursor: 'pointer', alignItems: 'center' }} onClick={() => project.youtubeUrl && window.open(project.youtubeUrl, '_blank')}>
+          <ListItemAvatar>
+            <Avatar src={project.thumbnail} variant="rounded" sx={{ width: 64, height: 40, mr: 1, border: '1px solid', borderColor: 'divider' }} />
+          </ListItemAvatar>
+          <ListItemText
+            primary={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary', '&:hover': { color: 'primary.main' } }}>{project.name}</Typography>
+                {project.isGoldenTicket && <StarIcon sx={{ color: '#F59E0B', fontSize: 18 }} titleAccess="Golden Ticket" />}
+              </Box>
+            }
+            secondary={<Typography variant="caption" sx={{ color: 'text.secondary' }}>{categoryName || project.category} • {project.semester}</Typography>}
+          />
+        </Box>
         <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
           <IconButton size="small" onClick={() => onEdit(project)} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
           <IconButton size="small" onClick={() => onDelete(project.id)} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
@@ -128,7 +130,7 @@ function SortableProjectItem({ project, idx, isSelected, onToggle, onEdit, onDel
 }
 
 // --- Sortable Article Item Component ---
-function SortableArticleItem({ article, idx, onEdit, onDelete, typeName, majorName }: any) {
+function SortableArticleItem({ article, idx, onEdit, onDelete, onYearChange, typeName, majorName }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: article.id });
   const theme = useTheme();
 
@@ -147,14 +149,23 @@ function SortableArticleItem({ article, idx, onEdit, onDelete, typeName, majorNa
         <Box {...attributes} {...listeners} sx={{ cursor: 'grab', mr: 1, display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
           <DragIndicatorIcon />
         </Box>
-        <ListItemAvatar>
-          <Avatar src={article.imageUrl} variant="rounded" sx={{ width: 80, height: 50, mr: 2, border: '1px solid', borderColor: 'divider' }} />
-        </ListItemAvatar>
-        <ListItemText
-          primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>{article.title}</Typography>}
-          secondary={<Typography variant="caption" sx={{ color: 'text.secondary' }}>{typeName || article.type} • {majorName || article.major}</Typography>}
-        />
-        <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+        <Box sx={{ display: 'flex', flexGrow: 1, cursor: 'pointer', alignItems: 'center' }} onClick={() => article.link && window.open(article.link, '_blank')}>
+          <ListItemAvatar>
+            <Avatar src={article.imageUrl} variant="rounded" sx={{ width: 80, height: 50, mr: 2, border: '1px solid', borderColor: 'divider' }} />
+          </ListItemAvatar>
+          <ListItemText
+            primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary', '&:hover': { color: 'primary.main' } }}>{article.title}</Typography>}
+            secondary={<Typography variant="caption" sx={{ color: 'text.secondary' }}>{typeName || article.type} • {majorName || article.major}</Typography>}
+          />
+        </Box>
+        <Box sx={{ display: 'flex', gap: 1, ml: 2, alignItems: 'center' }}>
+          <TextField 
+            size="small" 
+            placeholder="Năm..." 
+            value={article.year || ''} 
+            onChange={(e) => onYearChange(article.id, e.target.value)} 
+            sx={{ width: 80, '& .MuiInputBase-root': { fontSize: '0.85rem', height: 32 } }} 
+          />
           <IconButton size="small" onClick={() => onEdit(article)} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
           <IconButton size="small" onClick={() => onDelete(article.id)} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
         </Box>
@@ -263,7 +274,7 @@ export default function AdminForm() {
   });
 
   const [articleFormData, setArticleFormData] = useState({
-    id: '', title: '', imageUrl: '', link: '', type: '', major: ''
+    id: '', title: '', imageUrl: '', link: '', type: '', major: '', year: ''
   });
   const [fetchingArticle, setFetchingArticle] = useState(false);
 
@@ -638,7 +649,7 @@ export default function AdminForm() {
   };
 
   const resetArticleForm = () => {
-    setArticleFormData({ id: '', title: '', imageUrl: '', link: '', type: '', major: '' });
+    setArticleFormData({ id: '', title: '', imageUrl: '', link: '', type: '', major: '', year: '' });
   };
 
   // Projects Draft Actions
@@ -1538,7 +1549,7 @@ export default function AdminForm() {
                       <Grid size={{ xs: 12 }}>
                         <TextField fullWidth label="Link ảnh bài viết (Không bắt buộc)" value={articleFormData.imageUrl} onChange={e => setArticleFormData({ ...articleFormData, imageUrl: e.target.value })} />
                       </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
+                      <Grid size={{ xs: 12, sm: 4 }}>
                         <FormControl fullWidth required>
                           <InputLabel>Loại bài viết</InputLabel>
                           <Select value={articleFormData.type} label="Loại bài viết" onChange={e => setArticleFormData({ ...articleFormData, type: e.target.value as string })}>
@@ -1549,7 +1560,7 @@ export default function AdminForm() {
                           </Select>
                         </FormControl>
                       </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
+                      <Grid size={{ xs: 12, sm: 4 }}>
                         <FormControl fullWidth required>
                           <InputLabel>Chuyên ngành</InputLabel>
                           <Select value={articleFormData.major} label="Chuyên ngành" onChange={e => setArticleFormData({ ...articleFormData, major: e.target.value as string })}>
@@ -1559,6 +1570,9 @@ export default function AdminForm() {
                             {majorsList.length === 0 && <MenuItem disabled value="">Chưa có chuyên ngành nào</MenuItem>}
                           </Select>
                         </FormControl>
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 4 }}>
+                        <TextField fullWidth label="Năm (VD: 2026)" value={articleFormData.year || ''} onChange={e => setArticleFormData({ ...articleFormData, year: e.target.value })} />
                       </Grid>
                       <Grid size={{ xs: 12 }} sx={{ mt: 1, display: 'flex', gap: 2 }}>
                         {articleFormData.id && (
@@ -1596,6 +1610,7 @@ export default function AdminForm() {
                             majorName={majorsList.find(m => m.id === article.major)?.name}
                             onEdit={(a: any) => { setArticleFormData(a); setTabIndex(3); }}
                             onDelete={(id: string) => setArticlesList(prev => prev.filter(item => item.id !== id))}
+                            onYearChange={(id: string, year: string) => setArticlesList(prev => prev.map(item => item.id === id ? { ...item, year } : item))}
                           />
                         ))}
                       </List>

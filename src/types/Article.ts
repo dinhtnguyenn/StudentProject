@@ -9,4 +9,5 @@ export interface Article {
   major: string;
   majorBg?: string;
   majorText?: string;
+  year?: string;
 }
