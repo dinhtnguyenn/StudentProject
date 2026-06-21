@@ -9,6 +9,7 @@ import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useAppTheme } from './ThemeContext';
+import confetti from 'canvas-confetti';
 
 function App() {
   const navigate = useNavigate();
@@ -16,6 +17,20 @@ function App() {
   const { mode, toggleTheme } = useAppTheme();
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [clickCount, setClickCount] = useState(0);
+
+  const handleLogoClick = () => {
+    navigate('/');
+    setClickCount(prev => prev + 1);
+    if (clickCount >= 2) {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+      setClickCount(0);
+    }
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
@@ -29,11 +44,11 @@ function App() {
       }}>
         <Container maxWidth="lg">
           <Toolbar disableGutters sx={{ gap: 1 }}>
-            <Box component="img" src={`${import.meta.env.BASE_URL}logo.svg?v=5`} alt="UniFolio Logo" sx={{ width: { xs: 32, sm: 36 }, height: { xs: 32, sm: 36 }, mr: { xs: 0.5, sm: 0.75 }, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))' }} />
+            <Box component="img" src={`${import.meta.env.BASE_URL}logo.svg?v=5`} alt="UniFolio Logo" sx={{ width: { xs: 32, sm: 36 }, height: { xs: 32, sm: 36 }, mr: { xs: 0.5, sm: 0.75 }, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))', cursor: 'pointer' }} onClick={handleLogoClick} />
             <Typography
               variant="h6" component="div"
-              sx={{ flexGrow: 1, cursor: 'pointer', fontWeight: 800, fontSize: { xs: '1rem', sm: '1.15rem' } }}
-              onClick={() => navigate('/')}
+              sx={{ flexGrow: 1, cursor: 'pointer', fontWeight: 800, fontSize: { xs: '1rem', sm: '1.15rem' }, userSelect: 'none' }}
+              onClick={handleLogoClick}
             >
               Uni<span style={{ color: '#2563EB' }}>Folio</span>
             </Typography>
@@ -92,6 +107,7 @@ function App() {
             <Button
               variant="contained"
               sx={{
+                display: { xs: 'none', sm: 'flex' },
                 ml: 1,
                 minWidth: { xs: '40px', sm: 'auto' },
                 px: { xs: 1, sm: 2 },

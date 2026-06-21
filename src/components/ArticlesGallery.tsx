@@ -1,10 +1,46 @@
 import { useState, useEffect, useRef } from 'react';
-import { Box, Typography, Grid, Card, CardContent, Chip, CircularProgress, Alert, Stack, FormControl, InputLabel, Select, MenuItem, TextField, InputAdornment } from '@mui/material';
-import { motion } from 'framer-motion';
+import { Box, Typography, Grid, Card, CardContent, Chip, CircularProgress, Alert, Stack, FormControl, InputLabel, Select, MenuItem, TextField, InputAdornment, useTheme } from '@mui/material';
+import { motion, useInView } from 'framer-motion';
 import type { Article } from '../types/Article';
 import ImageWithFallback from './ImageWithFallback';
 import SearchIcon from '@mui/icons-material/Search';
 import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
+
+const AnimatedCounter = ({ value, label }: { value: number, label: string }) => {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "0px" });
+
+  useEffect(() => {
+    if (isInView) {
+      let start = 0;
+      const end = value;
+      if (start === end) return;
+      const duration = 1500;
+      let startTimestamp: number | null = null;
+      const step = (timestamp: number) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        setCount(Math.floor(progress * (end - start) + start));
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        }
+      };
+      window.requestAnimationFrame(step);
+    }
+  }, [value, isInView]);
+
+  return (
+    <Box ref={ref} sx={{ textAlign: 'center', p: { xs: 1.5, sm: 2 }, flex: 1 }}>
+      <Typography variant="h3" sx={{ fontWeight: 900, color: 'primary.main', mb: 0.5, fontSize: { xs: '1.75rem', sm: '3rem' } }}>
+        {count}+
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: { xs: 0, sm: 1 }, fontSize: { xs: '0.65rem', sm: '0.875rem' } }}>
+        {label}
+      </Typography>
+    </Box>
+  );
+};
 
 export default function ArticlesGallery() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -129,17 +165,29 @@ export default function ArticlesGallery() {
   });
 
   const displayedArticles = filteredArticles.slice(0, visibleCount);
+  const muiTheme = useTheme();
 
   return (
     <Box>
-      <Box sx={{ mb: 6, textAlign: 'center' }}>
-        <Typography variant="h3" sx={{ fontWeight: 800, mb: 2 }}>
-          Tin tức & Bài viết
-        </Typography>
-        <Typography color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
-          Các bài viết, tin tức và các hoạt động nổi bật của sinh viên.
-        </Typography>
-      </Box>
+      {/* Hero */}
+      <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <Box sx={{ mb: 5, textAlign: 'center', mt: 2 }}>
+          <Typography variant="h3" component="h1" sx={{ mb: 1.5, fontWeight: 800, color: 'text.primary', fontSize: { xs: '2.25rem', sm: '3rem' } }}>
+            Tin tức & <span style={{ color: muiTheme.palette.primary.main }}>Bài viết</span>
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 560, mx: 'auto', lineHeight: 1.7, mb: 4 }}>
+            Các bài viết, tin tức và các hoạt động nổi bật của sinh viên
+          </Typography>
+
+          <Box sx={{ display: 'flex', justifyContent: 'center', maxWidth: 600, mx: 'auto', bgcolor: 'background.paper', borderRadius: 4, boxShadow: '0 10px 40px -10px rgba(0,0,0,0.08)', border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+            <AnimatedCounter value={articles.length} label="Bài viết" />
+            <Box sx={{ width: '1px', bgcolor: 'divider' }} />
+            <AnimatedCounter value={articleTypes.length} label="Chủ đề" />
+            <Box sx={{ width: '1px', bgcolor: 'divider' }} />
+            <AnimatedCounter value={articleMajors.length} label="Chuyên ngành" />
+          </Box>
+        </Box>
+      </motion.div>
 
       {/* Filter Bar */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
@@ -243,56 +291,56 @@ export default function ArticlesGallery() {
         <>
           <Grid container spacing={4}>
             {displayedArticles.map((article, index) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={article.id}>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
-                whileHover={{ y: -8 }}
-              >
-                <Card
-                  sx={{
-                    borderRadius: 4,
-                    overflow: 'hidden',
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    cursor: 'pointer',
-                    textDecoration: 'none',
-                    bgcolor: 'background.paper',
-                  }}
-                  component="a"
-                  href={article.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
+              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={article.id}>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  whileHover={{ y: -8 }}
                 >
-                  <ImageWithFallback
-                    src={article.imageUrl}
-                    alt={article.title}
-                    fallbackText={article.type}
-                    height={200}
-                  />
-                  <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                    <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                      {article.type && (
-                        <Chip label={article.type} size="small" sx={{ fontWeight: 700, bgcolor: article.typeBg, color: article.typeText }} />
-                      )}
-                      {article.major && (
-                        <Chip label={article.major} size="small" variant="outlined" sx={{ fontWeight: 700, borderColor: article.majorText !== '#4B5563' ? article.majorText : 'divider', color: article.majorText }} />
-                      )}
-                      {article.year && (
-                        <Chip label={article.year} size="small" variant="outlined" sx={{ fontWeight: 700, borderColor: 'divider', color: 'text.secondary' }} />
-                      )}
-                    </Box>
-                    <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.4, color: 'text.primary', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                      {article.title}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </Grid>
-          ))}
+                  <Card
+                    sx={{
+                      borderRadius: 4,
+                      overflow: 'hidden',
+                      boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      cursor: 'pointer',
+                      textDecoration: 'none',
+                      bgcolor: 'background.paper',
+                    }}
+                    component="a"
+                    href={article.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ImageWithFallback
+                      src={article.imageUrl}
+                      alt={article.title}
+                      fallbackText={article.type}
+                      height={200}
+                    />
+                    <CardContent sx={{ flexGrow: 1, p: 3 }}>
+                      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                        {article.type && (
+                          <Chip label={article.type} size="small" sx={{ fontWeight: 700, bgcolor: article.typeBg, color: article.typeText }} />
+                        )}
+                        {article.major && (
+                          <Chip label={article.major} size="small" variant="outlined" sx={{ fontWeight: 700, borderColor: article.majorText !== '#4B5563' ? article.majorText : 'divider', color: article.majorText }} />
+                        )}
+                        {article.year && (
+                          <Chip label={article.year} size="small" variant="outlined" sx={{ fontWeight: 700, borderColor: 'divider', color: 'text.secondary' }} />
+                        )}
+                      </Box>
+                      <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.4, color: 'text.primary', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {article.title}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </Grid>
+            ))}
           </Grid>
           {visibleCount < filteredArticles.length && (
             <Box ref={lastElementRef} sx={{ textAlign: 'center', mt: 5, py: 2 }}>

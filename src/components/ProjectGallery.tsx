@@ -1,12 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Typography, TextField, Box, CircularProgress, InputAdornment, Grid, Chip, Stack, FormControl, Select, MenuItem, InputLabel, useTheme, Button } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import ProjectCard from './ProjectCard';
 import type { Project } from '../types/Project';
 import type { Category } from '../types/Category';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ProjectDetailModal from './ProjectDetailModal';
 import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
@@ -21,12 +20,85 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 260, damping: 20 } },
+  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 300, damping: 24 } },
 };
 
+const AnimatedCounter = ({ value, label }: { value: number, label: string }) => {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "0px" });
+
+  useEffect(() => {
+    if (isInView) {
+      let start = 0;
+      const end = value;
+      if (start === end) return;
+      const duration = 1500;
+      let startTimestamp: number | null = null;
+      const step = (timestamp: number) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        setCount(Math.floor(progress * (end - start) + start));
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        }
+      };
+      window.requestAnimationFrame(step);
+    }
+  }, [value, isInView]);
+
+  return (
+    <Box ref={ref} sx={{ textAlign: 'center', p: { xs: 1.5, sm: 2 }, flex: 1 }}>
+      <Typography variant="h3" sx={{ fontWeight: 900, color: 'primary.main', mb: 0.5, fontSize: { xs: '1.75rem', sm: '3rem' } }}>
+        {count}+
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: { xs: 0, sm: 1 }, fontSize: { xs: '0.65rem', sm: '0.875rem' } }}>
+        {label}
+      </Typography>
+    </Box>
+  );
+};
+
+const MiniGoldenCard = ({ project, allProjects, majorColor }: { project: Project; allProjects: Project[]; majorColor?: { bg: string, text: string } }) => {
+  const [modalOpen, setModalOpen] = useState(false);
+  return (
+    <>
+      <Box onClick={() => setModalOpen(true)} sx={{
+        display: 'flex', alignItems: 'center', gap: 2,
+        bgcolor: 'background.paper', borderRadius: 3, p: 1.5,
+        border: '1px solid', borderColor: 'divider',
+        cursor: 'pointer', transition: 'all 0.2s', width: { xs: 280, sm: 320 }, flexShrink: 0,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+        '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 8px 24px rgba(0,0,0,0.08)', borderColor: '#F59E0B' }
+      }}>
+        <Box sx={{ width: 90, height: 64, borderRadius: 2, overflow: 'hidden', flexShrink: 0, border: '1px solid', borderColor: 'divider' }}>
+          <img src={project.thumbnail} alt={project.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        </Box>
+        <Box sx={{ flexGrow: 1, minWidth: 0, textAlign: 'left' }}>
+          <Typography variant="subtitle2" sx={{
+            fontWeight: 700, mb: 0.5, color: 'text.primary',
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textOverflow: 'ellipsis'
+          }}>
+            {project.name}
+          </Typography>
+          <Typography variant="caption" sx={{
+            fontWeight: 600, display: 'inline-block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            px: 1, py: 0.25, borderRadius: 1,
+            bgcolor: majorColor ? majorColor.bg : 'action.hover',
+            color: majorColor ? majorColor.text : 'text.secondary'
+          }}>
+            {project.major}
+          </Typography>
+        </Box>
+      </Box>
+      <ProjectDetailModal project={project} open={modalOpen} onClose={() => setModalOpen(false)} allProjects={allProjects} />
+    </>
+  );
+};
 
 export default function ProjectGallery() {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [allMajors, setAllMajors] = useState<any[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -108,6 +180,7 @@ export default function ProjectGallery() {
 
         setProjects(resolvedProjects);
         setCategories(categoriesData);
+        setAllMajors(majorsData);
         setLoading(false);
       })
       .catch(err => {
@@ -145,6 +218,10 @@ export default function ProjectGallery() {
     return () => clearTimeout(timer);
   }, [search, currentTab, currentSemester, currentMajor, showOnlyGoldenTicket, selectedTags]);
 
+  const randomizedGoldenTickets = useMemo(() => {
+    return projects.filter(p => p.isGoldenTicket).sort(() => Math.random() - 0.5);
+  }, [projects]);
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', mt: 12, gap: 2 }}>
@@ -163,8 +240,15 @@ export default function ProjectGallery() {
   const getSemesterCount = (sem: string | undefined) => sem === 'All' ? projects.length : projects.filter(p => p.semester === sem).length;
   const getMajorCount = (major: string | undefined) => major === 'All' ? projects.length : projects.filter(p => p.major === major).length;
 
+  const totalStudents = new Set(projects.flatMap(p => p.teamMembers || [])).size;
+
   const categoryColors = categories.reduce((acc, cat) => {
     acc[cat.name] = { bg: cat.bg, text: cat.text };
+    return acc;
+  }, {} as Record<string, { bg: string; text: string }>);
+
+  const majorColors = allMajors.reduce((acc, maj) => {
+    acc[maj.name] = { bg: maj.bg, text: maj.text };
     return acc;
   }, {} as Record<string, { bg: string; text: string }>);
 
@@ -179,6 +263,10 @@ export default function ProjectGallery() {
     return matchesSearch && matchesTab && matchesSemester && matchesMajor && matchesGolden && matchesTags;
   });
 
+  const isDefaultView = search === '' && currentTab === 'All' && currentSemester === 'All' && currentMajor === 'All' && selectedTags.length === 0 && !showOnlyGoldenTicket;
+
+  const duplicatedGoldenTickets = Array(12).fill(randomizedGoldenTickets).flat();
+
   const displayedProjects = filteredProjects.slice(0, visibleCount);
 
   return (
@@ -186,20 +274,60 @@ export default function ProjectGallery() {
       {/* Hero */}
       <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <Box sx={{ mb: 5, textAlign: 'center', mt: 2 }}>
-          <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 2, px: 2, py: 0.75, borderRadius: 100, bgcolor: 'action.hover', color: 'primary.main' }}>
-            <RocketLaunchIcon sx={{ fontSize: 18 }} />
-            <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>
-              Bộ sưu tập
-            </Typography>
-          </Box>
-          <Typography variant="h3" component="h1" sx={{ mb: 1.5, fontWeight: 800, color: 'text.primary' }}>
+          <Typography variant="h3" component="h1" sx={{ mb: 1.5, fontWeight: 800, color: 'text.primary', fontSize: { xs: '2.25rem', sm: '3rem' } }}>
             Dự án <span style={{ color: muiTheme.palette.primary.main }}>tiêu biểu</span>
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 560, mx: 'auto', lineHeight: 1.7 }}>
-            Khám phá các dự án tiêu biểu và những giải pháp công nghệ sáng tạo được phát triển bởi các sinh viên tài năng ❤️
+          <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 560, mx: 'auto', lineHeight: 1.7, mb: 4 }}>
+            Khám phá các dự án tiêu biểu và những giải pháp công nghệ sáng tạo được phát triển bởi các sinh viên tài năng
           </Typography>
+
+          <Box sx={{ display: 'flex', justifyContent: 'center', maxWidth: 600, mx: 'auto', bgcolor: 'background.paper', borderRadius: 4, boxShadow: '0 10px 40px -10px rgba(0,0,0,0.08)', border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+            <AnimatedCounter value={projects.length} label="Dự án" />
+            <Box sx={{ width: '1px', bgcolor: 'divider' }} />
+            <AnimatedCounter value={totalStudents} label="Sinh viên" />
+            <Box sx={{ width: '1px', bgcolor: 'divider' }} />
+            <AnimatedCounter value={majors.length - 1} label="Chuyên ngành" />
+          </Box>
         </Box>
       </motion.div>
+
+      {/* Golden Ticket Carousel */}
+      {isDefaultView && randomizedGoldenTickets.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
+          <Box sx={{ mb: 6 }}>
+            <Typography variant="h5" sx={{ fontWeight: 800, mb: 3, display: 'flex', alignItems: 'center', gap: 1, color: '#F59E0B' }}>
+              <WorkspacePremiumIcon sx={{ color: '#F59E0B' }} /> Golden Ticket
+            </Typography>
+            <Box sx={{
+              overflowX: 'hidden', overflowY: 'visible', display: 'flex', position: 'relative',
+              '&:hover .marquee-content': { animationPlayState: 'paused' },
+              mx: { xs: -2, sm: 0 }, px: { xs: 2, sm: 0 },
+              py: 2, mt: -2,
+              maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)',
+              WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)'
+            }}>
+              <Box className="marquee-content" sx={{
+                display: 'flex', gap: 2,
+                animation: 'marquee 400s linear infinite',
+                width: 'max-content',
+                '@keyframes marquee': {
+                  '0%': { transform: 'translateX(0)' },
+                  '100%': { transform: 'translateX(calc(-50% - 8px))' }
+                }
+              }}>
+                {duplicatedGoldenTickets.map((project, idx) => (
+                  <MiniGoldenCard
+                    key={`${project.id}-${idx}`}
+                    project={project}
+                    allProjects={projects}
+                    majorColor={project.major ? majorColors[project.major] : undefined}
+                  />
+                ))}
+              </Box>
+            </Box>
+          </Box>
+        </motion.div>
+      )}
 
       {/* Filter Bar */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }}>
