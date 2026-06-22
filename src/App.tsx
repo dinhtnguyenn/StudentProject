@@ -41,7 +41,7 @@ function App() {
   };
 
   const season = getCurrentSeason();
-  const logoColor = season.id !== 'NONE' ? season.palette.primary : '#2563EB';
+  const logoColor = season.id !== 'NONE' ? season.palette.primary : (theme.palette.mode === 'dark' ? '#60A5FA' : '#2563EB');
 
   const getLogoIcon = () => {
     const defaultImgStyle = { width: { xs: 32, sm: 36 }, height: { xs: 32, sm: 36 }, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))', display: 'block' };
@@ -57,7 +57,17 @@ function App() {
 
     return (
       <Box sx={{ position: 'relative', mr: { xs: 1, sm: 1.5 } }}>
-        <Box component="img" src={`${import.meta.env.BASE_URL}logo.svg?v=5`} alt="Logo" sx={defaultImgStyle} />
+        <Box sx={defaultImgStyle}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="10 15 80 80" width="100%" height="100%">
+            {/* U-shape (Base) */}
+            <path d="M 30 42 L 30 65 A 20 20 0 0 0 70 65 L 70 42" fill="none" stroke={theme.palette.mode === 'dark' ? '#FFFFFF' : '#0F172A'} strokeWidth="8" strokeLinecap="round" />
+            {/* Diamond (Top) */}
+            <path d="M 50 20 L 85 35 L 50 50 L 15 35 Z" fill={logoColor} stroke={logoColor} strokeWidth="4" strokeLinejoin="round" />
+            {/* Elegant Tassel */}
+            <line x1="85" y1="35" x2="85" y2="55" stroke="#F59E0B" strokeWidth="3" strokeLinecap="round" />
+            <circle cx="85" cy="55" r="4" fill="#F59E0B" />
+          </svg>
+        </Box>
         {decorationUrl && (
           <Box sx={{ 
             position: 'absolute', 
