@@ -323,12 +323,13 @@ export default function ArticlesGallery() {
           ) : (
             <>
               <Grid container spacing={4}>
-                {displayedArticles.map((article, index) => (
+                {displayedArticles.map((article) => (
                   <Grid size={{ xs: 12, sm: 6, md: 6, lg: 4, xl: 3 }} key={article.id}>
                     <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4, delay: index * 0.1 }}
+                      initial={{ opacity: 0, y: 40 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-50px" }}
+                      transition={{ duration: 0.5, ease: "easeOut" }}
                       style={{ height: '100%' }}
                     >
                       <Card

@@ -207,21 +207,56 @@ function App() {
 
       {/* Footer */}
       <Box component="footer" sx={{
-        py: 4, textAlign: 'center',
+        mt: 'auto',
+        pt: 6, pb: 4,
         borderTop: '1px solid', borderColor: 'divider',
-        bgcolor: 'background.paper',
+        bgcolor: theme.palette.mode === 'light' ? 'rgba(255,255,255,0.8)' : 'rgba(15,23,42,0.8)',
+        backdropFilter: 'blur(20px)',
+        position: 'relative',
+        overflow: 'hidden'
       }}>
-        <Typography variant="body2" color="text.secondary">
-          © {new Date().getFullYear()} | Một sản phẩm được xây dựng bởi{' '}
-          <a 
-            href="https://www.facebook.com/tridinhnee/" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            style={{ color: 'inherit', fontWeight: 700, textDecoration: 'none' }}
-          >
-            DinhNT24
-          </a>
-        </Typography>
+        {/* Decorative background glow for footer */}
+        <Box sx={{
+          position: 'absolute', top: -100, left: '50%', transform: 'translateX(-50%)',
+          width: { xs: 300, md: 600 }, height: 200,
+          background: `radial-gradient(ellipse, ${logoColor}25 0%, transparent 70%)`,
+          filter: 'blur(40px)', zIndex: 0, pointerEvents: 'none'
+        }} />
+        
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', md: 'row' }, 
+            alignItems: 'center', 
+            justifyContent: 'space-between',
+            gap: 3
+          }}>
+            <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'center', md: 'flex-start' }, mb: 1 }}>
+                {getLogoIcon()}
+                <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                  Uni<span style={{ color: logoColor }}>Folio</span>
+                </Typography>
+              </Box>
+              <Typography variant="body2" color="text.secondary">
+                Lưu giữ đam mê, lan toả tri thức. Nơi tôn vinh các dự án xuất sắc.
+              </Typography>
+            </Box>
+            <Box sx={{ textAlign: { xs: 'center', md: 'right' } }}>
+              <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                © {new Date().getFullYear()} Bản quyền thuộc về{' '}
+                <a 
+                  href="https://www.facebook.com/tridinhnee/" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  style={{ color: logoColor, fontWeight: 700, textDecoration: 'none' }}
+                >
+                  DinhNT24
+                </a>
+              </Typography>
+            </Box>
+          </Box>
+        </Container>
       </Box>
     </Box>
   );

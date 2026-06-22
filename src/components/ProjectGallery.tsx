@@ -15,15 +15,7 @@ import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import ViewStreamIcon from '@mui/icons-material/ViewStream';
 import { IconButton } from '@mui/material';
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.08 } },
-};
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 300, damping: 24 } },
-};
 
 const AnimatedCounter = ({ value, label }: { value: number, label: string }) => {
   const [count, setCount] = useState(0);
@@ -551,13 +543,19 @@ export default function ProjectGallery() {
         </motion.div>
       ) : (
         <>
-          <motion.div variants={containerVariants} initial="hidden" animate="show">
+          <Box>
             {viewMode === 'grid' ? (
               <Grid container spacing={3}>
                 <AnimatePresence>
                   {displayedProjects.map(project => (
                     <Grid size={{ xs: 12, sm: 6, md: 6, lg: 4, xl: 3 }} key={project.id}>
-                      <motion.div variants={itemVariants} style={{ height: '100%' }}>
+                      <motion.div 
+                        initial={{ opacity: 0, y: 40 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: "-50px" }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        style={{ height: '100%' }}
+                      >
                         <ProjectCard project={project} allProjects={projects} categoryColors={categoryColors} />
                       </motion.div>
                     </Grid>
@@ -571,7 +569,14 @@ export default function ProjectGallery() {
                   {displayedProjects.map((project, index) => {
                     const isEven = index % 2 === 0;
                     return (
-                      <motion.div key={project.id} variants={itemVariants} style={{ position: 'relative', marginBottom: '3rem' }}>
+                      <motion.div 
+                        key={project.id} 
+                        initial={{ opacity: 0, y: 40 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: "-50px" }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        style={{ position: 'relative', marginBottom: '3rem' }}
+                      >
                         <Box sx={{
                           display: 'flex',
                           flexDirection: { xs: 'column', md: isEven ? 'row-reverse' : 'row' },
@@ -599,7 +604,7 @@ export default function ProjectGallery() {
                 </AnimatePresence>
               </Box>
             )}
-          </motion.div>
+          </Box>
 
           {visibleCount < filteredProjects.length && (
             <Box ref={lastElementRef} sx={{ textAlign: 'center', mt: 5, py: 2 }}>
