@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Typography, TextField, Box, CircularProgress, InputAdornment, Grid, Chip, Stack, FormControl, Select, MenuItem, InputLabel, useTheme, Button, Divider } from '@mui/material';
+import { Typography, TextField, Box, CircularProgress, InputAdornment, Grid, Chip, FormControl, Select, MenuItem, InputLabel, useTheme, Button, Divider } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import HubIcon from '@mui/icons-material/Hub';
@@ -326,19 +326,21 @@ export default function ProjectGallery() {
       )}
 
       
-      <Grid container spacing={{ xs: 3, lg: 4 }} sx={{ alignItems: 'flex-start' }}>
-        <Grid size={{ xs: 12, md: 3 }}>
+      <Grid container spacing={{ xs: 3, lg: 4 }} sx={{ alignItems: 'flex-start', position: 'relative' }}>
+        <Grid size={{ xs: 12, md: 3 }} sx={{ position: { md: 'sticky' }, top: { md: 100 }, zIndex: 10 }}>
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }}>
             <Box sx={{
-              position: { md: 'sticky' },
-              top: { md: 100 },
-              zIndex: 10,
               background: muiTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(30, 41, 59, 0.7)',
               backdropFilter: 'blur(24px)',
               border: '1px solid', borderColor: 'divider', borderRadius: 4, 
               boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
               p: { xs: 2.5, sm: 3 },
-              display: 'flex', flexDirection: 'column', gap: 3
+              display: 'flex', flexDirection: 'column', gap: 2.5,
+              maxHeight: { md: 'calc(100vh - 120px)' },
+              overflowY: 'auto',
+              msOverflowStyle: 'none',
+              scrollbarWidth: 'none',
+              '&::-webkit-scrollbar': { display: 'none' }
             }}>
               <Typography variant="h6" sx={{ fontWeight: 800, mb: -1 }}>Khám phá</Typography>
 
@@ -408,36 +410,26 @@ export default function ProjectGallery() {
 
               <Divider />
 
-              {/* Categories */}
-              <Box>
-                <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 700, mb: 1.5, textTransform: 'uppercase', letterSpacing: 1 }}>Danh mục</Typography>
-                <Stack direction={{ xs: 'row', md: 'column' }} spacing={1} sx={{ overflowX: 'auto', pb: { xs: 1, md: 0 }, '&::-webkit-scrollbar': { display: 'none' }, msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
-                  {categoryNames.map(cat => (
-                    <Chip
-                      key={cat}
-                      label={`${cat === 'All' ? 'Tất cả' : cat} (${getCategoryCount(cat)})`}
-                      onClick={() => setCurrentTab(cat)}
-                      variant={currentTab === cat ? 'filled' : 'outlined'}
-                      sx={{
-                        fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', height: 36, flexShrink: 0,
-                        justifyContent: 'flex-start', px: 1, borderRadius: 2,
-                        ...(currentTab === cat
-                          ? {
-                            bgcolor: 'primary.main',
-                            color: '#FFF', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                          }
-                          : {
-                            borderColor: 'divider', color: 'text.secondary',
-                            '&:hover': { borderColor: 'primary.main', color: 'primary.main', bgcolor: 'action.hover' },
-                          }),
-                      }}
-                    />
-                  ))}
-                </Stack>
-              </Box>
-
               {/* Filters Box */}
-              <Box sx={{ display: 'flex', flexDirection: { xs: 'row', md: 'column' }, gap: 2 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <FormControl size="small" fullWidth>
+                  <InputLabel>Loại dự án</InputLabel>
+                  <Select
+                    value={currentTab}
+                    label="Loại dự án"
+                    onChange={e => setCurrentTab(e.target.value)}
+                    sx={{ 
+                      borderRadius: 3, 
+                      bgcolor: muiTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(15, 23, 42, 0.5)',
+                      '&:hover': { bgcolor: 'background.paper' },
+                      transition: 'all 0.3s'
+                    }}
+                  >
+                    {categoryNames.map(cat => (
+                      <MenuItem key={cat} value={cat}>{cat === 'All' ? 'Tất cả danh mục' : cat} ({getCategoryCount(cat)})</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
                 <FormControl size="small" fullWidth>
                   <InputLabel>Học kỳ</InputLabel>
                   <Select

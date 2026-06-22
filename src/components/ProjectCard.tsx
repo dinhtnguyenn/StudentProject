@@ -184,8 +184,8 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
             </Box>
             <Typography variant="h6" component="h2" sx={{
               fontWeight: 700,
-              fontSize: '1.05rem',
-              lineHeight: 1.35,
+              fontSize: '0.95rem',
+              lineHeight: 1.4,
               color: 'text.primary',
               mb: 1,
             }}>

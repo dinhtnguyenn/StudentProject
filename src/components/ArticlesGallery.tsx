@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Box, Typography, Grid, Card, CardContent, Chip, CircularProgress, Alert, Stack, FormControl, InputLabel, Select, MenuItem, TextField, InputAdornment, useTheme } from '@mui/material';
+import { Box, Typography, Grid, Card, CardContent, Chip, CircularProgress, Alert, FormControl, InputLabel, Select, MenuItem, TextField, InputAdornment, useTheme } from '@mui/material';
 import { motion, useInView } from 'framer-motion';
 import type { Article } from '../types/Article';
 import ImageWithFallback from './ImageWithFallback';
@@ -194,65 +194,27 @@ export default function ArticlesGallery() {
         </Box>
       </motion.div>
 
-      {/* Filter Bar */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-        <Box sx={{
-          background: muiTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(30, 41, 59, 0.7)',
-          backdropFilter: 'blur(24px)',
-          border: '1px solid', borderColor: 'divider', borderRadius: 4, 
-          boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
-          p: { xs: 2.5, sm: 3.5 }, mb: 5,
-        }}>
-          {/* Types Row */}
-          <Box sx={{ mb: 3 }}>
-            <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1, '&::-webkit-scrollbar': { display: 'none' }, msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
-              {types.map(cat => (
-                <Chip
-                  key={cat}
-                  label={`${cat === 'All' ? 'Tất cả loại bài' : cat} (${getTypeCount(cat)})`}
-                  onClick={() => setCurrentType(cat)}
-                  variant={currentType === cat ? 'filled' : 'outlined'}
-                  sx={{
-                    fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', height: 32, px: 0.5, flexShrink: 0,
-                    ...(currentType === cat
-                      ? {
-                        background: 'linear-gradient(135deg, #2563EB, #1D4ED8)',
-                        color: '#FFF', border: 'none', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
-                      }
-                      : {
-                        borderColor: 'divider', color: 'text.secondary',
-                        '&:hover': { borderColor: 'primary.main', color: 'primary.main', bgcolor: 'action.hover' },
-                      }),
-                  }}
-                />
-              ))}
-            </Stack>
-          </Box>
+      {/* Main Content Area */}
+      <Grid container spacing={{ xs: 3, lg: 4 }} sx={{ alignItems: 'flex-start', position: 'relative' }}>
+        
+        {/* Sidebar */}
+        <Grid size={{ xs: 12, md: 3 }} sx={{ position: { md: 'sticky' }, top: { md: 100 }, zIndex: 10 }}>
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+            <Box sx={{
+              background: muiTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(30, 41, 59, 0.7)',
+              backdropFilter: 'blur(24px)',
+              border: '1px solid', borderColor: 'divider', borderRadius: 4, 
+              boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
+              p: { xs: 2.5, sm: 3 },
+              display: 'flex', flexDirection: 'column', gap: 2.5,
+              maxHeight: { md: 'calc(100vh - 120px)' },
+              overflowY: 'auto',
+              msOverflowStyle: 'none',
+              scrollbarWidth: 'none',
+              '&::-webkit-scrollbar': { display: 'none' }
+            }}>
+              <Typography variant="h6" sx={{ fontWeight: 800, mb: -1 }}>Khám phá</Typography>
 
-          {/* Filters & Search Row */}
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <FormControl size="small" fullWidth>
-                <InputLabel>Chuyên ngành</InputLabel>
-                <Select
-                  value={currentMajor}
-                  label="Chuyên ngành"
-                  onChange={e => setCurrentMajor(e.target.value)}
-                  sx={{ 
-                    borderRadius: 3, 
-                    bgcolor: muiTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(15, 23, 42, 0.5)',
-                    '&:hover': { bgcolor: 'background.paper' },
-                    transition: 'all 0.3s'
-                  }}
-                >
-                  {majors.map(major => (
-                    <MenuItem key={major} value={major}>{(major === 'All' ? 'Tất cả chuyên ngành' : major)} ({getMajorCount(major)})</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-
-            <Grid size={{ xs: 12, sm: 6, md: 8 }}>
               <TextField
                 fullWidth
                 size="small"
@@ -274,126 +236,181 @@ export default function ArticlesGallery() {
                         <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
                       </InputAdornment>
                     ),
-                    sx: { borderRadius: 2, bgcolor: 'background.default' }
                   }
                 }}
               />
-            </Grid>
-          </Grid>
-        </Box>
-      </motion.div>
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 3, px: 1 }}>
-        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
-          Hiển thị {filteredArticles.length} bài viết
-        </Typography>
-      </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <FormControl size="small" fullWidth>
+                  <InputLabel>Loại bài viết</InputLabel>
+                  <Select
+                    value={currentType}
+                    label="Loại bài viết"
+                    onChange={e => setCurrentType(e.target.value)}
+                    sx={{ 
+                      borderRadius: 3, 
+                      bgcolor: muiTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(15, 23, 42, 0.5)',
+                      '&:hover': { bgcolor: 'background.paper' },
+                      transition: 'all 0.3s'
+                    }}
+                  >
+                    {types.map(cat => (
+                      <MenuItem key={cat} value={cat}>{cat === 'All' ? 'Tất cả bài viết' : cat} ({getTypeCount(cat)})</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
 
-      {/* Grid */}
-      {isFiltering ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 10, gap: 2 }}>
-          <CircularProgress size={40} thickness={4} sx={{ color: 'primary.main' }} />
-          <Typography color="text.secondary">Đang tải dữ liệu...</Typography>
-        </Box>
-      ) : filteredArticles.length === 0 ? (
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-          <Box sx={{ textAlign: 'center', py: 10, px: 3, bgcolor: 'background.paper', borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
-            <SentimentDissatisfiedIcon sx={{ fontSize: 56, color: 'text.disabled', mb: 2 }} />
-            <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 600 }}>
-              Không tìm thấy bài viết nào
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              Hãy thử tìm kiếm với từ khoá hoặc phân loại khác.
+                <FormControl size="small" fullWidth>
+                  <InputLabel>Chuyên ngành</InputLabel>
+                  <Select
+                    value={currentMajor}
+                    label="Chuyên ngành"
+                    onChange={e => setCurrentMajor(e.target.value)}
+                    sx={{ 
+                      borderRadius: 3, 
+                      bgcolor: muiTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(15, 23, 42, 0.5)',
+                      '&:hover': { bgcolor: 'background.paper' },
+                      transition: 'all 0.3s'
+                    }}
+                  >
+                    {majors.map(major => (
+                      <MenuItem key={major} value={major}>{(major === 'All' ? 'Tất cả chuyên ngành' : major)} ({getMajorCount(major)})</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+            </Box>
+          </motion.div>
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 9 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 3, px: 1 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
+              Hiển thị {filteredArticles.length} bài viết
             </Typography>
           </Box>
-        </motion.div>
-      ) : (
-        <>
-          <Grid container spacing={4}>
-            {displayedArticles.map((article, index) => (
-              <Grid size={{ xs: 12, sm: 6, md: 4 }} key={article.id}>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                  whileHover={{ y: -8 }}
-                >
-                  <Card
-                    sx={{
-                      borderRadius: 4,
-                      overflow: 'hidden',
-                      boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      cursor: 'pointer',
-                      textDecoration: 'none',
-                      bgcolor: 'background.paper',
-                    }}
-                    component="a"
-                    href={article.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <ImageWithFallback
-                      src={article.imageUrl}
-                      alt={article.title}
-                      fallbackText={article.type}
-                      iconKeyword={article.major}
-                      height="auto"
-                      sx={{ aspectRatio: '16/9' }}
-                    />
-                    <CardContent sx={{ flexGrow: 1, p: 3, position: 'relative' }}>
-                      {watermarkUrl && (
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            top: '50%',
-                            right: -30,
-                            width: 200,
-                            height: 200,
-                            backgroundImage: watermarkUrl,
-                            backgroundSize: 'contain',
-                            backgroundRepeat: 'no-repeat',
-                            backgroundPosition: 'center right',
-                            opacity: muiTheme.palette.mode === 'dark' ? 0.20 : 0.12,
-                            pointerEvents: 'none',
-                            zIndex: 0,
-                            transform: 'translateY(-50%) rotate(-15deg)',
-                            WebkitMaskImage: 'radial-gradient(circle at center right, black 30%, transparent 90%)',
-                            maskImage: 'radial-gradient(circle at center right, black 30%, transparent 90%)',
-                          }}
-                        />
-                      )}
-                      <Box sx={{ position: 'relative', zIndex: 1 }}>
-                        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                          {article.type && (
-                            <Chip label={article.type} size="small" sx={{ fontWeight: 700, bgcolor: article.typeBg, color: article.typeText }} />
-                          )}
-                          {article.major && (
-                            <Chip label={article.major} size="small" variant="outlined" sx={{ fontWeight: 700, borderColor: article.majorText !== '#4B5563' ? article.majorText : 'divider', color: article.majorText }} />
-                          )}
-                          {article.year && (
-                            <Chip label={article.year} size="small" variant="outlined" sx={{ fontWeight: 700, borderColor: 'divider', color: 'text.secondary' }} />
-                          )}
-                        </Box>
-                        <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.4, color: 'text.primary', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                          {article.title}
-                        </Typography>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </Grid>
-            ))}
-          </Grid>
-          {visibleCount < filteredArticles.length && (
-            <Box ref={lastElementRef} sx={{ textAlign: 'center', mt: 5, py: 2 }}>
-              <CircularProgress size={32} sx={{ color: 'primary.main' }} />
+
+          {isFiltering ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 10, gap: 2 }}>
+              <CircularProgress size={40} thickness={4} sx={{ color: 'primary.main' }} />
+              <Typography color="text.secondary">Đang tải dữ liệu...</Typography>
             </Box>
+          ) : filteredArticles.length === 0 ? (
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+              <Box sx={{ textAlign: 'center', py: 10, px: 3, bgcolor: 'background.paper', borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
+                <SentimentDissatisfiedIcon sx={{ fontSize: 56, color: 'text.disabled', mb: 2 }} />
+                <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 600 }}>
+                  Không tìm thấy bài viết nào
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  Hãy thử tìm kiếm với từ khoá hoặc phân loại khác.
+                </Typography>
+              </Box>
+            </motion.div>
+          ) : (
+            <>
+              <Grid container spacing={4}>
+                {displayedArticles.map((article, index) => (
+                  <Grid size={{ xs: 12, sm: 6, md: 6, lg: 4, xl: 3 }} key={article.id}>
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: index * 0.1 }}
+                      style={{ height: '100%' }}
+                    >
+                      <Card
+                        sx={{
+                          borderRadius: 4,
+                          overflow: 'hidden',
+                          boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          cursor: 'pointer',
+                          textDecoration: 'none',
+                          bgcolor: 'background.paper',
+                          transition: 'all 0.3s ease',
+                          '&:hover': {
+                            boxShadow: '0 20px 40px rgba(0,0,0,0.12)',
+                            transform: 'translateY(-8px)'
+                          },
+                          '&:hover .card-image': {
+                            transform: 'scale(1.05)',
+                          }
+                        }}
+                        component="a"
+                        href={article.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Box sx={{ overflow: 'hidden' }}>
+                          <ImageWithFallback
+                            className="card-image"
+                            src={article.imageUrl}
+                            alt={article.title}
+                            fallbackText={article.type}
+                            iconKeyword={article.major}
+                            height="auto"
+                            sx={{ aspectRatio: '16/9', transition: 'transform 0.5s ease' }}
+                          />
+                        </Box>
+                        <CardContent sx={{ flexGrow: 1, p: 3, position: 'relative' }}>
+                          {watermarkUrl && (
+                            <Box
+                              sx={{
+                                position: 'absolute',
+                                top: '50%',
+                                right: -30,
+                                width: 200,
+                                height: 200,
+                                backgroundImage: watermarkUrl,
+                                backgroundSize: 'contain',
+                                backgroundRepeat: 'no-repeat',
+                                backgroundPosition: 'center right',
+                                opacity: muiTheme.palette.mode === 'dark' ? 0.20 : 0.12,
+                                pointerEvents: 'none',
+                                zIndex: 0,
+                                transform: 'translateY(-50%) rotate(-15deg)',
+                                WebkitMaskImage: 'radial-gradient(circle at center right, black 30%, transparent 90%)',
+                                maskImage: 'radial-gradient(circle at center right, black 30%, transparent 90%)',
+                              }}
+                            />
+                          )}
+                          <Box sx={{ position: 'relative', zIndex: 1 }}>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
+                              {article.type && (
+                                <Box>
+                                  <Chip label={article.type} size="small" sx={{ fontWeight: 700, bgcolor: article.typeBg, color: article.typeText }} />
+                                </Box>
+                              )}
+                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                {article.major && (
+                                  <Chip label={article.major} size="small" variant="outlined" sx={{ fontWeight: 700, borderColor: article.majorText !== '#4B5563' ? article.majorText : 'divider', color: article.majorText }} />
+                                )}
+                                {article.year && (
+                                  <Chip label={article.year} size="small" variant="outlined" sx={{ fontWeight: 700, borderColor: 'divider', color: 'text.secondary' }} />
+                                )}
+                              </Box>
+                            </Box>
+                            <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '0.95rem', lineHeight: 1.4, color: 'text.primary', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                              {article.title}
+                            </Typography>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  </Grid>
+                ))}
+              </Grid>
+              {visibleCount < filteredArticles.length && (
+                <Box ref={lastElementRef} sx={{ textAlign: 'center', mt: 5, py: 2 }}>
+                  <CircularProgress size={32} sx={{ color: 'primary.main' }} />
+                </Box>
+              )}
+            </>
           )}
-        </>
-      )}
+        </Grid>
+      </Grid>
     </Box>
   );
 }
