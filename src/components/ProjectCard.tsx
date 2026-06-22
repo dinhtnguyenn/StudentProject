@@ -55,9 +55,9 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
 
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Generate URL like: http://domain.com/#/?project=123
+    // Generate URL like: http://domain.com/?project=123
     const baseUrl = window.location.origin + window.location.pathname;
-    const shareUrl = `${baseUrl}#/?project=${project.id}`;
+    const shareUrl = `${baseUrl}?project=${project.id}`;
     navigator.clipboard.writeText(shareUrl);
     setShareSuccess(true);
   };
