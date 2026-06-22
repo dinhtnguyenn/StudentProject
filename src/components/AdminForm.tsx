@@ -462,7 +462,7 @@ export default function AdminForm() {
         throw new Error('corsproxy limit');
       }
       return html;
-    } catch (e) {
+    } catch {
       const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`);
       const data = await res.json();
       if (data && data.contents) return data.contents;

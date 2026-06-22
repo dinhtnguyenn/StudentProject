@@ -93,7 +93,7 @@ export default function ArticlesGallery() {
         const json = await res.json();
         const decoded = decodeURIComponent(escape(atob(json.content)));
         return JSON.parse(decoded);
-      } catch (err) {
+      } catch {
         const localRes = await fetch(localUrl);
         if (!localRes.ok) return [];
         return localRes.json();
