@@ -214,7 +214,7 @@ export default function ArticlesGallery() {
         <Grid size={{ xs: 12, md: 3 }} sx={{ position: { md: 'sticky' }, top: { md: 100 }, zIndex: 10 }}>
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
             <Box sx={{
-              background: muiTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(30, 41, 59, 0.7)',
+              background: muiTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(10, 10, 10, 0.7)',
               backdropFilter: 'blur(24px)',
               border: '1px solid', borderColor: 'divider', borderRadius: 4, 
               boxShadow: '0 8px 32px rgba(0,0,0,0.04)',

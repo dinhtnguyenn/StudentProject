@@ -51,14 +51,14 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
             dark: isOverride ? season.palette.secondary : '#DB2777',
           },
           background: {
-            default: activeMode === 'light' ? '#F8FAFC' : '#0F172A',
-            paper: activeMode === 'light' ? '#FFFFFF' : '#1E293B',
+            default: activeMode === 'light' ? '#F8FAFC' : '#000000',
+            paper: activeMode === 'light' ? '#FFFFFF' : '#0A0A0A',
           },
           text: {
             primary: activeMode === 'light' ? '#0F172A' : '#F8FAFC',
-            secondary: activeMode === 'light' ? '#64748B' : '#94A3B8',
+            secondary: activeMode === 'light' ? '#64748B' : '#A1A1AA',
           },
-          divider: activeMode === 'light' ? '#E2E8F0' : '#334155',
+          divider: activeMode === 'light' ? '#E2E8F0' : '#27272A',
         },
         typography: {
           fontFamily: '"Plus Jakarta Sans", "Inter", "Roboto", system-ui, sans-serif',
@@ -109,14 +109,16 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
           MuiCard: {
             styleOverrides: {
               root: {
-                boxShadow: activeMode === 'light' ? '0 1px 3px rgba(0,0,0,0.04)' : '0 4px 6px rgba(0,0,0,0.3)',
+                boxShadow: activeMode === 'light' ? '0 1px 3px rgba(0,0,0,0.04)' : '0 4px 20px rgba(0,0,0,0.5)',
                 borderRadius: 16,
-                border: `1px solid ${activeMode === 'light' ? '#E2E8F0' : '#334155'}`,
-                backgroundColor: activeMode === 'light' ? '#FFFFFF' : '#1E293B',
-                '&:hover': isOverride ? {
-                  borderColor: season.palette.primary,
-                  boxShadow: `0 8px 24px ${season.palette.primary}18`,
-                } : {},
+                border: `1px solid ${activeMode === 'light' ? '#E2E8F0' : '#27272A'}`,
+                backgroundColor: activeMode === 'light' ? '#FFFFFF' : '#0A0A0A',
+                '&:hover': {
+                  borderColor: isOverride ? season.palette.primary : (activeMode === 'light' ? '#94A3B8' : '#3F3F46'),
+                  boxShadow: isOverride 
+                    ? `0 8px 24px ${season.palette.primary}30` 
+                    : (activeMode === 'light' ? '0 10px 25px rgba(0,0,0,0.1)' : '0 10px 25px rgba(255,255,255,0.05)'),
+                },
               },
             },
           },
@@ -157,8 +159,8 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
             styleOverrides: {
               paper: {
                 borderRadius: 20,
-                border: `1px solid ${activeMode === 'light' ? '#E2E8F0' : '#334155'}`,
-                backgroundColor: activeMode === 'light' ? '#FFFFFF' : '#1E293B',
+                border: `1px solid ${activeMode === 'light' ? '#E2E8F0' : '#27272A'}`,
+                backgroundColor: activeMode === 'light' ? '#FFFFFF' : '#0A0A0A',
               },
             },
           },

@@ -101,7 +101,7 @@ function App() {
         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
       }}>
         <AppBar position="static" elevation={0} sx={{
-          background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(30, 41, 59, 0.7)',
+          background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(10, 10, 10, 0.7)',
           backdropFilter: 'blur(24px)',
           border: '1px solid',
           borderWidth: isScrolled ? '0 0 1px 0' : '1px',
@@ -210,7 +210,7 @@ function App() {
         mt: 'auto',
         pt: 6, pb: 4,
         borderTop: '1px solid', borderColor: 'divider',
-        bgcolor: theme.palette.mode === 'light' ? 'rgba(255,255,255,0.8)' : 'rgba(15,23,42,0.8)',
+        bgcolor: theme.palette.mode === 'light' ? 'rgba(255,255,255,0.8)' : 'rgba(10,10,10,0.8)',
         backdropFilter: 'blur(20px)',
         position: 'relative',
         overflow: 'hidden'

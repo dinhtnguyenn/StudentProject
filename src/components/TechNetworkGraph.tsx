@@ -132,9 +132,9 @@ export default function TechNetworkGraph({ projects, onTechClick, onClose }: Tec
       position: 'relative',
       width: '100%',
       height: '100%',
-      bgcolor: theme.palette.mode === 'dark' ? '#0B1120' : '#F8FAFC',
+      bgcolor: theme.palette.mode === 'dark' ? '#000000' : '#F8FAFC',
       backgroundImage: theme.palette.mode === 'dark'
-        ? 'radial-gradient(circle at center, #1E293B 0%, #0F172A 100%)'
+        ? 'radial-gradient(circle at center, #0A0A0A 0%, #000000 100%)'
         : 'radial-gradient(circle at center, #FFFFFF 0%, #F8FAFC 100%)',
       borderRadius: 4,
       overflow: 'hidden'
