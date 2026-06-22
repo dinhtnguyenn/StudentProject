@@ -340,7 +340,8 @@ export default function ArticlesGallery() {
                       alt={article.title}
                       fallbackText={article.type}
                       iconKeyword={article.major}
-                      height={200}
+                      height="auto"
+                      sx={{ aspectRatio: '16/9' }}
                     />
                     <CardContent sx={{ flexGrow: 1, p: 3, position: 'relative' }}>
                       {watermarkUrl && (

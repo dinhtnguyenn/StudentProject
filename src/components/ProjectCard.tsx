@@ -93,8 +93,8 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
               src={project.thumbnail}
               alt={project.name}
               fallbackText={project.major}
-              height={200}
-              sx={{ transition: 'transform 0.5s ease' }}
+              height="auto"
+              sx={{ aspectRatio: '16/9', transition: 'transform 0.5s ease' }}
             />
 
             <IconButton 

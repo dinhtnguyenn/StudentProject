@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Typography, TextField, Box, CircularProgress, InputAdornment, Grid, Chip, Stack, FormControl, Select, MenuItem, InputLabel, useTheme, Button, Divider } from '@mui/material';
+import { Typography, TextField, Box, CircularProgress, InputAdornment, Grid, Chip, Stack, FormControl, Select, MenuItem, InputLabel, useTheme, Button } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import HubIcon from '@mui/icons-material/Hub';
@@ -325,50 +325,83 @@ export default function ProjectGallery() {
         </motion.div>
       )}
 
-      
-      <Grid container spacing={{ xs: 3, lg: 4 }} sx={{ alignItems: 'flex-start' }}>
-        <Grid size={{ xs: 12, md: 3 }}>
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }}>
-            <Box sx={{
-              position: { md: 'sticky' },
-              top: { md: 100 },
-              zIndex: 10,
-              background: muiTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(30, 41, 59, 0.7)',
-              backdropFilter: 'blur(24px)',
-              border: '1px solid', borderColor: 'divider', borderRadius: 4, 
-              boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
-              p: { xs: 2.5, sm: 3 },
-              display: 'flex', flexDirection: 'column', gap: 3
-            }}>
-              <Typography variant="h6" sx={{ fontWeight: 800, mb: -1 }}>Khám phá</Typography>
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }}>
+        <Box sx={{
+          background: muiTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(30, 41, 59, 0.7)',
+          backdropFilter: 'blur(24px)',
+          border: '1px solid', borderColor: 'divider', borderRadius: 4, 
+          boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
+          p: { xs: 2.5, sm: 3.5 }, mb: 5,
+        }}>
+          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+            <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1, '&::-webkit-scrollbar': { display: 'none' }, msOverflowStyle: 'none', scrollbarWidth: 'none', flexGrow: 1, flexBasis: '70%' }}>
+              {categoryNames.map(cat => (
+                <Chip
+                  key={cat}
+                  label={`${cat === 'All' ? 'Tất cả' : cat} (${getCategoryCount(cat)})`}
+                  onClick={() => setCurrentTab(cat)}
+                  variant={currentTab === cat ? 'filled' : 'outlined'}
+                  sx={{
+                    fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', height: 32, px: 0.5, flexShrink: 0,
+                    ...(currentTab === cat
+                      ? {
+                        bgcolor: 'primary.main',
+                        color: '#FFF', border: 'none', boxShadow: 3,
+                      }
+                      : {
+                        borderColor: 'divider', color: 'text.secondary',
+                        '&:hover': { borderColor: 'primary.main', color: 'primary.main', bgcolor: 'action.hover' },
+                      }),
+                  }}
+                />
+              ))}
+            </Stack>
+          </Box>
 
-              {/* Search */}
-              <TextField
-                fullWidth
-                placeholder="Tìm kiếm dự án..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                variant="outlined"
-                size="small"
-                sx={{
-                  '& .MuiOutlinedInput-root': { 
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <FormControl size="small" fullWidth>
+                <InputLabel>Học kỳ</InputLabel>
+                <Select
+                  value={currentSemester}
+                  label="Học kỳ"
+                  onChange={e => setCurrentSemester(e.target.value)}
+                  sx={{ 
                     borderRadius: 3, 
                     bgcolor: muiTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(15, 23, 42, 0.5)',
                     '&:hover': { bgcolor: 'background.paper' },
                     transition: 'all 0.3s'
-                  },
-                }}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
+                  }}
+                >
+                  {semesters.map(sem => (
+                    <MenuItem key={sem} value={sem}>{sem === 'All' ? 'Tất cả học kỳ' : sem} ({getSemesterCount(sem)})</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
 
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <FormControl size="small" fullWidth>
+                <InputLabel>Chuyên ngành</InputLabel>
+                <Select
+                  value={currentMajor}
+                  label="Chuyên ngành"
+                  onChange={e => setCurrentMajor(e.target.value)}
+                  sx={{ 
+                    borderRadius: 3, 
+                    bgcolor: muiTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(15, 23, 42, 0.5)',
+                    '&:hover': { bgcolor: 'background.paper' },
+                    transition: 'all 0.3s'
+                  }}
+                >
+                  {majors.map(major => (
+                    <MenuItem key={major} value={major}>{major === 'All' ? 'Tất cả chuyên ngành' : major} ({getMajorCount(major)})</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Button
                 fullWidth
                 variant={showOnlyGoldenTicket ? 'contained' : 'outlined'}
@@ -405,114 +438,71 @@ export default function ProjectGallery() {
               >
                 Golden Ticket
               </Button>
+            </Grid>
 
-              <Divider />
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <TextField
+                fullWidth
+                placeholder="Tìm kiếm dự án..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                variant="outlined"
+                size="small"
+                sx={{
+                  '& .MuiOutlinedInput-root': { 
+                    borderRadius: 3, 
+                    bgcolor: muiTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(15, 23, 42, 0.5)',
+                    '&:hover': { bgcolor: 'background.paper' },
+                    transition: 'all 0.3s'
+                  },
+                }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+            </Grid>
+          </Grid>
 
-              {/* Categories */}
-              <Box>
-                <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 700, mb: 1.5, textTransform: 'uppercase', letterSpacing: 1 }}>Danh mục</Typography>
-                <Stack direction={{ xs: 'row', md: 'column' }} spacing={1} sx={{ overflowX: 'auto', pb: { xs: 1, md: 0 }, '&::-webkit-scrollbar': { display: 'none' }, msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
-                  {categoryNames.map(cat => (
-                    <Chip
-                      key={cat}
-                      label={`${cat === 'All' ? 'Tất cả' : cat} (${getCategoryCount(cat)})`}
-                      onClick={() => setCurrentTab(cat)}
-                      variant={currentTab === cat ? 'filled' : 'outlined'}
-                      sx={{
-                        fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', height: 36, flexShrink: 0,
-                        justifyContent: 'flex-start', px: 1, borderRadius: 2,
-                        ...(currentTab === cat
-                          ? {
-                            bgcolor: 'primary.main',
-                            color: '#FFF', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                          }
-                          : {
-                            borderColor: 'divider', color: 'text.secondary',
-                            '&:hover': { borderColor: 'primary.main', color: 'primary.main', bgcolor: 'action.hover' },
-                          }),
-                      }}
-                    />
-                  ))}
-                </Stack>
+          {allTags.length > 0 && (
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mr: 2, flexShrink: 0 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary', mr: 1 }}>Công nghệ:</Typography>
+                <Button 
+                  size="small" 
+                  variant="outlined" 
+                  onClick={() => setIsGraphOpen(true)} 
+                  startIcon={<HubIcon fontSize="small" />}
+                  sx={{ borderRadius: 4, textTransform: 'none', py: 0, height: 26, fontSize: '0.75rem', px: 1.5, borderColor: 'primary.light' }}
+                >
+                  Sơ đồ
+                </Button>
               </Box>
-
-              {/* Filters Box */}
-              <Box sx={{ display: 'flex', flexDirection: { xs: 'row', md: 'column' }, gap: 2 }}>
-                <FormControl size="small" fullWidth>
-                  <InputLabel>Học kỳ</InputLabel>
-                  <Select
-                    value={currentSemester}
-                    label="Học kỳ"
-                    onChange={e => setCurrentSemester(e.target.value)}
-                    sx={{ 
-                      borderRadius: 3, 
-                      bgcolor: muiTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(15, 23, 42, 0.5)',
-                      '&:hover': { bgcolor: 'background.paper' },
-                      transition: 'all 0.3s'
+              <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', '&::-webkit-scrollbar': { display: 'none' }, msOverflowStyle: 'none', scrollbarWidth: 'none', flexGrow: 1, py: 0.5 }}>
+                {allTags.map(tag => (
+                  <Chip
+                    key={tag}
+                    label={tag}
+                    size="small"
+                    onClick={() => setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])}
+                    variant={selectedTags.includes(tag) ? 'filled' : 'outlined'}
+                    sx={{
+                      fontSize: '0.75rem', flexShrink: 0,
+                      ...(selectedTags.includes(tag) ? { bgcolor: 'primary.main', color: '#FFF' } : { borderColor: 'divider', color: 'text.secondary' })
                     }}
-                  >
-                    {semesters.map(sem => (
-                      <MenuItem key={sem} value={sem}>{sem === 'All' ? 'Tất cả học kỳ' : sem} ({getSemesterCount(sem)})</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                <FormControl size="small" fullWidth>
-                  <InputLabel>Chuyên ngành</InputLabel>
-                  <Select
-                    value={currentMajor}
-                    label="Chuyên ngành"
-                    onChange={e => setCurrentMajor(e.target.value)}
-                    sx={{ 
-                      borderRadius: 3, 
-                      bgcolor: muiTheme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(15, 23, 42, 0.5)',
-                      '&:hover': { bgcolor: 'background.paper' },
-                      transition: 'all 0.3s'
-                    }}
-                  >
-                    {majors.map(major => (
-                      <MenuItem key={major} value={major}>{major === 'All' ? 'Tất cả chuyên ngành' : major} ({getMajorCount(major)})</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Box>
-
-              {allTags.length > 0 && (
-                <Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>Công nghệ</Typography>
-                    <Button 
-                      size="small" 
-                      variant="text" 
-                      onClick={() => setIsGraphOpen(true)} 
-                      startIcon={<HubIcon fontSize="small" />}
-                      sx={{ textTransform: 'none', py: 0, fontSize: '0.75rem' }}
-                    >
-                      Sơ đồ
-                    </Button>
-                  </Box>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {allTags.map(tag => (
-                      <Chip
-                        key={tag}
-                        label={tag}
-                        size="small"
-                        onClick={() => setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])}
-                        variant={selectedTags.includes(tag) ? 'filled' : 'outlined'}
-                        sx={{
-                          fontSize: '0.75rem',
-                          ...(selectedTags.includes(tag) ? { bgcolor: 'primary.main', color: '#FFF' } : { borderColor: 'divider', color: 'text.secondary' })
-                        }}
-                      />
-                    ))}
-                  </Box>
-                </Box>
-              )}
+                  />
+                ))}
+              </Stack>
             </Box>
-          </motion.div>
-        </Grid>
+          )}
+        </Box>
+      </motion.div>
 
-        <Grid size={{ xs: 12, md: 9 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, px: 1 }}>
         <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
           Hiển thị {filteredProjects.length} dự án
@@ -551,7 +541,7 @@ export default function ProjectGallery() {
               <Grid container spacing={3}>
                 <AnimatePresence>
                   {displayedProjects.map(project => (
-                    <Grid size={{ xs: 12, sm: 6, md: 6, lg: 4, xl: 3 }} key={project.id}>
+                    <Grid size={{ xs: 12, sm: 6, md: 4 }} key={project.id}>
                       <motion.div variants={itemVariants} style={{ height: '100%' }}>
                         <ProjectCard project={project} allProjects={projects} categoryColors={categoryColors} />
                       </motion.div>
@@ -603,8 +593,6 @@ export default function ProjectGallery() {
           )}
         </>
       )}
-        </Grid>
-      </Grid>
 
       {sharedProject && (
         <ProjectDetailModal
