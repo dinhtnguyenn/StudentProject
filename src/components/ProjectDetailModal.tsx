@@ -47,16 +47,21 @@ export default function ProjectDetailModal({ project, allProjects = [], open, on
       maxWidth="lg"
       fullWidth
       sx={{
+        backdropFilter: 'blur(20px)',
+        '& .MuiBackdrop-root': {
+          bgcolor: 'rgba(0,0,0,0.6)',
+        },
         '& .MuiDialog-paper': {
-          borderRadius: 4,
+          borderRadius: 6,
           overflow: 'hidden',
           bgcolor: 'background.paper',
           backgroundImage: 'none',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
         }
       }}
     >
       {/* Hero Banner Area */}
-      <Box sx={{ position: 'relative', width: '100%', height: { xs: 200, md: 320 }, bgcolor: 'background.default' }}>
+      <Box sx={{ position: 'relative', width: '100%', height: { xs: 250, md: 400 }, bgcolor: 'background.default' }}>
         <ImageWithFallback
           src={activeProject.thumbnail}
           alt={activeProject.name}

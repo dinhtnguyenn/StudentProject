@@ -90,7 +90,7 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
                   ? `linear-gradient(135deg, ${season.palette.primary} 0%, ${season.palette.secondary} 100%)`
                   : 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
                 '&:hover': {
-                  boxShadow: `0 4px 12px ${isOverride ? season.palette.primary : 'rgba(37, 99, 235, 0.3)'}40`,
+                  boxShadow: `0 8px 24px ${isOverride ? season.palette.primary : 'rgba(37, 99, 235, 0.4)'}60`,
                   background: isOverride
                     ? `linear-gradient(135deg, ${season.palette.secondary} 0%, ${season.palette.primary} 100%)`
                     : 'linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%)',

@@ -176,7 +176,20 @@ export default function ArticlesGallery() {
     <Box>
       {/* Hero */}
       <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <Box sx={{ mb: 5, textAlign: 'center', mt: 2 }}>
+        <Box sx={{ 
+          mb: 5, textAlign: 'center', mt: 2, position: 'relative',
+          '@keyframes pulseGlow': {
+            '0%': { opacity: 0.5, transform: 'translate(-50%, -50%) scale(1)' },
+            '100%': { opacity: 0.8, transform: 'translate(-50%, -50%) scale(1.15)' }
+          },
+          '&::before': {
+            content: '""', position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+            width: '100%', maxWidth: 800, height: '150%',
+            background: `radial-gradient(ellipse at center, ${muiTheme.palette.primary.main}20 0%, ${muiTheme.palette.secondary.main}15 40%, transparent 70%)`,
+            filter: 'blur(60px)', zIndex: -1, pointerEvents: 'none',
+            animation: 'pulseGlow 4s ease-in-out infinite alternate',
+          }
+        }}>
           <Typography variant="h3" component="h1" sx={{ mb: 1.5, fontWeight: 800, color: 'text.primary', fontSize: { xs: '2.25rem', sm: '3rem' } }}>
             Tin tức & <span style={{ color: muiTheme.palette.primary.main }}>Bài viết</span>
           </Typography>

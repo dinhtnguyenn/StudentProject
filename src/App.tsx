@@ -84,14 +84,19 @@ function App() {
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
       <SeasonalEffects />
       {/* Navbar */}
-      <AppBar position="sticky" elevation={0} sx={{
-        background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(30, 41, 59, 0.85)',
-        backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid',
-        borderColor: 'divider',
-        color: 'text.primary',
-      }}>
-        <Container maxWidth="lg">
+      <Box sx={{ position: 'sticky', top: { xs: 8, md: 16 }, zIndex: 1100, px: { xs: 2, sm: 3, md: 4 } }}>
+        <AppBar position="static" elevation={0} sx={{
+          background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(30, 41, 59, 0.7)',
+          backdropFilter: 'blur(24px)',
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 4,
+          color: 'text.primary',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+          maxWidth: '1200px',
+          mx: 'auto'
+        }}>
+          <Container maxWidth="lg">
           <Toolbar disableGutters sx={{ gap: 1 }}>
             {/* Logo dynamically changing with season */}
             <Typography
@@ -170,6 +175,7 @@ function App() {
           </Toolbar>
         </Container>
       </AppBar>
+      </Box>
 
       {/* Main */}
       <Box component="main" sx={{ flexGrow: 1, py: { xs: 4, md: 6 } }}>
