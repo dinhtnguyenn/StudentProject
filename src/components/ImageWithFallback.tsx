@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { Box, Typography } from '@mui/material';
-import CodeIcon from '@mui/icons-material/Code';
-import BrushIcon from '@mui/icons-material/Brush';
-import PsychologyIcon from '@mui/icons-material/Psychology';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import BusinessIcon from '@mui/icons-material/Business';
-import SchoolIcon from '@mui/icons-material/School';
-import CategoryIcon from '@mui/icons-material/Category';
+import { getCurrentSeason } from '../lib/seasonalEngine';
+import { getSeasonWatermark } from './SeasonalEffects';
+
+const MAJOR_ASSETS_3D = {
+  WEB: `url("https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Globe%20with%20meridians/3D/globe_with_meridians_3d.png")`,
+  GAME: `url("https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Video%20game/3D/video_game_3d.png")`,
+  AI: `url("https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Brain/3D/brain_3d.png")`,
+  MOBILE: `url("https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Mobile%20phone/3D/mobile_phone_3d.png")`,
+  DEFAULT: `url("https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/File%20folder/3D/file_folder_3d.png")`,
+};
 
 const MASCULINE_GRADIENTS = [
   'linear-gradient(135deg, #60A5FA 0%, #1D4ED8 100%)', // Bright Blue to Deep Blue
@@ -24,13 +27,11 @@ const MASCULINE_GRADIENTS = [
 export const getFallbackConfig = (text: string = '') => {
   const m = text.toLowerCase();
   
-  let Icon = CategoryIcon;
-  if (m.includes('phần mềm') || m.includes('se') || m.includes('web') || m.includes('code') || m.includes('công nghệ')) Icon = CodeIcon;
-  else if (m.includes('đồ hoạ') || m.includes('gd') || m.includes('design') || m.includes('mỹ thuật')) Icon = BrushIcon;
-  else if (m.includes('ai') || m.includes('trí tuệ') || m.includes('data') || m.includes('dữ liệu')) Icon = PsychologyIcon;
-  else if (m.includes('marketing') || m.includes('pr') || m.includes('truyền thông')) Icon = TrendingUpIcon;
-  else if (m.includes('quản trị') || m.includes('kinh doanh') || m.includes('biz')) Icon = BusinessIcon;
-  else if (m.includes('ngôn ngữ') || m.includes('tiếng')) Icon = SchoolIcon;
+  let fallback3dUrl = MAJOR_ASSETS_3D.DEFAULT;
+  if (m.includes('web') || m.includes('website')) fallback3dUrl = MAJOR_ASSETS_3D.WEB;
+  else if (m.includes('game') || m.includes('trò chơi')) fallback3dUrl = MAJOR_ASSETS_3D.GAME;
+  else if (m.includes('ai') || m.includes('trí tuệ') || m.includes('data')) fallback3dUrl = MAJOR_ASSETS_3D.AI;
+  else if (m.includes('mobile') || m.includes('app') || m.includes('di động') || m.includes('ứng dụng')) fallback3dUrl = MAJOR_ASSETS_3D.MOBILE;
   
   // Hash string to pick a gradient index
   let hash = 0;
@@ -41,14 +42,17 @@ export const getFallbackConfig = (text: string = '') => {
   const gradientIndex = Math.abs(hash) % MASCULINE_GRADIENTS.length;
   const gradient = MASCULINE_GRADIENTS[gradientIndex];
   
-  return { Icon, gradient };
+  return { fallback3dUrl, gradient };
 };
 
-export default function ImageWithFallback({ src, alt, fallbackText, height = 200, className, sx = {} }: { src: string, alt: string, fallbackText?: string, height?: number | string, className?: string, sx?: any }) {
+export default function ImageWithFallback({ src, alt, fallbackText, iconKeyword, height = 200, className, sx = {} }: { src: string, alt: string, fallbackText?: string, iconKeyword?: string, height?: number | string, className?: string, sx?: any }) {
   const [error, setError] = useState(false);
+  const season = getCurrentSeason();
+  const seasonWatermarkUrl = season.id !== 'NONE' ? getSeasonWatermark(season.id) : null;
 
   if (!src || error) {
-    const { Icon, gradient } = getFallbackConfig(fallbackText || alt);
+    const { fallback3dUrl, gradient } = getFallbackConfig(iconKeyword || fallbackText || alt);
+    const finalIconUrl = seasonWatermarkUrl || fallback3dUrl;
     
     return (
       <Box 
@@ -73,7 +77,15 @@ export default function ImageWithFallback({ src, alt, fallbackText, height = 200
 
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5, zIndex: 1, p: 2 }}>
           <Box sx={{ p: 1.5, borderRadius: '20%', background: 'rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)' }}>
-            <Icon sx={{ fontSize: 48, opacity: 0.95 }} />
+            <Box sx={{ 
+              width: 48, 
+              height: 48, 
+              backgroundImage: finalIconUrl,
+              backgroundSize: 'contain',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'center',
+              filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))'
+            }} />
           </Box>
           <Typography variant="subtitle2" sx={{ fontWeight: 900, fontSize: '0.9rem', letterSpacing: '0.5px', textTransform: 'uppercase', color: '#FFFFFF', textAlign: 'center', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textShadow: '0px 2px 4px rgba(0,0,0,0.8), 0px 4px 12px rgba(0,0,0,0.6)' }}>
             {fallbackText || 'Dự án Sinh viên'}

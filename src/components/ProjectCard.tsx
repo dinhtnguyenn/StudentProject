@@ -15,6 +15,8 @@ import type { Project } from '../types/Project';
 import { motion } from 'framer-motion';
 import ProjectDetailModal from './ProjectDetailModal';
 import ImageWithFallback from './ImageWithFallback';
+import { getCurrentSeason } from '../lib/seasonalEngine';
+import { getSeasonWatermark } from './SeasonalEffects';
 
 interface Props {
   project: Project;
@@ -46,6 +48,10 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
   const muiTheme = useTheme();
   const youtubeId = getYoutubeId(project.youtubeUrl);
   const colors = categoryColors[project.category] || defaultColor;
+  const season = getCurrentSeason();
+  const primaryColor = season.id !== 'NONE' ? season.palette.primary : '#2563EB';
+  const goldenColor = season.id !== 'NONE' ? season.palette.goldenTicket : '#F59E0B';
+  const watermarkUrl = getSeasonWatermark(season.id);
 
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -66,13 +72,13 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
           overflow: 'hidden',
           bgcolor: 'background.paper',
           border: project.isGoldenTicket ? '2px solid' : '1px solid',
-          borderColor: project.isGoldenTicket ? '#F59E0B' : 'divider',
+          borderColor: project.isGoldenTicket ? goldenColor : 'divider',
           transition: 'all 0.3s ease',
           '&:hover': {
             boxShadow: project.isGoldenTicket 
-              ? '0 16px 48px rgba(245, 158, 11, 0.4)'
+              ? `0 16px 48px ${goldenColor}66`
               : (muiTheme.palette.mode === 'light' ? '0 16px 48px rgba(99, 102, 241, 0.12)' : '0 16px 48px rgba(99, 102, 241, 0.25)'),
-            borderColor: project.isGoldenTicket ? '#F59E0B' : 'primary.light',
+            borderColor: project.isGoldenTicket ? goldenColor : primaryColor,
             animation: project.isGoldenTicket ? 'golden-pulse 2s infinite' : 'none',
           },
           '&:hover .card-image': {
@@ -96,8 +102,8 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
               size="small" 
               sx={{ 
                 position: 'absolute', top: 12, right: 12, 
-                bgcolor: 'rgba(255, 255, 255, 0.8)', color: project.isGoldenTicket ? '#F59E0B' : '#2563EB',
-                '&:hover': { bgcolor: project.isGoldenTicket ? '#F59E0B' : '#2563EB', color: '#FFF' }, backdropFilter: 'blur(4px)'
+                bgcolor: 'rgba(255, 255, 255, 0.8)', color: project.isGoldenTicket ? goldenColor : primaryColor,
+                '&:hover': { bgcolor: project.isGoldenTicket ? goldenColor : primaryColor, color: '#FFF' }, backdropFilter: 'blur(4px)'
               }}
             >
               <ShareIcon fontSize="small" />
@@ -105,14 +111,35 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
           </Box>
 
           {/* Content */}
-          <CardContent sx={{ flexGrow: 1, p: 2.5, pb: 1 }}>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1.5 }}>
+          <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 3, pt: 2, position: 'relative' }}>
+            {watermarkUrl && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  right: -30,
+                  width: 200,
+                  height: 200,
+                  backgroundImage: watermarkUrl,
+                  backgroundSize: 'contain',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'center right',
+                  opacity: muiTheme.palette.mode === 'dark' ? 0.20 : 0.12,
+                  pointerEvents: 'none',
+                  zIndex: 0,
+                  transform: 'translateY(-50%) rotate(-15deg)',
+                  WebkitMaskImage: 'radial-gradient(circle at center right, black 30%, transparent 90%)',
+                  maskImage: 'radial-gradient(circle at center right, black 30%, transparent 90%)',
+                }}
+              />
+            )}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, zIndex: 1, position: 'relative' }}>
               <Chip
                 label={project.category}
                 size="small"
                 sx={{
-                  background: project.isGoldenTicket ? 'rgba(245, 158, 11, 0.1)' : colors.bg,
-                  color: project.isGoldenTicket ? '#F59E0B' : colors.text,
+                  background: project.isGoldenTicket ? `${goldenColor}1A` : colors.bg,
+                  color: project.isGoldenTicket ? goldenColor : colors.text,
                   fontWeight: 700,
                   fontSize: '0.7rem',
                   height: 24,
@@ -124,12 +151,12 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
                   label="GOLDEN TICKET"
                   size="small"
                   sx={{
-                    background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                    background: `linear-gradient(135deg, ${goldenColor} 0%, ${goldenColor}dd 100%)`,
                     color: '#FFF',
                     fontWeight: 800,
                     fontSize: '0.65rem',
                     height: 24,
-                    boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)',
+                    boxShadow: `0 2px 8px ${goldenColor}66`,
                     '& .MuiChip-icon': { color: '#FFF' }
                   }}
                 />
@@ -140,13 +167,13 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
                   label={project.major}
                   size="small"
                   sx={{
-                    background: project.isGoldenTicket ? 'linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(217,119,6,0.1) 100%)' : 'rgba(0, 0, 0, 0.04)',
-                    color: project.isGoldenTicket ? '#F59E0B' : 'text.primary',
+                    background: project.isGoldenTicket ? `linear-gradient(135deg, ${goldenColor}1A 0%, ${goldenColor}0A 100%)` : 'rgba(0, 0, 0, 0.04)',
+                    color: project.isGoldenTicket ? goldenColor : 'text.primary',
                     fontWeight: 700,
                     fontSize: '0.65rem',
                     height: 24,
                     border: 'none',
-                    '& .MuiChip-icon': { color: project.isGoldenTicket ? '#F59E0B' : 'text.secondary' }
+                    '& .MuiChip-icon': { color: project.isGoldenTicket ? goldenColor : 'text.secondary' }
                   }}
                 />
               )}
@@ -219,7 +246,7 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
               size="small"
               startIcon={<InfoOutlinedIcon sx={{ fontSize: 18 }} />}
               onClick={() => setOpenDetail(true)}
-              sx={{ color: 'text.secondary', fontSize: '0.8rem', '&:hover': { color: project.isGoldenTicket ? '#F59E0B' : 'primary.main', bgcolor: project.isGoldenTicket ? 'rgba(245,158,11,0.05)' : 'action.hover' } }}
+              sx={{ color: 'text.secondary', fontSize: '0.8rem', '&:hover': { color: project.isGoldenTicket ? goldenColor : primaryColor, bgcolor: project.isGoldenTicket ? `${goldenColor}1A` : 'action.hover' } }}
             >
               Chi tiết
             </Button>
@@ -231,10 +258,12 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
                 onClick={() => setOpenVideo(true)}
                 sx={{
                   fontSize: '0.8rem',
-                  background: project.isGoldenTicket ? 'linear-gradient(135deg, #F59E0B, #D97706)' : 'linear-gradient(135deg, #2563EB, #1D4ED8)',
+                  color: '#FFF',
+                  background: project.isGoldenTicket ? goldenColor : primaryColor,
                   '&:hover': {
-                    background: project.isGoldenTicket ? 'linear-gradient(135deg, #D97706, #B45309)' : 'linear-gradient(135deg, #1D4ED8, #1E40AF)',
-                    boxShadow: project.isGoldenTicket ? '0 4px 12px rgba(245, 158, 11, 0.3)' : '0 4px 12px rgba(37, 99, 235, 0.3)',
+                    background: project.isGoldenTicket ? goldenColor : primaryColor,
+                    opacity: 0.9,
+                    boxShadow: project.isGoldenTicket ? `0 4px 12px ${goldenColor}66` : `0 4px 12px ${primaryColor}66`,
                   },
                 }}
               >

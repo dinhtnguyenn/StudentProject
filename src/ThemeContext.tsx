@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useMemo, useEffect } from 'react';
+import { getCurrentSeason } from './lib/seasonalEngine';
 import type { ReactNode } from 'react';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 
@@ -31,29 +32,33 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
   };
 
   const theme = useMemo(
-    () =>
-      createTheme({
+    () => {
+      const season = getCurrentSeason();
+      const isOverride = season.id !== 'NONE';
+      const activeMode = season.palette.modeOverride || mode;
+
+      return createTheme({
         palette: {
-          mode,
+          mode: activeMode,
           primary: {
-            main: '#2563EB',
-            light: '#60A5FA',
-            dark: '#1D4ED8',
+            main: isOverride ? season.palette.primary : '#2563EB',
+            light: isOverride ? season.palette.primary : '#60A5FA',
+            dark: isOverride ? season.palette.primary : '#1D4ED8',
           },
           secondary: {
-            main: '#EC4899',
-            light: '#F472B6',
-            dark: '#DB2777',
+            main: isOverride ? season.palette.secondary : '#EC4899',
+            light: isOverride ? season.palette.secondary : '#F472B6',
+            dark: isOverride ? season.palette.secondary : '#DB2777',
           },
           background: {
-            default: mode === 'light' ? '#F8FAFC' : '#0F172A',
-            paper: mode === 'light' ? '#FFFFFF' : '#1E293B',
+            default: activeMode === 'light' ? '#F8FAFC' : '#0F172A',
+            paper: activeMode === 'light' ? '#FFFFFF' : '#1E293B',
           },
           text: {
-            primary: mode === 'light' ? '#0F172A' : '#F8FAFC',
-            secondary: mode === 'light' ? '#64748B' : '#94A3B8',
+            primary: activeMode === 'light' ? '#0F172A' : '#F8FAFC',
+            secondary: activeMode === 'light' ? '#64748B' : '#94A3B8',
           },
-          divider: mode === 'light' ? '#E2E8F0' : '#334155',
+          divider: activeMode === 'light' ? '#E2E8F0' : '#334155',
         },
         typography: {
           fontFamily: '"Plus Jakarta Sans", "Inter", "Roboto", system-ui, sans-serif',
@@ -81,8 +86,14 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
               },
               contained: {
                 boxShadow: 'none',
+                background: isOverride
+                  ? `linear-gradient(135deg, ${season.palette.primary} 0%, ${season.palette.secondary} 100%)`
+                  : 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
                 '&:hover': {
-                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+                  boxShadow: `0 4px 12px ${isOverride ? season.palette.primary : 'rgba(37, 99, 235, 0.3)'}40`,
+                  background: isOverride
+                    ? `linear-gradient(135deg, ${season.palette.secondary} 0%, ${season.palette.primary} 100%)`
+                    : 'linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%)',
                 },
               },
             },
@@ -90,7 +101,7 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
           MuiPaper: {
             styleOverrides: {
               root: {
-                boxShadow: mode === 'light' ? '0 1px 3px rgba(0,0,0,0.04)' : '0 4px 6px rgba(0,0,0,0.3)',
+                boxShadow: activeMode === 'light' ? '0 1px 3px rgba(0,0,0,0.04)' : '0 4px 6px rgba(0,0,0,0.3)',
                 borderRadius: 16,
               },
             },
@@ -98,10 +109,14 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
           MuiCard: {
             styleOverrides: {
               root: {
-                boxShadow: mode === 'light' ? '0 1px 3px rgba(0,0,0,0.04)' : '0 4px 6px rgba(0,0,0,0.3)',
+                boxShadow: activeMode === 'light' ? '0 1px 3px rgba(0,0,0,0.04)' : '0 4px 6px rgba(0,0,0,0.3)',
                 borderRadius: 16,
-                border: `1px solid ${mode === 'light' ? '#E2E8F0' : '#334155'}`,
-                backgroundColor: mode === 'light' ? '#FFFFFF' : '#1E293B',
+                border: `1px solid ${activeMode === 'light' ? '#E2E8F0' : '#334155'}`,
+                backgroundColor: activeMode === 'light' ? '#FFFFFF' : '#1E293B',
+                '&:hover': isOverride ? {
+                  borderColor: season.palette.primary,
+                  boxShadow: `0 8px 24px ${season.palette.primary}18`,
+                } : {},
               },
             },
           },
@@ -111,13 +126,13 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 10,
                   '& fieldset': {
-                    borderColor: mode === 'light' ? '#E2E8F0' : '#475569',
+                    borderColor: activeMode === 'light' ? '#E2E8F0' : '#475569',
                   },
                   '&:hover fieldset': {
-                    borderColor: mode === 'light' ? '#CBD5E1' : '#64748B',
+                    borderColor: isOverride ? season.palette.primary : (activeMode === 'light' ? '#CBD5E1' : '#64748B'),
                   },
                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#2563EB',
+                    borderColor: isOverride ? season.palette.primary : '#2563EB',
                     borderWidth: 2,
                   },
                 },
@@ -130,14 +145,20 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
                 fontWeight: 600,
                 borderRadius: 8,
               },
+              filled: isOverride ? {
+                '&.MuiChip-colorPrimary': {
+                  background: `linear-gradient(135deg, ${season.palette.primary}, ${season.palette.secondary})`,
+                  color: '#FFF',
+                },
+              } : {},
             },
           },
           MuiDialog: {
             styleOverrides: {
               paper: {
                 borderRadius: 20,
-                border: `1px solid ${mode === 'light' ? '#E2E8F0' : '#334155'}`,
-                backgroundColor: mode === 'light' ? '#FFFFFF' : '#1E293B',
+                border: `1px solid ${activeMode === 'light' ? '#E2E8F0' : '#334155'}`,
+                backgroundColor: activeMode === 'light' ? '#FFFFFF' : '#1E293B',
               },
             },
           },
@@ -153,7 +174,8 @@ export function ThemeContextProvider({ children }: { children: ReactNode }) {
             },
           },
         },
-      }),
+      });
+    },
     [mode]
   );
 

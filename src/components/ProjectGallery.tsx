@@ -345,8 +345,8 @@ export default function ProjectGallery() {
                     fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', height: 32, px: 0.5, flexShrink: 0,
                     ...(currentTab === cat
                       ? {
-                        background: 'linear-gradient(135deg, #2563EB, #1D4ED8)',
-                        color: '#FFF', border: 'none', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+                        bgcolor: 'primary.main',
+                        color: '#FFF', border: 'none', boxShadow: 3,
                       }
                       : {
                         borderColor: 'divider', color: 'text.secondary',

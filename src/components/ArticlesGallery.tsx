@@ -3,6 +3,8 @@ import { Box, Typography, Grid, Card, CardContent, Chip, CircularProgress, Alert
 import { motion, useInView } from 'framer-motion';
 import type { Article } from '../types/Article';
 import ImageWithFallback from './ImageWithFallback';
+import { getCurrentSeason } from '../lib/seasonalEngine';
+import { getSeasonWatermark } from './SeasonalEffects';
 import SearchIcon from '@mui/icons-material/Search';
 import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
 
@@ -48,6 +50,10 @@ export default function ArticlesGallery() {
   const [articleMajors, setArticleMajors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  const muiTheme = useTheme();
+  const season = getCurrentSeason();
+  const watermarkUrl = season.id !== 'NONE' ? getSeasonWatermark(season.id) : null;
 
   const [search, setSearch] = useState('');
   const [currentType, setCurrentType] = useState('All');
@@ -165,7 +171,6 @@ export default function ArticlesGallery() {
   });
 
   const displayedArticles = filteredArticles.slice(0, visibleCount);
-  const muiTheme = useTheme();
 
   return (
     <Box>
@@ -334,23 +339,47 @@ export default function ArticlesGallery() {
                       src={article.imageUrl}
                       alt={article.title}
                       fallbackText={article.type}
+                      iconKeyword={article.major}
                       height={200}
                     />
-                    <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-                        {article.type && (
-                          <Chip label={article.type} size="small" sx={{ fontWeight: 700, bgcolor: article.typeBg, color: article.typeText }} />
-                        )}
-                        {article.major && (
-                          <Chip label={article.major} size="small" variant="outlined" sx={{ fontWeight: 700, borderColor: article.majorText !== '#4B5563' ? article.majorText : 'divider', color: article.majorText }} />
-                        )}
-                        {article.year && (
-                          <Chip label={article.year} size="small" variant="outlined" sx={{ fontWeight: 700, borderColor: 'divider', color: 'text.secondary' }} />
-                        )}
+                    <CardContent sx={{ flexGrow: 1, p: 3, position: 'relative' }}>
+                      {watermarkUrl && (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: '50%',
+                            right: -30,
+                            width: 200,
+                            height: 200,
+                            backgroundImage: watermarkUrl,
+                            backgroundSize: 'contain',
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'center right',
+                            opacity: muiTheme.palette.mode === 'dark' ? 0.20 : 0.12,
+                            pointerEvents: 'none',
+                            zIndex: 0,
+                            transform: 'translateY(-50%) rotate(-15deg)',
+                            WebkitMaskImage: 'radial-gradient(circle at center right, black 30%, transparent 90%)',
+                            maskImage: 'radial-gradient(circle at center right, black 30%, transparent 90%)',
+                          }}
+                        />
+                      )}
+                      <Box sx={{ position: 'relative', zIndex: 1 }}>
+                        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+                          {article.type && (
+                            <Chip label={article.type} size="small" sx={{ fontWeight: 700, bgcolor: article.typeBg, color: article.typeText }} />
+                          )}
+                          {article.major && (
+                            <Chip label={article.major} size="small" variant="outlined" sx={{ fontWeight: 700, borderColor: article.majorText !== '#4B5563' ? article.majorText : 'divider', color: article.majorText }} />
+                          )}
+                          {article.year && (
+                            <Chip label={article.year} size="small" variant="outlined" sx={{ fontWeight: 700, borderColor: 'divider', color: 'text.secondary' }} />
+                          )}
+                        </Box>
+                        <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.4, color: 'text.primary', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                          {article.title}
+                        </Typography>
                       </Box>
-                      <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.4, color: 'text.primary', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                        {article.title}
-                      </Typography>
                     </CardContent>
                   </Card>
                 </motion.div>

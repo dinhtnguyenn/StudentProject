@@ -1,15 +1,19 @@
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ProjectGallery from './components/ProjectGallery';
+import SeasonalEffects from './components/SeasonalEffects';
 import ArticlesGallery from './components/ArticlesGallery';
+import { getCurrentSeason } from './lib/seasonalEngine';
 import AdminForm from './components/AdminForm';
 import { AppBar, Toolbar, Typography, Button, Container, Box, IconButton, useTheme, Menu, MenuItem, Divider } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import MenuIcon from '@mui/icons-material/Menu';
+
 import { useAppTheme } from './ThemeContext';
 import confetti from 'canvas-confetti';
+import { ASSETS_3D } from './components/SeasonalEffects';
 
 function App() {
   const navigate = useNavigate();
@@ -20,9 +24,53 @@ function App() {
   const [clickCount, setClickCount] = useState(0);
 
   const handleLogoClick = () => {
-    navigate('/');
-    setClickCount(prev => prev + 1);
-    if (clickCount >= 2) {
+    if (location.pathname === '/') {
+      setClickCount(prev => prev + 1);
+    } else {
+      navigate('/');
+    }
+  };
+
+  const season = getCurrentSeason();
+  const logoColor = season.id !== 'NONE' ? season.palette.primary : '#2563EB';
+
+  const getLogoIcon = () => {
+    const defaultImgStyle = { width: { xs: 32, sm: 36 }, height: { xs: 32, sm: 36 }, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))', display: 'block' };
+    let decorationUrl = null;
+    
+    if (season.id === 'XMAS') decorationUrl = ASSETS_3D.SNOWFLAKE;
+    else if (season.id === 'TET') decorationUrl = ASSETS_3D.CHERRY_BLOSSOM;
+    else if (season.id === 'HALLOWEEN') decorationUrl = ASSETS_3D.BAT;
+    else if (season.id === 'MID_AUTUMN') decorationUrl = ASSETS_3D.LANTERN;
+    else if (season.id === 'TEACHER') decorationUrl = ASSETS_3D.GRADUATION_CAP;
+    else if (season.id === 'CULTURE') decorationUrl = ASSETS_3D.LOTUS;
+    else if (season.id === 'HUNG_KING') decorationUrl = ASSETS_3D.WATERMELON;
+
+    return (
+      <Box sx={{ position: 'relative', mr: { xs: 1, sm: 1.5 } }}>
+        <Box component="img" src={`${import.meta.env.BASE_URL}logo.svg?v=5`} alt="Logo" sx={defaultImgStyle} />
+        {decorationUrl && (
+          <Box sx={{ 
+            position: 'absolute', 
+            top: -12, 
+            right: -14, 
+            width: 24, 
+            height: 24, 
+            backgroundImage: decorationUrl,
+            backgroundSize: 'contain',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
+            filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.25))', 
+            zIndex: 2, 
+            transform: 'rotate(15deg)' 
+          }} />
+        )}
+      </Box>
+    );
+  };
+
+  useEffect(() => {
+    if (clickCount >= 3) {
       confetti({
         particleCount: 150,
         spread: 70,
@@ -30,13 +78,14 @@ function App() {
       });
       setClickCount(0);
     }
-  };
+  }, [clickCount]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
+      <SeasonalEffects />
       {/* Navbar */}
       <AppBar position="sticky" elevation={0} sx={{
-        background: mode === 'light' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(30, 41, 59, 0.85)',
+        background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(30, 41, 59, 0.85)',
         backdropFilter: 'blur(16px)',
         borderBottom: '1px solid',
         borderColor: 'divider',
@@ -44,13 +93,14 @@ function App() {
       }}>
         <Container maxWidth="lg">
           <Toolbar disableGutters sx={{ gap: 1 }}>
-            <Box component="img" src={`${import.meta.env.BASE_URL}logo.svg?v=5`} alt="UniFolio Logo" sx={{ width: { xs: 32, sm: 36 }, height: { xs: 32, sm: 36 }, mr: { xs: 0.5, sm: 0.75 }, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))', cursor: 'pointer' }} onClick={handleLogoClick} />
+            {/* Logo dynamically changing with season */}
             <Typography
               variant="h6" component="div"
-              sx={{ flexGrow: 1, cursor: 'pointer', fontWeight: 800, fontSize: { xs: '1rem', sm: '1.15rem' }, userSelect: 'none' }}
+              sx={{ flexGrow: 1, cursor: 'pointer', fontWeight: 800, fontSize: { xs: '1rem', sm: '1.25rem' }, userSelect: 'none', display: 'flex', alignItems: 'center' }}
               onClick={handleLogoClick}
             >
-              Uni<span style={{ color: '#2563EB' }}>Folio</span>
+              {getLogoIcon()}
+              Uni<span style={{ color: logoColor }}>Folio</span>
             </Typography>
 
             {/* Mobile Menu */}
@@ -111,11 +161,6 @@ function App() {
                 ml: 1,
                 minWidth: { xs: '40px', sm: 'auto' },
                 px: { xs: 1, sm: 2 },
-                background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
-                  boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.39)',
-                },
               }}
               onClick={() => navigate('/admin')}
             >
