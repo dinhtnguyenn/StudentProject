@@ -10,6 +10,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import MenuIcon from '@mui/icons-material/Menu';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 import { useAppTheme } from './ThemeContext';
 import confetti from 'canvas-confetti';
@@ -23,10 +24,12 @@ function App() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [clickCount, setClickCount] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showTopBtn, setShowTopBtn] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
+      setShowTopBtn(window.scrollY > 400);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -101,6 +104,34 @@ function App() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
+      
+      {/* Floating Back To Top Button */}
+      <IconButton 
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        sx={{ 
+          position: 'fixed',
+          bottom: { xs: 20, md: 40 },
+          right: { xs: 20, md: 40 },
+          zIndex: 1200,
+          opacity: showTopBtn ? 1 : 0,
+          transform: showTopBtn ? 'translateY(0)' : 'translateY(20px)',
+          pointerEvents: showTopBtn ? 'auto' : 'none',
+          bgcolor: theme.palette.mode === 'light' ? '#FFFFFF' : '#0A0A0A',
+          color: logoColor,
+          border: '1px solid', borderColor: 'divider',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+          '&:hover': { 
+            bgcolor: logoColor, 
+            color: '#fff', 
+            transform: 'translateY(-4px)', 
+            boxShadow: `0 12px 28px ${logoColor}50` 
+          },
+          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
+      >
+        <KeyboardArrowUpIcon />
+      </IconButton>
+
       <SeasonalEffects />
       {/* Navbar */}
       <Box sx={{ 
