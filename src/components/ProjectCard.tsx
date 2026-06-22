@@ -133,50 +133,54 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
                 }}
               />
             )}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, zIndex: 1, position: 'relative' }}>
-              <Chip
-                label={project.category}
-                size="small"
-                sx={{
-                  background: project.isGoldenTicket ? `${goldenColor}1A` : colors.bg,
-                  color: project.isGoldenTicket ? goldenColor : colors.text,
-                  fontWeight: 700,
-                  fontSize: '0.7rem',
-                  height: 24,
-                }}
-              />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2, zIndex: 1, position: 'relative' }}>
               {project.isGoldenTicket && (
-                <Chip
-                  icon={<WorkspacePremiumIcon sx={{ fontSize: '14px !important' }} />}
-                  label="GOLDEN TICKET"
-                  size="small"
-                  sx={{
-                    background: `linear-gradient(135deg, ${goldenColor} 0%, ${goldenColor}dd 100%)`,
-                    color: '#FFF',
-                    fontWeight: 800,
-                    fontSize: '0.65rem',
-                    height: 24,
-                    boxShadow: `0 2px 8px ${goldenColor}66`,
-                    '& .MuiChip-icon': { color: '#FFF' }
-                  }}
-                />
+                <Box>
+                  <Chip
+                    icon={<WorkspacePremiumIcon sx={{ fontSize: '14px !important' }} />}
+                    label="GOLDEN TICKET"
+                    size="small"
+                    sx={{
+                      background: `linear-gradient(135deg, ${goldenColor} 0%, ${goldenColor}dd 100%)`,
+                      color: '#FFF',
+                      fontWeight: 800,
+                      fontSize: '0.65rem',
+                      height: 24,
+                      boxShadow: `0 2px 8px ${goldenColor}66`,
+                      '& .MuiChip-icon': { color: '#FFF' }
+                    }}
+                  />
+                </Box>
               )}
-              {project.major && (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'flex-start' }}>
                 <Chip
-                  icon={project.isGoldenTicket ? <AutoAwesomeIcon sx={{ fontSize: '12px !important' }} /> : <SchoolIcon sx={{ fontSize: '12px !important' }} />}
-                  label={project.major}
+                  label={project.category}
                   size="small"
                   sx={{
-                    background: project.isGoldenTicket ? `linear-gradient(135deg, ${goldenColor}1A 0%, ${goldenColor}0A 100%)` : 'rgba(0, 0, 0, 0.04)',
-                    color: project.isGoldenTicket ? goldenColor : 'text.primary',
+                    background: project.isGoldenTicket ? `${goldenColor}1A` : colors.bg,
+                    color: project.isGoldenTicket ? goldenColor : colors.text,
                     fontWeight: 700,
-                    fontSize: '0.65rem',
+                    fontSize: '0.7rem',
                     height: 24,
-                    border: 'none',
-                    '& .MuiChip-icon': { color: project.isGoldenTicket ? goldenColor : 'text.secondary' }
                   }}
                 />
-              )}
+                {project.major && (
+                  <Chip
+                    icon={project.isGoldenTicket ? <AutoAwesomeIcon sx={{ fontSize: '12px !important' }} /> : <SchoolIcon sx={{ fontSize: '12px !important' }} />}
+                    label={project.major}
+                    size="small"
+                    sx={{
+                      background: project.isGoldenTicket ? `linear-gradient(135deg, ${goldenColor}1A 0%, ${goldenColor}0A 100%)` : 'rgba(0, 0, 0, 0.04)',
+                      color: project.isGoldenTicket ? goldenColor : 'text.primary',
+                      fontWeight: 700,
+                      fontSize: '0.65rem',
+                      height: 24,
+                      border: 'none',
+                      '& .MuiChip-icon': { color: project.isGoldenTicket ? goldenColor : 'text.secondary' }
+                    }}
+                  />
+                )}
+              </Box>
             </Box>
             <Typography variant="h6" component="h2" sx={{
               fontWeight: 700,
