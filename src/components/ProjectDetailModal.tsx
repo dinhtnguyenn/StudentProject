@@ -84,7 +84,7 @@ export default function ProjectDetailModal({ project, allProjects = [], open, on
         />
 
         {/* Action Buttons Overlay */}
-        <Box sx={{ position: 'absolute', top: 16, right: 16, display: 'flex', gap: 1 }}>
+        <Box sx={{ position: 'absolute', top: 24, right: 24, display: 'flex', gap: 2 }}>
           {onShare && (
             <IconButton onClick={onShare} sx={{ bgcolor: 'rgba(0,0,0,0.4)', color: '#fff', '&:hover': { bgcolor: activeProject.isGoldenTicket ? '#F59E0B' : 'primary.main' }, backdropFilter: 'blur(8px)' }}>
               <ShareIcon fontSize="small" />
