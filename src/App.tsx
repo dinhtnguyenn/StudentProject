@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import ProjectGallery from './components/ProjectGallery';
 import SeasonalEffects from './components/SeasonalEffects';
 import ArticlesGallery from './components/ArticlesGallery';
+import DailyMessage from './components/DailyMessage';
 import { getCurrentSeason } from './lib/seasonalEngine';
 import AdminForm from './components/AdminForm';
 import { AppBar, Toolbar, Typography, Button, Container, Box, IconButton, useTheme, Menu, MenuItem, Divider } from '@mui/material';
@@ -105,6 +106,8 @@ function App() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
       
+      <DailyMessage />
+
       {/* Floating Back To Top Button */}
       <IconButton 
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
