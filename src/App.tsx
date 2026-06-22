@@ -22,6 +22,15 @@ function App() {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [clickCount, setClickCount] = useState(0);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogoClick = () => {
     if (location.pathname === '/') {
@@ -84,17 +93,25 @@ function App() {
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
       <SeasonalEffects />
       {/* Navbar */}
-      <Box sx={{ position: 'sticky', top: { xs: 8, md: 16 }, zIndex: 1100, px: { xs: 2, sm: 3, md: 4 } }}>
+      <Box sx={{ 
+        position: 'sticky', 
+        top: isScrolled ? 0 : { xs: 8, md: 16 }, 
+        zIndex: 1100, 
+        px: isScrolled ? 0 : { xs: 2, sm: 3, md: 4 },
+        transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+      }}>
         <AppBar position="static" elevation={0} sx={{
           background: theme.palette.mode === 'light' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(30, 41, 59, 0.7)',
           backdropFilter: 'blur(24px)',
           border: '1px solid',
+          borderWidth: isScrolled ? '0 0 1px 0' : '1px',
           borderColor: 'divider',
-          borderRadius: 4,
+          borderRadius: isScrolled ? 0 : 4,
           color: 'text.primary',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
-          maxWidth: '1200px',
-          mx: 'auto'
+          boxShadow: isScrolled ? '0 4px 20px rgba(0,0,0,0.05)' : '0 8px 32px rgba(0,0,0,0.08)',
+          maxWidth: isScrolled ? '100%' : '1200px',
+          mx: 'auto',
+          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
         }}>
           <Container maxWidth="lg">
           <Toolbar disableGutters sx={{ gap: 1 }}>
