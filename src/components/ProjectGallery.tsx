@@ -14,6 +14,7 @@ import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import ViewStreamIcon from '@mui/icons-material/ViewStream';
 import { IconButton } from '@mui/material';
+import StudentMotivation from './StudentMotivation';
 
 
 
@@ -292,6 +293,8 @@ export default function ProjectGallery() {
           </Box>
         </Box>
       </motion.div>
+
+      <StudentMotivation />
 
       {isDefaultView && randomizedGoldenTickets.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
