@@ -92,7 +92,14 @@ export default function ProjectDetailModal({ project, allProjects = [], open, on
       </Box>
 
       {/* Main Content Area */}
-      <DialogContent sx={{ p: { xs: 2, md: 5 }, pt: { xs: 2, md: 5 }, overflowX: 'hidden' }}>
+      <DialogContent sx={{ 
+        p: { xs: 2, md: 5 }, 
+        pt: { xs: 2, md: 5 }, 
+        overflowX: 'hidden',
+        msOverflowStyle: 'none',
+        scrollbarWidth: 'none',
+        '&::-webkit-scrollbar': { display: 'none' }
+      }}>
         <Grid container spacing={5}>
           {/* LEFT COLUMN: Overview, Video, Comments */}
           <Grid size={{ xs: 12, md: 8 }}>
