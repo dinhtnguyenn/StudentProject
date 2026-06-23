@@ -913,6 +913,82 @@
     "major": "1781836774661"
   },
   {
+    "id": "1782231189437-0",
+    "name": "Ứng dụng quản lý nhà hàng",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/28nCogMr8T8/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=28nCogMr8T8",
+    "category": "1781885295220",
+    "teamMembers": [
+      "Thạch Hồ Tuyển",
+      "Lê Hoàng Chiến",
+      "Trần Văn Quyết",
+      "Trần Hữu Trí",
+      "Huỳnh Tấn Đạt"
+    ],
+    "semester": "SUMMER 2023",
+    "major": "1781836774661",
+    "techTags": [
+      "Android"
+    ]
+  },
+  {
+    "id": "1782231189488-1",
+    "name": "Ứng dụng bán coffee",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/18bJZL1MvHM/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=18bJZL1MvHM",
+    "category": "1781885295220",
+    "teamMembers": [
+      "Lục Thiên Phú",
+      "Lê Thanh Tường",
+      "Phạm Văn Đức"
+    ],
+    "semester": "SUMMER 2023",
+    "major": "1781836774661",
+    "techTags": [
+      "Android"
+    ]
+  },
+  {
+    "id": "1782231189539-2",
+    "name": "Ứng dụng đặt lịch cắt tóc trực tuyến",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/isQ9IPWohbw/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=isQ9IPWohbw",
+    "category": "1781885295220",
+    "teamMembers": [
+      "Đoàn Thanh Hòa",
+      "Trương Minh Thi",
+      "Phạm Trọng Nghĩa",
+      "Lê Văn Hoàng",
+      "Nguyễn Đình Tiến Phi"
+    ],
+    "semester": "SUMMER 2023",
+    "major": "1781836774661",
+    "techTags": [
+      "Android"
+    ]
+  },
+  {
+    "id": "1782231189590-3",
+    "name": "Ứng dụng thuê gia sư trực tuyến - AGIASU",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/ag8PgsK-tVo/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=ag8PgsK-tVo",
+    "category": "1781885295220",
+    "teamMembers": [
+      "Đỗ Quang Lợi",
+      "Nguyễn Thành Quốc",
+      "Đặng Trọng Tài"
+    ],
+    "semester": "SUMMER 2023",
+    "major": "1781836774661",
+    "techTags": [
+      "Android"
+    ]
+  },
+  {
     "id": "1781845048785-33",
     "name": "Ứng dụng bán máy tính, linh kiện máy tính HighTech",
     "description": "",
@@ -953,5 +1029,60 @@
     ],
     "isGoldenTicket": false,
     "major": "1781836774661"
+  },
+  {
+    "id": "1782231189640-4",
+    "name": "Ứng dụng bán điện thoại H-Shop",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/kM3fYw1kiKQ/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=kM3fYw1kiKQ",
+    "category": "1781885295220",
+    "teamMembers": [
+      "Trần Anh Huy"
+    ],
+    "semester": "FALL 2022",
+    "major": "1781836774661",
+    "techTags": [
+      "Android"
+    ]
+  },
+  {
+    "id": "1782231189691-5",
+    "name": "Ứng dụng bán cafe Aurora",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/04h38N46FwY/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=04h38N46FwY",
+    "category": "1781885295220",
+    "teamMembers": [
+      "Trần Văn Hoài",
+      "Lê Thị Thủy Tiên",
+      "Lê Minh Lân",
+      "Lê Chí Tài",
+      "Đỗ Hữu Gia Huy"
+    ],
+    "semester": "FALL 2022",
+    "major": "1781836774661",
+    "techTags": [
+      "Android"
+    ]
+  },
+  {
+    "id": "1782231189742-6",
+    "name": "Ứng dụng bán laptop KynaShop",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/A5Lm5duAIGU/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=A5Lm5duAIGU",
+    "category": "1781885295220",
+    "teamMembers": [
+      "Phan Thanh Huy",
+      "Huỳnh Minh Tân",
+      "Trần Anh Duy",
+      "Võ Duy Bảo Khánh"
+    ],
+    "semester": "FALL 2022",
+    "major": "1781836774661",
+    "techTags": [
+      "Android"
+    ]
   }
 ]
