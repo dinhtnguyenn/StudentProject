@@ -164,8 +164,13 @@ export default function ProjectDetailModal({ project, allProjects = [], open, on
                     lineHeight: 1.8,
                     mb: 4,
                     fontSize: '1.05rem',
+                    wordBreak: 'break-word',
+                    whiteSpace: 'pre-wrap',
+                    overflowX: 'hidden',
                     '& p': { mb: 2, mt: 0 },
-                    '& ul, & ol': { mb: 2, mt: 0, paddingLeft: 3 }
+                    '& ul, & ol': { mb: 2, mt: 0, paddingLeft: 3 },
+                    '& img, & iframe': { maxWidth: '100%', height: 'auto', borderRadius: 2, my: 2, display: 'block' },
+                    '& a': { color: 'primary.main', wordBreak: 'break-all' }
                   }}
                 />
               </>
