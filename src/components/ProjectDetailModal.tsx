@@ -158,7 +158,7 @@ export default function ProjectDetailModal({ project, allProjects = [], open, on
                 </Typography>
 
                 <Box
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(activeProject.description) }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(activeProject.description, { ADD_TAGS: ['iframe'], ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling'] }) }}
                   sx={{
                     color: 'text.secondary',
                     lineHeight: 1.8,
