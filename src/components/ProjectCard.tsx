@@ -220,25 +220,36 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
             {/* Team preview */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
               <Box sx={{ display: 'flex' }}>
-                {project.teamMembers.slice(0, 3).map((member, idx) => (
-                  <Avatar
-                    key={idx}
-                    sx={{
-                      width: 26, height: 26,
-                      fontSize: '0.65rem',
-                      fontWeight: 700,
-                      bgcolor: ['#2563EB', '#EC4899', '#F59E0B'][idx % 3],
-                      border: '2px solid',
-                      borderColor: 'background.paper',
-                      ml: idx > 0 ? -0.8 : 0,
-                    }}
-                  >
-                    {getAvatarLetter(member)}
-                  </Avatar>
-                ))}
+                {(() => {
+                  const safeTeamMembers = Array.isArray(project.teamMembers) 
+                    ? project.teamMembers 
+                    : (typeof project.teamMembers === 'string' ? (project.teamMembers as string).split('\n').map(m => m.trim()).filter(m => m) : []);
+                  return (
+                    <>
+                      {safeTeamMembers.slice(0, 3).map((member, idx) => (
+                        <Avatar
+                          key={idx}
+                          sx={{
+                            width: 26, height: 26,
+                            fontSize: '0.65rem',
+                            fontWeight: 700,
+                            bgcolor: ['#2563EB', '#EC4899', '#F59E0B'][idx % 3],
+                            border: '2px solid',
+                            borderColor: 'background.paper',
+                            ml: idx > 0 ? -0.8 : 0,
+                          }}
+                        >
+                          {getAvatarLetter(member)}
+                        </Avatar>
+                      ))}
+                    </>
+                  );
+                })()}
               </Box>
               <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
-                {project.teamMembers.length} thành viên
+                {Array.isArray(project.teamMembers) 
+                    ? project.teamMembers.length 
+                    : (typeof project.teamMembers === 'string' ? (project.teamMembers as string).split('\n').filter(m => m.trim()).length : 0)} thành viên
               </Typography>
             </Box>
           </CardContent>

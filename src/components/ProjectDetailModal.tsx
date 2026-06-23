@@ -311,36 +311,42 @@ export default function ProjectDetailModal({ project, allProjects = [], open, on
               ) : null}
 
               {/* Team Members */}
-              {activeProject.teamMembers && activeProject.teamMembers.length > 0 && (
-                <Box>
-                  <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 2 }}>
-                    Team thực hiện ({activeProject.teamMembers.length})
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                    {activeProject.teamMembers.map((member, idx) => (
-                      <Box key={idx} sx={{
-                        display: 'flex', alignItems: 'center', gap: 2, p: 1.5,
-                        borderRadius: 3,
-                        bgcolor: 'background.default',
-                        border: '1px solid', borderColor: 'divider',
-                        transition: 'all 0.2s',
-                        '&:hover': { borderColor: activeProject.isGoldenTicket ? '#F59E0B' : 'primary.main', transform: 'translateX(4px)' }
-                      }}>
-                        <Avatar sx={{
-                          width: 40, height: 40,
-                          fontSize: '1rem', fontWeight: 700,
-                          bgcolor: ['#2563EB', '#EC4899', '#F59E0B', '#10B981'][idx % 4]
+              {(() => {
+                const safeTeamMembers = Array.isArray(activeProject.teamMembers) 
+                  ? activeProject.teamMembers 
+                  : (typeof activeProject.teamMembers === 'string' ? (activeProject.teamMembers as string).split('\n').map(m => m.trim()).filter(Boolean) : []);
+                if (safeTeamMembers.length === 0) return null;
+                return (
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', mb: 2 }}>
+                      Team thực hiện ({safeTeamMembers.length})
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                      {safeTeamMembers.map((member, idx) => (
+                        <Box key={idx} sx={{
+                          display: 'flex', alignItems: 'center', gap: 2, p: 1.5,
+                          borderRadius: 3,
+                          bgcolor: 'background.default',
+                          border: '1px solid', borderColor: 'divider',
+                          transition: 'all 0.2s',
+                          '&:hover': { borderColor: activeProject.isGoldenTicket ? '#F59E0B' : 'primary.main', transform: 'translateX(4px)' }
                         }}>
-                          {getAvatarLetter(member)}
-                        </Avatar>
-                        <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '0.9rem' }}>
-                          {member}
-                        </Typography>
-                      </Box>
-                    ))}
+                          <Avatar sx={{
+                            width: 40, height: 40,
+                            fontSize: '1rem', fontWeight: 700,
+                            bgcolor: ['#2563EB', '#EC4899', '#F59E0B', '#10B981'][idx % 4]
+                          }}>
+                            {getAvatarLetter(member)}
+                          </Avatar>
+                          <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '0.9rem' }}>
+                            {member}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
                   </Box>
-                </Box>
-              )}
+                );
+              })()}
 
             </Box>
           </Grid>

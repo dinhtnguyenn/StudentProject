@@ -173,6 +173,8 @@ export default function ProjectGallery() {
           ...p,
           category: categoriesData.find((c: any) => c.id === p.category)?.name || p.category,
           major: majorsData.find((m: any) => m.id === p.major)?.name || p.major,
+          teamMembers: Array.isArray(p.teamMembers) ? p.teamMembers : (typeof p.teamMembers === 'string' ? p.teamMembers.split('\n').map((m: string) => m.trim()).filter(Boolean) : []),
+          techTags: Array.isArray(p.techTags) ? p.techTags : (typeof p.techTags === 'string' ? p.techTags.split(',').map((t: string) => t.trim()).filter(Boolean) : [])
         }));
 
         setProjects(resolvedProjects);

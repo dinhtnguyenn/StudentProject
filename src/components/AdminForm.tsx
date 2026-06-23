@@ -857,9 +857,9 @@ export default function AdminForm() {
           const thumbnails = snippet.thumbnails;
           const thumbnail = thumbnails?.maxres?.url || thumbnails?.standard?.url || thumbnails?.high?.url || thumbnails?.medium?.url || thumbnails?.default?.url || '';
 
-          if (!projectsList.some(p => p.id === videoId)) {
+          if (!projectsList.some(p => (p.youtubeUrl && p.youtubeUrl.includes(videoId)) || p.id === videoId)) {
             newProjects.push({
-              id: videoId,
+              id: `${Date.now()}-${i}`,
               name: title,
               description: '',
               thumbnail: thumbnail,
@@ -1206,6 +1206,12 @@ export default function AdminForm() {
       if (isProjectsChanged || projectsOverride) {
         const finalProjects = (projectsOverride || projectsList).map(p => {
           const { isNewItem, ...rest } = p;
+          if (typeof rest.teamMembers === 'string') {
+            rest.teamMembers = (rest.teamMembers as string).split('\n').map(m => m.trim()).filter(Boolean);
+          }
+          if (typeof rest.techTags === 'string') {
+            rest.techTags = (rest.techTags as string).split(',').map(t => t.trim()).filter(Boolean);
+          }
           return rest;
         });
         const newSha = await commitFile(getProjectsApiUrl(), finalProjects, projectsSha, `Update projects (Bulk save) [skip ci]`);
