@@ -734,6 +734,25 @@
     "major": "1781836774661"
   },
   {
+    "id": "1782231440615-0",
+    "name": "Game Bonappetit",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/5ZF8NNZfEmw/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=5ZF8NNZfEmw",
+    "category": "1781885295220",
+    "teamMembers": [
+      "PS37906 - Nguyễn Lê Huy",
+      "PS38376 - Trần Văn Trọng",
+      "PS38140 - Phạm Cao Thăng",
+      "PS38528 - Tạ Huỳnh Phúc"
+    ],
+    "semester": "FALL 2024",
+    "major": "1781836769312",
+    "techTags": [
+      "Unity"
+    ]
+  },
+  {
     "id": "1782231018217-1",
     "name": "Game Survival Odyssey",
     "description": "",
