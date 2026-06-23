@@ -419,6 +419,28 @@
     "major": "1781836774661"
   },
   {
+    "id": "1781844978228-18",
+    "name": "Ứng dụng dịch vụ cưới Wedding Planning",
+    "description": "",
+    "thumbnail": "https://img.youtube.com/vi/A6XuUL_GqHk/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=A6XuUL_GqHk",
+    "category": "1781792320640",
+    "teamMembers": [
+      "PS29565 - Nguyễn Văn Cường",
+      "PS29829 - La Toàn Thịnh",
+      "PS29933 - Hoàng Triệu Tâm Nhân",
+      "PS31500 - Huỳnh Quang Đạt",
+      "PS37551 - Trần Trung Hiếu",
+      "PS37570 - Hoàng Anh Tuấn"
+    ],
+    "semester": "SPRING 2025",
+    "techTags": [
+      "React Native"
+    ],
+    "isGoldenTicket": false,
+    "major": "1781836774661"
+  },
+  {
     "id": "1781844975933-16",
     "name": "Ứng dụng đặt lịch khám bệnh FPT",
     "description": "",
@@ -458,28 +480,6 @@
       "React Native"
     ],
     "isGoldenTicket": true,
-    "major": "1781836774661"
-  },
-  {
-    "id": "1781844978228-18",
-    "name": "Ứng dụng dịch vụ cưới Wedding Planning",
-    "description": "",
-    "thumbnail": "https://img.youtube.com/vi/A6XuUL_GqHk/maxresdefault.jpg",
-    "youtubeUrl": "https://www.youtube.com/watch?v=A6XuUL_GqHk",
-    "category": "1781792320640",
-    "teamMembers": [
-      "PS29565 - Nguyễn Văn Cường",
-      "PS29829 - La Toàn Thịnh",
-      "PS29933 - Hoàng Triệu Tâm Nhân",
-      "PS31500 - Huỳnh Quang Đạt",
-      "PS37551 - Trần Trung Hiếu",
-      "PS37570 - Hoàng Anh Tuấn"
-    ],
-    "semester": "SPRING 2025",
-    "techTags": [
-      "React Native"
-    ],
-    "isGoldenTicket": false,
     "major": "1781836774661"
   },
   {
@@ -523,6 +523,66 @@
     ],
     "isGoldenTicket": true,
     "major": "1781836774661"
+  },
+  {
+    "id": "G3PZmXKOquY",
+    "name": "Game LIFE OF DIE",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/G3PZmXKOquY/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=G3PZmXKOquY",
+    "category": "1781846352023",
+    "teamMembers": [],
+    "semester": "SPRING 2025",
+    "major": "1781836769312",
+    "techTags": []
+  },
+  {
+    "id": "YP2qZKlSKiM",
+    "name": "Game Viral Outbreak: Last Hope",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/YP2qZKlSKiM/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=YP2qZKlSKiM",
+    "category": "1781846352023",
+    "teamMembers": [],
+    "semester": "SPRING 2025",
+    "major": "1781836769312",
+    "techTags": []
+  },
+  {
+    "id": "fk7z1hkgNCg",
+    "name": "Game Survival Odyssey",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/fk7z1hkgNCg/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=fk7z1hkgNCg",
+    "category": "1781846352023",
+    "teamMembers": [],
+    "semester": "SPRING 2025",
+    "major": "1781836769312",
+    "techTags": []
+  },
+  {
+    "id": "sGk8GS7YcG4",
+    "name": "Game Crab Bike Simulator",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/sGk8GS7YcG4/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=sGk8GS7YcG4",
+    "category": "1781846352023",
+    "teamMembers": [],
+    "semester": "SPRING 2025",
+    "major": "1781836769312",
+    "techTags": []
+  },
+  {
+    "id": "0P4WK-tga34",
+    "name": "Game RONIN",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/0P4WK-tga34/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=0P4WK-tga34",
+    "category": "1781846352023",
+    "teamMembers": [],
+    "semester": "SPRING 2025",
+    "major": "1781836769312",
+    "techTags": []
   },
   {
     "id": "1781844981377-21",
