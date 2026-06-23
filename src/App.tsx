@@ -16,6 +16,7 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import { useAppTheme } from './ThemeContext';
 import confetti from 'canvas-confetti';
 import { ASSETS_3D } from './components/SeasonalEffects';
+import UIEasterEggs from './components/UIEasterEggs';
 
 function App() {
   const navigate = useNavigate();
@@ -298,10 +299,15 @@ function App() {
                   DinhNT24
                 </a>
               </Typography>
+              <Typography variant="caption" sx={{ color: 'text.disabled', opacity: 0.3, display: 'block', mt: 0.5, userSelect: 'none' }}>
+                Secrets: matrix, retro, gravity, roll, reset
+              </Typography>
             </Box>
           </Box>
         </Container>
       </Box>
+
+      <UIEasterEggs />
     </Box>
   );
 }

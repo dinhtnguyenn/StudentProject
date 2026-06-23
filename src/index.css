@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 :root {
   --bg-primary: #F8FAFC;
@@ -121,4 +122,126 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.02em;
+}
+
+/* Easter Egg: Matrix Mode */
+.matrix-mode {
+  background: #000 !important;
+  color: #0f0 !important;
+  font-family: 'Courier New', Courier, monospace !important;
+}
+.matrix-mode * {
+  background: transparent !important;
+  color: #0f0 !important;
+  border-color: #0f0 !important;
+  box-shadow: none !important;
+  font-family: 'Courier New', Courier, monospace !important;
+  text-shadow: 0 0 5px #0f0 !important;
+  fill: #0f0 !important;
+}
+
+/* Easter Egg: Retro Mode */
+.retro-mode {
+  background: #111 !important;
+}
+.retro-mode * {
+  font-family: 'VT323', monospace !important;
+  border-radius: 0 !important;
+  letter-spacing: 2px !important;
+  box-shadow: none !important;
+}
+.retro-mode .MuiCard-root,
+.retro-mode .MuiPaper-root,
+.retro-mode .MuiButton-root,
+.retro-mode button {
+  border: 2px solid #FFF !important;
+  background: #000 !important;
+  color: #39FF14 !important;
+  box-shadow: 4px 4px 0px #FF00FF !important;
+  text-shadow: none !important;
+}
+
+/* Easter Egg: Gravity Mode */
+.gravity-mode {
+  background-image: linear-gradient(-45deg, #03050a, #090712, #12091c, #1a112b, #211a4a, #322866, #483570, #70571c, #12091c, #03050a) !important;
+  background-size: 800% 800% !important;
+  animation: gravityGradient 10s linear infinite !important;
+  min-height: 100vh !important;
+}
+.gravity-mode::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  background-image: 
+    radial-gradient(2px 2px at 40px 60px, #fff, transparent),
+    radial-gradient(2px 2px at 90px 150px, #fff, transparent),
+    radial-gradient(2px 2px at 140px 30px, #ddd, transparent),
+    radial-gradient(2px 2px at 190px 120px, #fff, transparent),
+    radial-gradient(2px 2px at 240px 80px, #ccc, transparent),
+    radial-gradient(2px 2px at 290px 180px, #fff, transparent),
+    radial-gradient(2px 2px at 350px 40px, #ddd, transparent),
+    radial-gradient(2px 2px at 400px 130px, #fff, transparent);
+  background-repeat: repeat;
+  background-size: 450px 200px;
+  animation: twinkle 2s ease-in-out infinite alternate;
+}
+@keyframes twinkle {
+  0% { opacity: 0.2; }
+  100% { opacity: 1; }
+}
+@keyframes gravityGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.gravity-mode > *:not(.gravity-item) {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.5s ease;
+}
+.gravity-mode > *:not(.gravity-item) {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.5s ease;
+}
+
+/* Easter Egg: Roll Mode */
+.roll-mode-bg {
+  background-image: radial-gradient(circle at center, #2b1738 0%, #000 100%) !important;
+  min-height: 100vh !important;
+  overflow: hidden !important;
+}
+
+/* Easter Egg: Sphere Roll */
+.sphere-roll {
+  animation: sphere-roll 3.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
+  transform-style: preserve-3d;
+  will-change: transform, clip-path;
+}
+@keyframes sphere-roll {
+  0% { transform: scale(1) rotateZ(0deg); clip-path: circle(150% at 50% var(--cy)); }
+  15% { transform: scale(0.4) rotateZ(0deg); clip-path: circle(40vh at 50% var(--cy)); }
+  50% { transform: scale(0.4) rotateZ(360deg); clip-path: circle(40vh at 50% var(--cy)); }
+  85% { transform: scale(0.4) rotateZ(720deg); clip-path: circle(40vh at 50% var(--cy)); }
+  100% { transform: scale(1) rotateZ(720deg); clip-path: circle(150% at 50% var(--cy)); }
+}
+.sphere-overlay {
+  position: fixed;
+  top: 50vh; left: 50vw;
+  width: 80vh; height: 80vh;
+  transform: translate(-50%, -50%) scale(0);
+  border-radius: 50%;
+  box-shadow: inset -50px -50px 100px rgba(0,0,0,0.8), inset 20px 20px 60px rgba(255,255,255,0.4);
+  pointer-events: none;
+  z-index: 99999;
+  animation: sphere-overlay-anim 3.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
+}
+@keyframes sphere-overlay-anim {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+  15% { transform: translate(-50%, -50%) scale(0.4); opacity: 1; }
+  85% { transform: translate(-50%, -50%) scale(0.4); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
 }
