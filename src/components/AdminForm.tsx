@@ -225,8 +225,9 @@ export default function AdminForm() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(true);
 
-  // AI State
+  // AI State & API Keys
   const [geminiApiKey, setGeminiApiKey] = useState('');
+  const [youtubeApiKey, setYoutubeApiKey] = useState(() => localStorage.getItem('youtube_api_key') || '');
   const [isAiLoading, setIsAiLoading] = useState<{ tags: boolean, summary: boolean }>({ tags: false, summary: false });
 
   const verifyToken = async (token: string, owner: string, repo: string) => {
@@ -565,41 +566,63 @@ export default function AdminForm() {
 
   const handleFetchBulkYoutube = async () => {
     if (!bulkYoutubeUrl) return;
+    if (!youtubeApiKey) {
+      setStatus({ type: 'error', message: 'Vui lòng cấu hình YouTube API Key trước khi sử dụng tính năng này.' });
+      return;
+    }
+
     setIsBulkFetching(true);
-    setStatus({ type: 'info', message: 'Đang lấy danh sách video từ Playlist...' });
+    setStatus({ type: 'info', message: 'Đang lấy danh sách video từ Playlist (thông qua YouTube API)...' });
+    
     try {
-      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(bulkYoutubeUrl)}`);
-      const data = await res.json();
-      if (!data.contents) throw new Error('Cannot fetch playlist content');
+      let playlistId = bulkYoutubeUrl;
+      try {
+        const url = new URL(bulkYoutubeUrl);
+        playlistId = url.searchParams.get('list') || bulkYoutubeUrl;
+      } catch (e) {
+        // If not a valid URL, assume it's directly a playlist ID
+      }
 
-      const doc = new DOMParser().parseFromString(data.contents, 'text/html');
-      const scriptTags = Array.from(doc.querySelectorAll('script'));
-      const ytInitialDataScript = scriptTags.find(s => s.textContent?.includes('var ytInitialData = '));
+      let allVideos: any[] = [];
+      let nextPageToken = '';
 
-      if (!ytInitialDataScript || !ytInitialDataScript.textContent) throw new Error('Không tìm thấy dữ liệu playlist.');
+      do {
+        const apiUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${youtubeApiKey}${nextPageToken ? `&pageToken=${nextPageToken}` : ''}`;
+        const res = await fetch(apiUrl);
+        const data = await res.json();
 
-      const jsonText = ytInitialDataScript.textContent.replace('var ytInitialData = ', '').replace(/;$/, '');
-      const ytData = JSON.parse(jsonText);
+        if (data.error) {
+          throw new Error(data.error.message || 'Lỗi từ YouTube API. Vui lòng kiểm tra lại API Key hoặc Playlist ID.');
+        }
 
-      const tabs = ytData.contents?.twoColumnBrowseResultsRenderer?.tabs || [];
-      const playlistTab = tabs.find((t: any) => t.tabRenderer?.content?.sectionListRenderer);
-      const items = playlistTab?.tabRenderer?.content?.sectionListRenderer?.contents[0]?.itemSectionRenderer?.contents[0]?.playlistVideoListRenderer?.contents || [];
+        if (data.items && data.items.length > 0) {
+          allVideos = allVideos.concat(data.items);
+        }
+        nextPageToken = data.nextPageToken || '';
+      } while (nextPageToken);
 
-      const videos = items.filter((item: any) => item.playlistVideoRenderer).map((item: any) => item.playlistVideoRenderer);
-
-      if (videos.length === 0) {
+      if (allVideos.length === 0) {
         throw new Error('Không tìm thấy video nào. Đảm bảo Playlist ở trạng thái Công khai (Public).');
       }
 
-      setBulkProgress({ current: 0, total: videos.length });
+      setBulkProgress({ current: 0, total: allVideos.length });
       const newProjects: any[] = [];
 
-      for (let i = 0; i < videos.length; i++) {
-        const video = videos[i];
+      for (let i = 0; i < allVideos.length; i++) {
+        const item = allVideos[i];
         try {
-          const videoId = video.videoId;
-          const title = video.title?.runs?.[0]?.text || 'No title';
-          const thumbnail = video.thumbnail?.thumbnails?.pop()?.url || '';
+          const snippet = item.snippet;
+          const videoId = snippet.resourceId.videoId;
+          const title = snippet.title;
+
+          // Bỏ qua các video bị xóa hoặc ẩn
+          if (title === 'Private video' || title === 'Deleted video') {
+            setBulkProgress(prev => ({ ...prev, current: i + 1 }));
+            continue;
+          }
+
+          const thumbnails = snippet.thumbnails;
+          const thumbnail = thumbnails?.maxres?.url || thumbnails?.standard?.url || thumbnails?.high?.url || thumbnails?.medium?.url || thumbnails?.default?.url || '';
 
           if (!projectsList.some(p => p.id === videoId)) {
             newProjects.push({
@@ -616,11 +639,12 @@ export default function AdminForm() {
             });
           }
         } catch (e) {
-          console.warn('Lỗi cào 1 video trong playlist', e);
+          console.warn('Lỗi xử lý 1 video trong playlist', e);
         }
 
         setBulkProgress(prev => ({ ...prev, current: i + 1 }));
-        await new Promise(resolve => setTimeout(resolve, 500)); // Rate limiting
+        // Rút ngắn thời gian chờ vì API chính chủ xử lý rất mượt, không cần wait lâu
+        await new Promise(resolve => setTimeout(resolve, 50)); 
       }
 
       if (newProjects.length > 0) {
@@ -628,12 +652,12 @@ export default function AdminForm() {
         setStatus({ type: 'success', message: `Đã nhập nháp thành công ${newProjects.length} dự án từ Playlist!` });
         setTabIndex(1);
       } else {
-        setStatus({ type: 'info', message: 'Tất cả video trong Playlist đã tồn tại trong hệ thống.' });
+        setStatus({ type: 'info', message: 'Tất cả video hợp lệ trong Playlist đều đã tồn tại trong hệ thống.' });
       }
       setBulkYoutubeUrl('');
     } catch (err: any) {
       console.error(err);
-      setStatus({ type: 'error', message: err.message || 'Lỗi khi cào Playlist' });
+      setStatus({ type: 'error', message: err.message || 'Lỗi khi lấy dữ liệu Playlist' });
     } finally {
       setIsBulkFetching(false);
       setBulkProgress({ total: 0, current: 0 });
@@ -1330,7 +1354,23 @@ export default function AdminForm() {
                     </Paper>
 
                     <Paper elevation={0} sx={{ p: 3, border: `2px dashed ${muiTheme.palette.secondary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
-                      <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'text.secondary' }}>Nhập hàng loạt từ Playlist</Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.secondary' }}>Nhập hàng loạt từ Playlist</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', gap: 1.5, mb: 1.5 }}>
+                        <TextField 
+                          fullWidth 
+                          size="small" 
+                          type="password"
+                          placeholder="Dán YouTube API Key của bạn (Bắt buộc)..." 
+                          value={youtubeApiKey} 
+                          onChange={e => {
+                            setYoutubeApiKey(e.target.value);
+                            localStorage.setItem('youtube_api_key', e.target.value);
+                          }} 
+                          sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} 
+                        />
+                      </Box>
                       <Box sx={{ display: 'flex', gap: 1.5 }}>
                         <TextField fullWidth size="small" placeholder="Dán link Playlist YouTube..." value={bulkYoutubeUrl} onChange={e => setBulkYoutubeUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleFetchBulkYoutube())} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} />
                         <Button variant="contained" color="secondary" onClick={handleFetchBulkYoutube} disabled={isBulkFetching || !bulkYoutubeUrl.trim()} startIcon={isBulkFetching ? <CircularProgress size={18} color="inherit" /> : <CloudUploadIcon />} sx={{ minWidth: 150, whiteSpace: 'nowrap', borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(156, 39, 176, 0.39)', background: 'linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>

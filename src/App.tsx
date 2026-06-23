@@ -17,6 +17,7 @@ import { useAppTheme } from './ThemeContext';
 import confetti from 'canvas-confetti';
 import { ASSETS_3D } from './components/SeasonalEffects';
 import UIEasterEggs from './components/UIEasterEggs';
+import CommandPalette from './components/CommandPalette';
 
 function App() {
   const navigate = useNavigate();
@@ -308,6 +309,7 @@ function App() {
       </Box>
 
       <UIEasterEggs />
+      <CommandPalette />
     </Box>
   );
 }
