@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import {
   Box, Typography, TextField, Button, Paper, Snackbar, Alert, Grid,
   CircularProgress, Divider, Collapse, IconButton, InputAdornment,
-  List, ListItem, ListItemText, Avatar, ListItemAvatar, ListSubheader, ListItemButton,
+  List, ListItem, ListItemText, Avatar, ListSubheader, ListItemButton,
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
-  FormControl, InputLabel, Select, MenuItem, Chip, Checkbox, FormControlLabel, useTheme, ListItemIcon, Autocomplete
+  FormControl, InputLabel, Select, MenuItem, Chip, Checkbox, FormControlLabel, useTheme, ListItemIcon, Autocomplete, InputBase
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import EditNoteIcon from '@mui/icons-material/EditNote';
@@ -27,6 +27,9 @@ import FolderIcon from '@mui/icons-material/Folder';
 import ArticleIcon from '@mui/icons-material/Article';
 import SettingsIcon from '@mui/icons-material/Settings';
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import SchoolIcon from '@mui/icons-material/School';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
@@ -86,127 +89,290 @@ function generateCategoryColors() {
 }
 
 // --- Sortable Item Component ---
-function SortableProjectItem({ project, idx, isSelected, onToggle, onEdit, onDelete, categoryName, onUpdateTechTags, allTags = [] }: any) {
+function SortableProjectItem({ project, onDelete, onToggle, isSelected, categoriesList, majorsList, allTags, onUpdateTechTags, onInlineEdit }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: project.id });
   const theme = useTheme();
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 100 : 1,
     opacity: isDragging ? 0.8 : 1,
-    backgroundColor: isDragging ? theme.palette.action.hover : 'transparent',
   };
 
   return (
-    <Box ref={setNodeRef} style={style}>
-      {idx > 0 && <Divider />}
-      <ListItem sx={{ py: 2 }}>
-        <Box {...attributes} {...listeners} sx={{ cursor: 'grab', mr: 1, display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
-          <DragIndicatorIcon />
+    <Box ref={setNodeRef} style={style} sx={{ mb: 1.5 }}>
+      <Paper 
+        elevation={0} 
+        sx={{ 
+          p: 1.5, 
+          borderRadius: 3, 
+          border: '1px solid', 
+          borderColor: isSelected ? 'primary.main' : 'divider',
+          bgcolor: isDragging ? 'action.hover' : 'background.paper',
+          transition: 'all 0.2s',
+          '&:hover': {
+            borderColor: 'primary.light',
+          }
+        }}
+      >
+        {/* Header Row */}
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
+          <Box {...attributes} {...listeners} sx={{ cursor: 'grab', mr: 1, mt: 1, display: 'flex', alignItems: 'center', color: 'text.disabled' }}>
+            <DragIndicatorIcon fontSize="small" />
+          </Box>
+          <Checkbox size="small" checked={isSelected} onChange={() => onToggle(project.id)} sx={{ mr: 1, mt: 0.5 }} />
+          
+          <Avatar src={project.thumbnail} variant="rounded" sx={{ width: 44, height: 44, mr: 2, mt: 0.5, border: '1px solid', borderColor: 'divider', borderRadius: 2 }} />
+          
+          <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <InputBase 
+                value={project.name} 
+                placeholder="Tên dự án..."
+                onChange={(e) => onInlineEdit(project.id, 'name', e.target.value)} 
+                sx={{ flexGrow: 1, fontWeight: 700, color: 'text.primary', fontSize: '1.05rem', '& input': { p: 0 } }} 
+              />
+              <IconButton 
+                size="small" 
+                onClick={() => onInlineEdit(project.id, 'isGoldenTicket', !project.isGoldenTicket)}
+                sx={{ p: 0.5 }}
+                title={project.isGoldenTicket ? "Bỏ Golden Ticket" : "Đánh dấu Golden Ticket"}
+              >
+                <StarIcon sx={{ color: project.isGoldenTicket ? '#F59E0B' : 'action.disabled', fontSize: 20 }} />
+              </IconButton>
+            </Box>
+            
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+              {/* Semester */}
+              <InputBase 
+                value={project.semester} 
+                placeholder="Kỳ (VD: FA24)"
+                onChange={(e) => onInlineEdit(project.id, 'semester', e.target.value)} 
+                sx={{ width: 120, fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& input': { p: 0, textAlign: 'center' } }} 
+              />
+              
+              {/* Major */}
+              <Select
+                variant="standard"
+                disableUnderline
+                displayEmpty
+                value={project.major || ''}
+                onChange={(e) => onInlineEdit(project.id, 'major', e.target.value as string)}
+                sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& .MuiSelect-select': { p: 0, pb: 0, minHeight: 'auto' } }}
+              >
+                <MenuItem value="" disabled>Chọn ngành</MenuItem>
+                {majorsList?.map((m: any) => <MenuItem key={m.id} value={m.id}>{m.name}</MenuItem>)}
+              </Select>
+
+              {/* Category */}
+              <Select
+                variant="standard"
+                disableUnderline
+                displayEmpty
+                value={project.category || ''}
+                onChange={(e) => onInlineEdit(project.id, 'category', e.target.value as string)}
+                sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& .MuiSelect-select': { p: 0, pb: 0, minHeight: 'auto' } }}
+              >
+                <MenuItem value="" disabled>Chọn loại</MenuItem>
+                {categoriesList?.map((c: any) => <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>)}
+              </Select>
+            </Box>
+          </Box>
+          
+          <Box sx={{ display: 'flex', gap: 0.5, ml: 2, alignItems: 'center', mt: 0.5 }}>
+            <IconButton 
+              size="small" 
+              onClick={() => setIsExpanded(!isExpanded)} 
+              sx={{ bgcolor: isExpanded ? 'rgba(59, 130, 246, 0.1)' : 'transparent', color: isExpanded ? 'primary.main' : 'text.secondary', transition: 'all 0.2s', '&:hover': { bgcolor: 'rgba(59, 130, 246, 0.1)', color: 'primary.main' } }}
+            >
+              {isExpanded ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />}
+            </IconButton>
+            <IconButton size="small" onClick={() => onDelete(project.id)} sx={{ color: 'text.disabled', transition: 'all 0.2s', '&:hover': { color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)' } }}>
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Box>
         </Box>
-        <Checkbox checked={isSelected} onChange={() => onToggle(project.id)} sx={{ mr: 1 }} />
-        <Box sx={{ display: 'flex', flexGrow: 1, cursor: 'pointer', alignItems: 'center' }} onClick={() => project.youtubeUrl && window.open(project.youtubeUrl, '_blank')}>
-          <ListItemAvatar>
-            <Avatar src={project.thumbnail} variant="rounded" sx={{ width: 64, height: 40, mr: 1, border: '1px solid', borderColor: 'divider' }} />
-          </ListItemAvatar>
-          <ListItemText
-            primary={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary', '&:hover': { color: 'primary.main' } }}>{project.name}</Typography>
-                {project.isGoldenTicket && <StarIcon sx={{ color: '#F59E0B', fontSize: 18 }} titleAccess="Golden Ticket" />}
-              </Box>
-            }
-            secondary={
-              <Box>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>{categoryName || project.category} • {project.semester}</Typography>
-                <Box 
-                  sx={{ mt: 0.5, display: 'flex', width: '100%' }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Autocomplete
-                    multiple
-                    freeSolo
-                    size="small"
-                    options={allTags}
-                    value={Array.isArray(project.techTags) ? project.techTags : (typeof project.techTags === 'string' && project.techTags ? (project.techTags as string).split(',').map(t=>t.trim()) : [])}
-                    onChange={(_, newValue) => onUpdateTechTags(newValue as string[])}
-                    sx={{ width: '100%', mt: 1, maxWidth: 600 }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        variant="outlined"
-                        placeholder="+ Thêm công nghệ..."
-                        sx={{ 
-                          '& .MuiOutlinedInput-root': {
-                            padding: '4px',
-                            borderRadius: 2,
-                            fontSize: '0.8rem',
-                            bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
-                            transition: 'all 0.2s',
-                            '&:hover': {
-                              bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-                            }
-                          }
-                        }}
-                      />
-                    )}
+
+        {/* Expandable Body */}
+        <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+          <Divider sx={{ my: 2 }} />
+          <Grid container spacing={3}>
+            {/* Left Column */}
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <TextField 
+                  fullWidth size="small" label="Link Thumbnail (Ảnh)" 
+                  value={project.thumbnail} 
+                  onChange={(e) => onInlineEdit(project.id, 'thumbnail', e.target.value)} 
+                />
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <TextField 
+                    fullWidth size="small" label="Link YouTube" 
+                    value={project.youtubeUrl || ''} 
+                    onChange={(e) => onInlineEdit(project.id, 'youtubeUrl', e.target.value)} 
                   />
+                  {project.youtubeUrl && (
+                    <IconButton size="small" onClick={() => window.open(project.youtubeUrl, '_blank')} sx={{ color: '#EF4444', bgcolor: 'rgba(239, 68, 68, 0.1)' }}>
+                      <OpenInNewIcon /> 
+                    </IconButton>
+                  )}
                 </Box>
+                <Autocomplete
+                  multiple freeSolo size="small"
+                  options={allTags}
+                  value={Array.isArray(project.techTags) ? project.techTags : (typeof project.techTags === 'string' && project.techTags ? (project.techTags as string).split(',').map(t=>t.trim()) : [])}
+                  onChange={(_, newValue) => onUpdateTechTags(project.id, newValue as string[])}
+                  renderInput={(params) => <TextField {...params} label="Công nghệ sử dụng" placeholder="+ Thêm..." />}
+                />
               </Box>
-            }
-          />
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
-          <IconButton size="small" onClick={() => onEdit(project)} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
-          <IconButton size="small" onClick={() => onDelete(project.id)} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
-        </Box>
-      </ListItem>
+            </Grid>
+            
+            {/* Right Column */}
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField 
+                fullWidth size="small" multiline rows={6} 
+                label="Thành viên nhóm (Mỗi người 1 dòng)" 
+                value={Array.isArray(project.teamMembers) ? project.teamMembers.join('\n') : project.teamMembers} 
+                onChange={(e) => onInlineEdit(project.id, 'teamMembers', e.target.value)} 
+              />
+            </Grid>
+            
+            {/* Description - Full Width */}
+            <Grid size={{ xs: 12 }}>
+              <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary', fontWeight: 600 }}>Mô tả dự án</Typography>
+              <Box sx={{
+                '.ql-container': { borderBottomLeftRadius: 8, borderBottomRightRadius: 8, minHeight: 120, fontSize: '0.9rem', fontFamily: 'inherit', color: 'text.primary' },
+                '.ql-toolbar': { borderTopLeftRadius: 8, borderTopRightRadius: 8, bgcolor: 'background.default' },
+                '.ql-stroke': { stroke: theme.palette.text.primary },
+                '.ql-fill': { fill: theme.palette.text.primary },
+                '.ql-picker': { color: theme.palette.text.primary },
+              }}>
+                <ReactQuill 
+                  theme="snow" 
+                  value={project.description || ''} 
+                  onChange={(val) => onInlineEdit(project.id, 'description', val)} 
+                />
+              </Box>
+            </Grid>
+          </Grid>
+        </Collapse>
+      </Paper>
     </Box>
   );
 }
 
 // --- Sortable Article Item Component ---
-function SortableArticleItem({ article, idx, onEdit, onDelete, onYearChange, typeName, majorName }: any) {
+function SortableArticleItem({ article, onDelete, onInlineEdit, articleTypesList, majorsList }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: article.id });
   const theme = useTheme();
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 100 : 1,
     opacity: isDragging ? 0.8 : 1,
-    backgroundColor: isDragging ? theme.palette.action.hover : 'transparent',
   };
 
   return (
-    <Box ref={setNodeRef} style={style}>
-      {idx > 0 && <Divider />}
-      <ListItem sx={{ py: 2 }}>
-        <Box {...attributes} {...listeners} sx={{ cursor: 'grab', mr: 1, display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
-          <DragIndicatorIcon />
+    <Box ref={setNodeRef} style={style} sx={{ mb: 1.5 }}>
+      <Paper 
+        elevation={0} 
+        sx={{ 
+          p: 1.5, 
+          borderRadius: 3, 
+          border: '1px solid', 
+          borderColor: 'divider',
+          bgcolor: isDragging ? 'action.hover' : 'background.paper',
+          transition: 'all 0.2s',
+          '&:hover': {
+            borderColor: 'primary.light',
+          }
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
+          <Box {...attributes} {...listeners} sx={{ cursor: 'grab', mr: 1, mt: 1, display: 'flex', alignItems: 'center', color: 'text.disabled' }}>
+            <DragIndicatorIcon fontSize="small" />
+          </Box>
+          
+          <Avatar src={article.imageUrl} variant="rounded" sx={{ width: 64, height: 44, mr: 2, mt: 0.5, border: '1px solid', borderColor: 'divider', borderRadius: 2 }} />
+          
+          <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <InputBase 
+                value={article.title} 
+                placeholder="Tên bài viết..."
+                onChange={(e) => onInlineEdit(article.id, 'title', e.target.value)} 
+                sx={{ flexGrow: 1, fontWeight: 700, color: 'text.primary', fontSize: '1.05rem', '& input': { p: 0 } }} 
+              />
+            </Box>
+            
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+              <InputBase 
+                placeholder="Năm..." 
+                value={article.year || ''} 
+                onChange={(e) => onInlineEdit(article.id, 'year', e.target.value)} 
+                sx={{ width: 60, fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& input': { p: 0, textAlign: 'center' } }} 
+              />
+              <Select
+                variant="standard"
+                disableUnderline
+                displayEmpty
+                value={article.major || ''}
+                onChange={(e) => onInlineEdit(article.id, 'major', e.target.value as string)}
+                sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& .MuiSelect-select': { p: 0, pb: 0, minHeight: 'auto' } }}
+              >
+                <MenuItem value="" disabled>Chọn ngành</MenuItem>
+                {majorsList?.map((m: any) => <MenuItem key={m.id} value={m.id}>{m.name}</MenuItem>)}
+              </Select>
+              <Select
+                variant="standard"
+                disableUnderline
+                displayEmpty
+                value={article.type || ''}
+                onChange={(e) => onInlineEdit(article.id, 'type', e.target.value as string)}
+                sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& .MuiSelect-select': { p: 0, pb: 0, minHeight: 'auto' } }}
+              >
+                <MenuItem value="" disabled>Chọn loại</MenuItem>
+                {articleTypesList?.map((t: any) => <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>)}
+              </Select>
+            </Box>
+          </Box>
+          
+          <Box sx={{ display: 'flex', gap: 0.5, ml: 2, alignItems: 'center', mt: 0.5 }}>
+            <IconButton 
+              size="small" 
+              onClick={() => setIsExpanded(!isExpanded)} 
+              sx={{ bgcolor: isExpanded ? 'rgba(59, 130, 246, 0.1)' : 'transparent', color: isExpanded ? 'primary.main' : 'text.secondary', transition: 'all 0.2s', '&:hover': { bgcolor: 'rgba(59, 130, 246, 0.1)', color: 'primary.main' } }}
+            >
+              {isExpanded ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />}
+            </IconButton>
+            <IconButton size="small" onClick={() => onDelete(article.id)} sx={{ color: 'text.disabled', transition: 'all 0.2s', '&:hover': { color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)' } }}>
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Box>
         </Box>
-        <Box sx={{ display: 'flex', flexGrow: 1, cursor: 'pointer', alignItems: 'center' }} onClick={() => article.link && window.open(article.link, '_blank')}>
-          <ListItemAvatar>
-            <Avatar src={article.imageUrl} variant="rounded" sx={{ width: 80, height: 50, mr: 2, border: '1px solid', borderColor: 'divider' }} />
-          </ListItemAvatar>
-          <ListItemText
-            primary={<Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary', '&:hover': { color: 'primary.main' } }}>{article.title}</Typography>}
-            secondary={<Typography variant="caption" sx={{ color: 'text.secondary' }}>{typeName || article.type} • {majorName || article.major}</Typography>}
-          />
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1, ml: 2, alignItems: 'center' }}>
-          <TextField 
-            size="small" 
-            placeholder="Năm..." 
-            value={article.year || ''} 
-            onChange={(e) => onYearChange(article.id, e.target.value)} 
-            sx={{ width: 80, '& .MuiInputBase-root': { fontSize: '0.85rem', height: 32 } }} 
-          />
-          <IconButton size="small" onClick={() => onEdit(article)} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
-          <IconButton size="small" onClick={() => onDelete(article.id)} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
-        </Box>
-      </ListItem>
+        <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+          <Divider sx={{ my: 2 }} />
+          <Grid container spacing={3}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField fullWidth size="small" label="Link Ảnh" value={article.imageUrl || ''} onChange={(e) => onInlineEdit(article.id, 'imageUrl', e.target.value)} />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <TextField fullWidth size="small" label="Link Bài Viết" value={article.link || ''} onChange={(e) => onInlineEdit(article.id, 'link', e.target.value)} />
+                {article.link && (
+                  <IconButton size="small" onClick={() => window.open(article.link, '_blank')} sx={{ color: 'info.main', bgcolor: 'rgba(59, 130, 246, 0.1)' }}>
+                    <OpenInNewIcon /> 
+                  </IconButton>
+                )}
+              </Box>
+            </Grid>
+          </Grid>
+        </Collapse>
+      </Paper>
     </Box>
   );
 }
@@ -755,6 +921,14 @@ export default function AdminForm() {
 
   const handleToggleProject = (id: string) => setSelectedProjects(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   const handleToggleAllProjects = () => setSelectedProjects(selectedProjects.length === projectsList.length ? [] : projectsList.map(p => p.id));
+
+  const handleInlineEditProject = (id: string, field: string, value: string) => {
+    setProjectsList(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
+  };
+
+  const handleInlineEditArticle = (id: string, field: string, value: string) => {
+    setArticlesList(prev => prev.map(a => a.id === id ? { ...a, [field]: value } : a));
+  };
 
   // Categories Draft Actions
   const handleAddCategory = () => {
@@ -1531,10 +1705,11 @@ export default function AdminForm() {
                               idx={idx}
                               isSelected={selectedProjects.includes(project.id)}
                               onToggle={handleToggleProject}
-                              categoryName={categoriesList.find(c => c.id === project.category)?.name || project.category}
+                              categoriesList={categoriesList}
+                              majorsList={majorsList}
                               allTags={allTags}
-                              onUpdateTechTags={(newTags: string[]) => {
-                                setProjectsList(prev => prev.map(p => p.id === project.id ? { ...p, techTags: newTags } : p));
+                              onUpdateTechTags={(id: string, newTags: string[]) => {
+                                setProjectsList(prev => prev.map(p => p.id === id ? { ...p, techTags: newTags } : p));
                               }}
                               onEdit={(p: any) => {
                                 setFormData({
@@ -1549,6 +1724,7 @@ export default function AdminForm() {
                                 setTabIndex(0);
                               }}
                               onDelete={(id: string) => { setProjectToDelete(id); setDeleteConfirmOpen(true); }}
+                              onInlineEdit={handleInlineEditProject}
                             />
                             );
                           })}
@@ -1702,11 +1878,11 @@ export default function AdminForm() {
                             key={article.id}
                             article={article}
                             idx={idx}
-                            typeName={articleTypesList.find(t => t.id === article.type)?.name}
-                            majorName={majorsList.find(m => m.id === article.major)?.name}
+                            articleTypesList={articleTypesList}
+                            majorsList={majorsList}
                             onEdit={(a: any) => { setArticleFormData(a); setTabIndex(3); }}
                             onDelete={(id: string) => setArticlesList(prev => prev.filter(item => item.id !== id))}
-                            onYearChange={(id: string, year: string) => setArticlesList(prev => prev.map(item => item.id === id ? { ...item, year } : item))}
+                            onInlineEdit={handleInlineEditArticle}
                           />
                         ))}
                       </List>
