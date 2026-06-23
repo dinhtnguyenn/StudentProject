@@ -610,6 +610,42 @@
     "techTags": []
   },
   {
+    "id": "1782231575472-0",
+    "name": "[Game Việt 2024] - Game Yên",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/t0ag3nuzQnA/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=t0ag3nuzQnA",
+    "category": "1782231558845",
+    "teamMembers": [
+      "PS38022 - Đoàn Ngọc Minh Tâm",
+      "PS39125 - Trần Vũ Phương Nghi",
+      "Student1413116 - Bùi Yến Nhi",
+      "Student1412581 - Nguyễn Trúc Quỳnh"
+    ],
+    "semester": "FALL 2024",
+    "major": "1781836769312",
+    "techTags": [
+      "Unity"
+    ]
+  },
+  {
+    "id": "1782231575523-1",
+    "name": "[Game Việt 2024] - Game 1003",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/xu8dXPtqljM/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=xu8dXPtqljM",
+    "category": "1782231558845",
+    "teamMembers": [
+      "PS37906 - Nguyễn Lê Huy",
+      "PS38376 - Trần Văn Trọng"
+    ],
+    "semester": "FALL 2024",
+    "major": "1781836769312",
+    "techTags": [
+      "Unity"
+    ]
+  },
+  {
     "id": "1781844981377-21",
     "name": "Ứng dụng đặt vé xem phim Movie Go",
     "description": "",
