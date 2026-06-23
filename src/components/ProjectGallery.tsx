@@ -158,7 +158,7 @@ export default function ProjectGallery() {
       cPromise = fetch(localCategoriesUrl).then(res => res.json()).catch(() => []);
       mPromise = fetch(localMajorsUrl).then(res => res.json()).catch(() => []);
     } else {
-      const ref = `?ref=main`;
+      const ref = `?ref=main&t=${Date.now()}`;
       pPromise = fetchWithFallback(`https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/projects.json${ref}`, localProjectsUrl);
       cPromise = fetchWithFallback(`https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/categories.json${ref}`, localCategoriesUrl);
       mPromise = fetchWithFallback(`https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/majors.json${ref}`, localMajorsUrl);

@@ -112,7 +112,7 @@ export default function ArticlesGallery() {
       tPromise = fetch(localTypesUrl).then(res => res.json()).catch(() => []);
       mPromise = fetch(localMajorsUrl).then(res => res.json()).catch(() => []);
     } else {
-      const ref = `?ref=main`;
+      const ref = `?ref=main&t=${Date.now()}`;
       pPromise = fetchWithFallback(`https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/articles.json${ref}`, localArticlesUrl);
       tPromise = fetchWithFallback(`https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/articleTypes.json${ref}`, localTypesUrl);
       mPromise = fetchWithFallback(`https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/majors.json${ref}`, localMajorsUrl);
