@@ -128,9 +128,9 @@ export default function ProjectGallery() {
   };
 
   useEffect(() => {
-    const localProjectsUrl = `${import.meta.env.BASE_URL}data/projects.json`;
-    const localCategoriesUrl = `${import.meta.env.BASE_URL}data/categories.json`;
-    const localMajorsUrl = `${import.meta.env.BASE_URL}data/majors.json`;
+    const localProjectsUrl = `${import.meta.env.BASE_URL}data/projects.json?t=${Date.now()}`;
+    const localCategoriesUrl = `${import.meta.env.BASE_URL}data/categories.json?t=${Date.now()}`;
+    const localMajorsUrl = `${import.meta.env.BASE_URL}data/majors.json?t=${Date.now()}`;
 
     const fetchWithFallback = async (apiUrl: string, localUrl: string) => {
       try {
@@ -146,18 +146,22 @@ export default function ProjectGallery() {
       }
     };
 
-    let pPromise = fetch(localProjectsUrl).then(res => res.json());
-    let cPromise = fetch(localCategoriesUrl).then(res => res.json()).catch(() => []);
-    let mPromise = fetch(localMajorsUrl).then(res => res.json()).catch(() => []);
+    let pPromise: Promise<any>;
+    let cPromise: Promise<any>;
+    let mPromise: Promise<any>;
 
-    if (window.location.hostname.includes('.github.io')) {
-      const owner = window.location.hostname.split('.')[0];
-      const repo = window.location.pathname.split('/')[1];
-      if (owner && repo) {
-        pPromise = fetchWithFallback(`https://api.github.com/repos/${owner}/${repo}/contents/public/data/projects.json`, localProjectsUrl);
-        cPromise = fetchWithFallback(`https://api.github.com/repos/${owner}/${repo}/contents/public/data/categories.json`, localCategoriesUrl);
-        mPromise = fetchWithFallback(`https://api.github.com/repos/${owner}/${repo}/contents/public/data/majors.json`, localMajorsUrl);
-      }
+    const githubOwner = 'dinhtnguyenn';
+    const githubRepo = 'StudentProject';
+
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      pPromise = fetch(localProjectsUrl).then(res => res.json());
+      cPromise = fetch(localCategoriesUrl).then(res => res.json()).catch(() => []);
+      mPromise = fetch(localMajorsUrl).then(res => res.json()).catch(() => []);
+    } else {
+      const ref = `?ref=main`;
+      pPromise = fetchWithFallback(`https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/projects.json${ref}`, localProjectsUrl);
+      cPromise = fetchWithFallback(`https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/categories.json${ref}`, localCategoriesUrl);
+      mPromise = fetchWithFallback(`https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/majors.json${ref}`, localMajorsUrl);
     }
 
     Promise.all([pPromise, cPromise, mPromise])
