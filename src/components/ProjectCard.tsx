@@ -247,9 +247,12 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
                 })()}
               </Box>
               <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
-                {Array.isArray(project.teamMembers) 
+                {(() => {
+                  const count = Array.isArray(project.teamMembers) 
                     ? project.teamMembers.length 
-                    : (typeof project.teamMembers === 'string' ? (project.teamMembers as string).split('\n').filter(m => m.trim()).length : 0)} thành viên
+                    : (typeof project.teamMembers === 'string' ? (project.teamMembers as string).split('\n').filter(m => m.trim()).length : 0);
+                  return count > 0 ? `${count} thành viên` : 'Đang cập nhật';
+                })()}
               </Typography>
             </Box>
           </CardContent>
