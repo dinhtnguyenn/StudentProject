@@ -210,6 +210,30 @@
     "major": "1781836769312"
   },
   {
+    "id": "1782231757572-1",
+    "name": "[Game Việt 2025] Game Người Kiến Tạo",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/P_JfvTcjKNg/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=P_JfvTcjKNg",
+    "category": "1782231558845",
+    "teamMembers": [],
+    "semester": "SUMMER 2025",
+    "major": "1781836769312",
+    "techTags": []
+  },
+  {
+    "id": "1782231757622-2",
+    "name": "[Game Việt 2025] Game Thịnh Thế Việt",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/OU6XT0aRZv8/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=OU6XT0aRZv8",
+    "category": "1782231558845",
+    "teamMembers": [],
+    "semester": "SUMMER 2025",
+    "major": "1781836769312",
+    "techTags": []
+  },
+  {
     "id": "1781913501284",
     "name": "Game Chiến Binh Cyberpunk",
     "description": "",
@@ -419,6 +443,28 @@
     "major": "1781836774661"
   },
   {
+    "id": "1781844978228-18",
+    "name": "Ứng dụng dịch vụ cưới Wedding Planning",
+    "description": "",
+    "thumbnail": "https://img.youtube.com/vi/A6XuUL_GqHk/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=A6XuUL_GqHk",
+    "category": "1781792320640",
+    "teamMembers": [
+      "PS29565 - Nguyễn Văn Cường",
+      "PS29829 - La Toàn Thịnh",
+      "PS29933 - Hoàng Triệu Tâm Nhân",
+      "PS31500 - Huỳnh Quang Đạt",
+      "PS37551 - Trần Trung Hiếu",
+      "PS37570 - Hoàng Anh Tuấn"
+    ],
+    "semester": "SPRING 2025",
+    "techTags": [
+      "React Native"
+    ],
+    "isGoldenTicket": false,
+    "major": "1781836774661"
+  },
+  {
     "id": "1781844975933-16",
     "name": "Ứng dụng đặt lịch khám bệnh FPT",
     "description": "",
@@ -458,28 +504,6 @@
       "React Native"
     ],
     "isGoldenTicket": true,
-    "major": "1781836774661"
-  },
-  {
-    "id": "1781844978228-18",
-    "name": "Ứng dụng dịch vụ cưới Wedding Planning",
-    "description": "",
-    "thumbnail": "https://img.youtube.com/vi/A6XuUL_GqHk/maxresdefault.jpg",
-    "youtubeUrl": "https://www.youtube.com/watch?v=A6XuUL_GqHk",
-    "category": "1781792320640",
-    "teamMembers": [
-      "PS29565 - Nguyễn Văn Cường",
-      "PS29829 - La Toàn Thịnh",
-      "PS29933 - Hoàng Triệu Tâm Nhân",
-      "PS31500 - Huỳnh Quang Đạt",
-      "PS37551 - Trần Trung Hiếu",
-      "PS37570 - Hoàng Anh Tuấn"
-    ],
-    "semester": "SPRING 2025",
-    "techTags": [
-      "React Native"
-    ],
-    "isGoldenTicket": false,
     "major": "1781836774661"
   },
   {
@@ -523,6 +547,127 @@
     ],
     "isGoldenTicket": true,
     "major": "1781836774661"
+  },
+  {
+    "id": "G3PZmXKOquY",
+    "name": "Game LIFE OF DIE",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/G3PZmXKOquY/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=G3PZmXKOquY",
+    "category": "1781846352023",
+    "teamMembers": [
+      "PS41296 - Võ Văn Giang",
+      "PS41593 - Phạm Hữu Đạt",
+      "PS41276 - Trần Nhật Duy",
+      "PS41177 - Lê Văn Cao Lâm",
+      "PS41395 - Trịnh Tiến Đạt"
+    ],
+    "semester": "SPRING 2025",
+    "major": "1781836769312",
+    "techTags": []
+  },
+  {
+    "id": "YP2qZKlSKiM",
+    "name": "Game Viral Outbreak: Last Hope",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/YP2qZKlSKiM/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=YP2qZKlSKiM",
+    "category": "1781846352023",
+    "teamMembers": [
+      "PS37906 - Nguyễn Lê Huy",
+      "PS38376 - Trần Văn Trọng",
+      "PS38572 - Dương Tiểu Long",
+      "PS38528 - Tạ Huỳnh Phúc"
+    ],
+    "semester": "SPRING 2025",
+    "major": "1781836769312",
+    "techTags": []
+  },
+  {
+    "id": "fk7z1hkgNCg",
+    "name": "Game Survival Odyssey",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/fk7z1hkgNCg/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=fk7z1hkgNCg",
+    "category": "1781846352023",
+    "teamMembers": [
+      "PS40150 - Thái Tăng Phúc Hậu",
+      "PS39464 - Ngô Thuỳ Mỹ Duyên",
+      "PS39905 - Nguyễn Huỳnh Trọng Phúc",
+      "PS32434 - Kiều Minh Thuận"
+    ],
+    "semester": "SPRING 2025",
+    "major": "1781836769312",
+    "techTags": []
+  },
+  {
+    "id": "sGk8GS7YcG4",
+    "name": "Game Crab Bike Simulator",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/sGk8GS7YcG4/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=sGk8GS7YcG4",
+    "category": "1781846352023",
+    "teamMembers": [
+      "PS38022 - Đoàn Ngọc Minh Tâm",
+      "PS39135 - Trần Vũ Phương Nghi",
+      "PS38381 - Mai Văn Tuấn"
+    ],
+    "semester": "SPRING 2025",
+    "major": "1781836769312",
+    "techTags": []
+  },
+  {
+    "id": "0P4WK-tga34",
+    "name": "Game RONIN",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/0P4WK-tga34/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=0P4WK-tga34",
+    "category": "1781846352023",
+    "teamMembers": [
+      "PS39585 - Phạm Ngô Gia Huy",
+      "PS39730 - Hà Trọng Nghĩa",
+      "PS39426 - Vũ Minh Tâm",
+      "PS39807 - Lưu Chí Tài"
+    ],
+    "semester": "SPRING 2025",
+    "major": "1781836769312",
+    "techTags": []
+  },
+  {
+    "id": "1782231575472-0",
+    "name": "[Game Việt 2024] - Game Yên",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/t0ag3nuzQnA/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=t0ag3nuzQnA",
+    "category": "1782231558845",
+    "teamMembers": [
+      "PS38022 - Đoàn Ngọc Minh Tâm",
+      "PS39125 - Trần Vũ Phương Nghi",
+      "Student1413116 - Bùi Yến Nhi",
+      "Student1412581 - Nguyễn Trúc Quỳnh"
+    ],
+    "semester": "FALL 2024",
+    "major": "1781836769312",
+    "techTags": [
+      "Unity"
+    ]
+  },
+  {
+    "id": "1782231575523-1",
+    "name": "[Game Việt 2024] - Game 1003",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/xu8dXPtqljM/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=xu8dXPtqljM",
+    "category": "1782231558845",
+    "teamMembers": [
+      "PS37906 - Nguyễn Lê Huy",
+      "PS38376 - Trần Văn Trọng"
+    ],
+    "semester": "FALL 2024",
+    "major": "1781836769312",
+    "techTags": [
+      "Unity"
+    ]
   },
   {
     "id": "1781844981377-21",
@@ -647,6 +792,57 @@
     ],
     "isGoldenTicket": true,
     "major": "1781836774661"
+  },
+  {
+    "id": "1782231440615-0",
+    "name": "Game Bonappetit",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/5ZF8NNZfEmw/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=5ZF8NNZfEmw",
+    "category": "1781885298075",
+    "teamMembers": [
+      "PS37906 - Nguyễn Lê Huy",
+      "PS38376 - Trần Văn Trọng",
+      "PS38140 - Phạm Cao Thăng",
+      "PS38528 - Tạ Huỳnh Phúc"
+    ],
+    "semester": "FALL 2024",
+    "major": "1781836769312",
+    "techTags": [
+      "Unity"
+    ]
+  },
+  {
+    "id": "1782231018217-1",
+    "name": "Game Survival Odyssey",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/40AYt2RnkTg/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=40AYt2RnkTg",
+    "category": "1781885255751",
+    "teamMembers": [
+      "PS40150 - Thái Tăng Phúc Hậu",
+      "PS39464 - Ngô Thùy Mỹ Duyên",
+      "PS39905 - Nguyễn Huỳnh Trọng Phúc"
+    ],
+    "semester": "FALL 2024",
+    "major": "1781836769312",
+    "techTags": []
+  },
+  {
+    "id": "1782231018167-0",
+    "name": "Game Dark Dungeon",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/nCLWymtRYlQ/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=nCLWymtRYlQ",
+    "category": "1781885255751",
+    "teamMembers": [
+      "PS37906 - Nguyễn Lê Huy",
+      "PS32434 - Kiều Minh Thuận",
+      "PS38647 - Nguyễn Văn Phương"
+    ],
+    "semester": "FALL 2024",
+    "major": "1781836769312",
+    "techTags": []
   },
   {
     "id": "1781844998606-27",
@@ -796,6 +992,82 @@
     "major": "1781836774661"
   },
   {
+    "id": "1782231189437-0",
+    "name": "Ứng dụng quản lý nhà hàng",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/28nCogMr8T8/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=28nCogMr8T8",
+    "category": "1781885295220",
+    "teamMembers": [
+      "Thạch Hồ Tuyển",
+      "Lê Hoàng Chiến",
+      "Trần Văn Quyết",
+      "Trần Hữu Trí",
+      "Huỳnh Tấn Đạt"
+    ],
+    "semester": "SUMMER 2023",
+    "major": "1781836774661",
+    "techTags": [
+      "Android"
+    ]
+  },
+  {
+    "id": "1782231189488-1",
+    "name": "Ứng dụng bán coffee",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/18bJZL1MvHM/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=18bJZL1MvHM",
+    "category": "1781885295220",
+    "teamMembers": [
+      "Lục Thiên Phú",
+      "Lê Thanh Tường",
+      "Phạm Văn Đức"
+    ],
+    "semester": "SUMMER 2023",
+    "major": "1781836774661",
+    "techTags": [
+      "Android"
+    ]
+  },
+  {
+    "id": "1782231189539-2",
+    "name": "Ứng dụng đặt lịch cắt tóc trực tuyến",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/isQ9IPWohbw/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=isQ9IPWohbw",
+    "category": "1781885295220",
+    "teamMembers": [
+      "Đoàn Thanh Hòa",
+      "Trương Minh Thi",
+      "Phạm Trọng Nghĩa",
+      "Lê Văn Hoàng",
+      "Nguyễn Đình Tiến Phi"
+    ],
+    "semester": "SUMMER 2023",
+    "major": "1781836774661",
+    "techTags": [
+      "Android"
+    ]
+  },
+  {
+    "id": "1782231189590-3",
+    "name": "Ứng dụng thuê gia sư trực tuyến - AGIASU",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/ag8PgsK-tVo/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=ag8PgsK-tVo",
+    "category": "1781885295220",
+    "teamMembers": [
+      "Đỗ Quang Lợi",
+      "Nguyễn Thành Quốc",
+      "Đặng Trọng Tài"
+    ],
+    "semester": "SUMMER 2023",
+    "major": "1781836774661",
+    "techTags": [
+      "Android"
+    ]
+  },
+  {
     "id": "1781845048785-33",
     "name": "Ứng dụng bán máy tính, linh kiện máy tính HighTech",
     "description": "",
@@ -836,5 +1108,60 @@
     ],
     "isGoldenTicket": false,
     "major": "1781836774661"
+  },
+  {
+    "id": "1782231189640-4",
+    "name": "Ứng dụng bán điện thoại H-Shop",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/kM3fYw1kiKQ/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=kM3fYw1kiKQ",
+    "category": "1781885295220",
+    "teamMembers": [
+      "Trần Anh Huy"
+    ],
+    "semester": "FALL 2022",
+    "major": "1781836774661",
+    "techTags": [
+      "Android"
+    ]
+  },
+  {
+    "id": "1782231189691-5",
+    "name": "Ứng dụng bán cafe Aurora",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/04h38N46FwY/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=04h38N46FwY",
+    "category": "1781885295220",
+    "teamMembers": [
+      "Trần Văn Hoài",
+      "Lê Thị Thủy Tiên",
+      "Lê Minh Lân",
+      "Lê Chí Tài",
+      "Đỗ Hữu Gia Huy"
+    ],
+    "semester": "FALL 2022",
+    "major": "1781836774661",
+    "techTags": [
+      "Android"
+    ]
+  },
+  {
+    "id": "1782231189742-6",
+    "name": "Ứng dụng bán laptop KynaShop",
+    "description": "",
+    "thumbnail": "https://i.ytimg.com/vi/A5Lm5duAIGU/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=A5Lm5duAIGU",
+    "category": "1781885295220",
+    "teamMembers": [
+      "Phan Thanh Huy",
+      "Huỳnh Minh Tân",
+      "Trần Anh Duy",
+      "Võ Duy Bảo Khánh"
+    ],
+    "semester": "FALL 2022",
+    "major": "1781836774661",
+    "techTags": [
+      "Android"
+    ]
   }
 ]
