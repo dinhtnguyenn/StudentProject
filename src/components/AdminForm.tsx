@@ -51,6 +51,49 @@ const extractYoutubeId = (url: string): string | null => {
   return (match && match[2].length === 11) ? match[2] : null;
 };
 
+function getSemesterFromDate(dateStr: string) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const month = d.getMonth() + 1;
+  const year = d.getFullYear();
+  if (month >= 1 && month <= 4) return `SPRING ${year}`;
+  if (month >= 5 && month <= 8) return `SUMMER ${year}`;
+  return `FALL ${year}`;
+}
+
+function normalizeSemester(sem: string) {
+  if (!sem) return '';
+  const s = sem.toUpperCase().trim();
+  const yearMatch = s.match(/\d{2,4}/);
+  if (!yearMatch) return s;
+  let yearStr = yearMatch[0];
+  if (yearStr.length === 2) yearStr = '20' + yearStr;
+  
+  if (s.includes('FA') || s.includes('FALL')) return `FALL ${yearStr}`;
+  if (s.includes('SP') || s.includes('SPRING')) return `SPRING ${yearStr}`;
+  if (s.includes('SU') || s.includes('SUMMER')) return `SUMMER ${yearStr}`;
+  return s;
+}
+
+function getSemesterWeight(sem: string) {
+  const norm = normalizeSemester(sem);
+  const parts = norm.split(' ');
+  if (parts.length !== 2) return 0;
+  const term = parts[0];
+  const year = parseInt(parts[1], 10);
+  if (isNaN(year)) return 0;
+  let termWeight = 0;
+  if (term === 'SPRING') termWeight = 1;
+  else if (term === 'SUMMER') termWeight = 2;
+  else if (term === 'FALL') termWeight = 3;
+  return year * 10 + termWeight;
+}
+
+function compareSemesters(a: string, b: string) {
+  return getSemesterWeight(b) - getSemesterWeight(a); // descending
+}
+
 function parseTeamMembers(desc: string): string[] {
   const members: string[] = [];
   const lines = desc.split('\n').map(l => l.trim()).filter(Boolean);
@@ -108,12 +151,12 @@ function SortableProjectItem({ project, onDelete, onToggle, isSelected, categori
         sx={{ 
           p: 1.5, 
           borderRadius: 3, 
-          border: '1px solid', 
-          borderColor: isSelected ? 'primary.main' : 'divider',
+          border: project.isNewItem ? '2px solid' : '1px solid', 
+          borderColor: isSelected ? 'primary.main' : (project.isNewItem ? 'success.main' : 'divider'),
           bgcolor: isDragging ? 'action.hover' : 'background.paper',
           transition: 'all 0.2s',
           '&:hover': {
-            borderColor: 'primary.light',
+            borderColor: project.isNewItem ? 'success.light' : 'primary.light',
           }
         }}
       >
@@ -377,6 +420,23 @@ function SortableArticleItem({ article, onDelete, onInlineEdit, articleTypesList
   );
 }
 
+// --- Sortable Preview Item (For Modal) ---
+function SortablePreviewItem({ project, idx }: any) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: project.id });
+  const style = { transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 100 : 1, opacity: isDragging ? 0.8 : 1 };
+  return (
+    <Box ref={setNodeRef} style={style} sx={{ mb: 1 }}>
+      <Paper elevation={0} sx={{ p: 1.5, display: 'flex', alignItems: 'center', gap: 2, border: '1px solid', borderColor: 'divider', bgcolor: isDragging ? 'action.hover' : 'background.paper' }}>
+        <Box {...attributes} {...listeners} sx={{ cursor: 'grab', color: 'text.disabled' }}><DragIndicatorIcon fontSize="small" /></Box>
+        <Typography variant="body2" sx={{ fontWeight: 700, width: 30, color: 'text.secondary' }}>#{idx + 1}</Typography>
+        <Avatar src={project.thumbnail} variant="rounded" sx={{ width: 44, height: 44 }} />
+        <Typography variant="body1" sx={{ flexGrow: 1, fontWeight: 700 }}>{project.name}</Typography>
+        <Chip label={project.semester || 'N/A'} size="small" color={project.isNewItem ? 'success' : 'default'} sx={{ fontWeight: 700 }} />
+      </Paper>
+    </Box>
+  );
+}
+
 // --- Main Component ---
 export default function AdminForm() {
   const [tabIndex, setTabIndex] = useState(7);
@@ -525,6 +585,9 @@ export default function AdminForm() {
   const [isSavingAll, setIsSavingAll] = useState(false);
 
   // Modal States
+  const [showSortPreview, setShowSortPreview] = useState(false);
+  const [sortedProjectsPreview, setSortedProjectsPreview] = useState<any[]>([]);
+
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<string | null>(null);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
@@ -650,12 +713,14 @@ export default function AdminForm() {
 
     let description = '';
     let teamMembers: string[] = [];
+    let publishDate = '';
 
     const playerMatch = html.match(/var ytInitialPlayerResponse\s*=\s*(\{.+?\});/s) || html.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\});/s);
     if (playerMatch) {
       try {
         const playerData = JSON.parse(playerMatch[1]);
         description = playerData?.videoDetails?.shortDescription || '';
+        publishDate = playerData?.microformat?.playerMicroformatRenderer?.publishDate || '';
       } catch { }
     }
 
@@ -670,7 +735,8 @@ export default function AdminForm() {
       thumbnail: thumbnail || existingData?.thumbnail || '',
       youtubeUrl: `https://www.youtube.com/watch?v=${videoId}`,
       teamMembers: teamMembers.length > 0 ? teamMembers.join('\n') : (existingData?.teamMembers || ''),
-      description: description || existingData?.description || ''
+      description: description || existingData?.description || '',
+      semester: publishDate ? getSemesterFromDate(publishDate) : (existingData?.semester || '')
     };
   };
 
@@ -780,6 +846,7 @@ export default function AdminForm() {
           const snippet = item.snippet;
           const videoId = snippet.resourceId.videoId;
           const title = snippet.title;
+          const publishedAt = snippet.publishedAt;
 
           // Bỏ qua các video bị xóa hoặc ẩn
           if (title === 'Private video' || title === 'Deleted video') {
@@ -799,9 +866,10 @@ export default function AdminForm() {
               youtubeUrl: `https://www.youtube.com/watch?v=${videoId}`,
               category: '',
               teamMembers: [],
-              semester: '',
+              semester: publishedAt ? getSemesterFromDate(publishedAt) : '',
               major: '',
-              techTags: [] as string[]
+              techTags: [] as string[],
+              isNewItem: true
             });
           }
         } catch (e) {
@@ -840,12 +908,14 @@ export default function AdminForm() {
     }
 
     const isEdit = !!formData.id;
-    const projectToSave = {
+    const projectToSave: any = {
       ...formData,
       id: isEdit ? formData.id : Date.now().toString(),
       teamMembers: formData.teamMembers.split('\n').map(m => m.trim()).filter(m => m),
       techTags: formData.techTags,
     };
+    if (!isEdit) projectToSave.isNewItem = true;
+    else if ((formData as any).isNewItem) projectToSave.isNewItem = true;
 
     setProjectsList(prev => isEdit ? prev.map(p => p.id === formData.id ? projectToSave : p) : [projectToSave, ...prev]);
     setStatus({ type: 'success', message: `Đã lưu nháp dự án ${isEdit ? '(Cập nhật)' : '(Mới)'}!` });
@@ -1114,7 +1184,7 @@ export default function AdminForm() {
   };
 
   // Global Save
-  const saveAllChangesToGithub = async () => {
+  const saveAllChangesToGithub = async (projectsOverride?: any[]) => {
     if (fetchError) {
       setStatus({ type: 'error', message: 'Hệ thống đang lỗi tải dữ liệu. Không thể lưu để bảo vệ dữ liệu cũ.' });
       return;
@@ -1133,9 +1203,14 @@ export default function AdminForm() {
         setCategoriesSha(newSha);
         successCount++;
       }
-      if (isProjectsChanged) {
-        const newSha = await commitFile(getProjectsApiUrl(), projectsList, projectsSha, `Update projects (Bulk save) [skip ci]`);
-        setOriginalProjects(projectsList);
+      if (isProjectsChanged || projectsOverride) {
+        const finalProjects = (projectsOverride || projectsList).map(p => {
+          const { isNewItem, ...rest } = p;
+          return rest;
+        });
+        const newSha = await commitFile(getProjectsApiUrl(), finalProjects, projectsSha, `Update projects (Bulk save) [skip ci]`);
+        setOriginalProjects(finalProjects);
+        setProjectsList(finalProjects);
         setProjectsSha(newSha);
         successCount++;
       }
@@ -1216,6 +1291,27 @@ export default function AdminForm() {
     );
   }
 
+  const handleUpdateClick = () => {
+    if (isProjectsChanged) {
+      const sorted = [...projectsList].sort((a, b) => compareSemesters(a.semester || '', b.semester || ''));
+      setSortedProjectsPreview(sorted);
+      setShowSortPreview(true);
+    } else {
+      saveAllChangesToGithub();
+    }
+  };
+
+  const handleDragEndPreview = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (active.id !== over?.id) {
+      setSortedProjectsPreview((items) => {
+        const oldIndex = items.findIndex((i) => i.id === active.id);
+        const newIndex = items.findIndex((i) => i.id === over?.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <Box sx={{ maxWidth: 480, mx: 'auto', mt: 8, pb: 10, px: 2 }}>
@@ -1279,7 +1375,7 @@ export default function AdminForm() {
             {hasUnsavedChanges && (
               <Button variant="outlined" color="secondary" onClick={() => { setProjectsList(originalProjects); setCategoriesList(originalCategories); setArticlesList(originalArticles); }} sx={{ borderRadius: 100, fontWeight: 700 }}>Huỷ Thay Đổi</Button>
             )}
-            <Button variant="contained" color="warning" onClick={saveAllChangesToGithub} disabled={isSavingAll || !!fetchError} startIcon={isSavingAll ? <CircularProgress size={16} color="inherit" /> : <CloudUploadIcon />} sx={{ borderRadius: 100, fontWeight: 700, px: 3, '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
+            <Button variant="contained" color="warning" onClick={handleUpdateClick} disabled={isSavingAll || !!fetchError} startIcon={isSavingAll ? <CircularProgress size={16} color="inherit" /> : <CloudUploadIcon />} sx={{ borderRadius: 100, fontWeight: 700, px: 3, '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
               {isSavingAll ? 'Đang Gửi...' : 'Lưu Lên GitHub'}
             </Button>
           </Box>
@@ -2152,6 +2248,31 @@ export default function AdminForm() {
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setEditCategoryItem(null)} color="inherit" sx={{ fontWeight: 600 }}>Huỷ</Button>
           <Button onClick={handleSaveCategoryEdit} variant="contained" sx={{ fontWeight: 700, borderRadius: 2 }}>Lưu Thay Đổi</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={showSortPreview} onClose={() => setShowSortPreview(false)} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ fontWeight: 800 }}>Xác nhận sắp xếp Dự Án</DialogTitle>
+        <DialogContent dividers sx={{ bgcolor: 'background.default' }}>
+          <DialogContentText sx={{ mb: 2 }}>
+            Danh sách đã được tự động sắp xếp theo học kỳ (Mới nhất ➝ Cũ nhất). Bạn có thể kéo thả để điều chỉnh lại trước khi lưu lên GitHub.
+          </DialogContentText>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEndPreview}>
+            <SortableContext items={sortedProjectsPreview.map(p => p.id)} strategy={verticalListSortingStrategy}>
+              {sortedProjectsPreview.map((project, idx) => (
+                <SortablePreviewItem key={project.id} project={project} idx={idx} />
+              ))}
+            </SortableContext>
+          </DndContext>
+        </DialogContent>
+        <DialogActions sx={{ p: 3 }}>
+          <Button onClick={() => setShowSortPreview(false)} color="inherit" sx={{ fontWeight: 600 }}>Hủy</Button>
+          <Button onClick={() => {
+            setShowSortPreview(false);
+            saveAllChangesToGithub(sortedProjectsPreview);
+          }} variant="contained" color="warning" startIcon={isSavingAll ? <CircularProgress size={16} color="inherit" /> : <CloudUploadIcon />} disabled={isSavingAll} sx={{ fontWeight: 700, borderRadius: 2 }}>
+            Xác nhận & Cập nhật
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
