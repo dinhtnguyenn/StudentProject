@@ -1,5 +1,5 @@
 import type { Project } from '../types/Project';
-import { Dialog, DialogContent, Box, Typography, IconButton, Chip, Avatar, useTheme, Grid } from '@mui/material';
+import { Dialog, DialogContent, Box, Typography, IconButton, Chip, Avatar, useTheme, Grid, useMediaQuery } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ShareIcon from '@mui/icons-material/Share';
 import CodeIcon from '@mui/icons-material/Code';
@@ -29,6 +29,7 @@ export default function ProjectDetailModal({ project, allProjects = [], open, on
 
   const muiTheme = useTheme();
   const isLight = muiTheme.palette.mode === 'light';
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
 
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
   const match = activeProject.youtubeUrl?.match(regExp);
@@ -46,13 +47,15 @@ export default function ProjectDetailModal({ project, allProjects = [], open, on
       onClose={onClose}
       maxWidth="lg"
       fullWidth
+      fullScreen={isMobile}
       sx={{
         backdropFilter: 'blur(20px)',
         '& .MuiBackdrop-root': {
           bgcolor: 'rgba(0,0,0,0.6)',
         },
         '& .MuiDialog-paper': {
-          borderRadius: 6,
+          borderRadius: { xs: 0, md: 6 },
+          m: { xs: 0, md: 2 },
           overflow: 'hidden',
           bgcolor: 'background.paper',
           backgroundImage: 'none',

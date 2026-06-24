@@ -289,7 +289,7 @@ function App() {
                   DinhNT24
                 </a>
               </Typography>
-              <Typography variant="caption" sx={{ color: 'text.disabled', opacity: 0.3, display: 'block', mt: 0.5, userSelect: 'none' }}>
+              <Typography variant="caption" className="notranslate" sx={{ color: 'text.disabled', opacity: 0.3, display: 'block', mt: 0.5, userSelect: 'none' }}>
                 Secrets: matrix, retro, gravity, roll, reset
               </Typography>
             </Box>
