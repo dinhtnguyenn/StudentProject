@@ -9,7 +9,7 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import PersonIcon from '@mui/icons-material/Person';
 import type { UnityAsset } from '../types/UnityAsset';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 
 const AssetFallbackImage = ({ asset }: { asset: any }) => {
@@ -242,5 +242,6 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
         </Box>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
