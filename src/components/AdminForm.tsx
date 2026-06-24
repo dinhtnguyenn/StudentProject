@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import {
   Box, Typography, TextField, Button, Paper, Snackbar, Alert, Grid,
   CircularProgress, Divider, Collapse, IconButton, InputAdornment,
@@ -1503,6 +1504,10 @@ export default function AdminForm() {
 
   return (
     <Box sx={{ maxWidth: 1440, mx: 'auto', px: { xs: 2, md: 4, lg: 6 }, pt: 4, pb: 10 }}>
+      <Helmet>
+        <title>Quản trị nội dung | UniFolio</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       {/* Unsaved Changes Banner */}
       <Collapse in={hasUnsavedChanges}>
         <Paper elevation={3} sx={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, display: 'flex', alignItems: 'center', gap: 2, p: 2, px: 3, borderRadius: 100, bgcolor: 'warning.light', color: 'warning.contrastText', border: '1px solid', borderColor: 'warning.main', minWidth: 320, justifyContent: 'space-between' }}>

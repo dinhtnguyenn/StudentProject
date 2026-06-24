@@ -7,6 +7,7 @@ import { getCurrentSeason } from '../lib/seasonalEngine';
 import { getSeasonWatermark } from './SeasonalEffects';
 import SearchIcon from '@mui/icons-material/Search';
 import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
+import { Helmet } from 'react-helmet-async';
 
 const AnimatedCounter = ({ value, label }: { value: number, label: string }) => {
   const [count, setCount] = useState(0);
@@ -178,6 +179,10 @@ export default function ArticlesGallery() {
 
   return (
     <Box>
+      <Helmet>
+        <title>Bài viết học thuật | UniFolio</title>
+        <meta name="description" content="Khám phá các bài viết, nghiên cứu và báo cáo chất lượng từ sinh viên." />
+      </Helmet>
       {/* Hero */}
       <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <Box sx={{ 

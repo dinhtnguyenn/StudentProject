@@ -91,6 +91,8 @@ const MiniGoldenCard = ({ project, allProjects, majorColor }: { project: Project
   );
 };
 
+import { Helmet } from 'react-helmet-async';
+
 export default function ProjectGallery() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [allMajors, setAllMajors] = useState<any[]>([]);
@@ -268,6 +270,10 @@ export default function ProjectGallery() {
 
   return (
     <Box>
+      <Helmet>
+        <title>Dự án sinh viên | UniFolio</title>
+        <meta name="description" content="Khám phá các dự án sinh viên xuất sắc nhất tại UniFolio." />
+      </Helmet>
       <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
         <Box sx={{ 
           mb: 5, textAlign: 'center', mt: 2, position: 'relative',
