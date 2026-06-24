@@ -116,8 +116,8 @@ export default function ProjectGallery() {
 
   const handleShare = () => {
     if (sharedProject) {
-      const shareUrl = `${window.location.origin}/project/${sharedProject.id}`;
-      navigator.clipboard.writeText(shareUrl);
+      const shareText = `Dự án: ${sharedProject.name}\nXem tại: ${window.location.origin}/project/${sharedProject.id}`;
+      navigator.clipboard.writeText(shareText);
       setShareSuccess(true);
     }
   };
