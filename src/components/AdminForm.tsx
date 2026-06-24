@@ -845,7 +845,7 @@ export default function AdminForm() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          message: `Upload ${folder} image ${filename}`,
+          message: `Upload ${folder} image ${filename} [skip ci]`,
           content: base64Data
         })
       });
