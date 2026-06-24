@@ -164,6 +164,7 @@ function App() {
               {/* Logo dynamically changing with season */}
               <Typography
                 variant="h6" component="div"
+                className="notranslate"
                 sx={{ flexGrow: 1, cursor: 'pointer', fontWeight: 800, fontSize: { xs: '1rem', sm: '1.25rem' }, userSelect: 'none', display: 'flex', alignItems: 'center' }}
                 onClick={handleLogoClick}
               >
@@ -268,7 +269,7 @@ function App() {
             <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: { xs: 'center', md: 'flex-start' }, mb: 1 }}>
                 {getLogoIcon()}
-                <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                <Typography variant="h6" className="notranslate" sx={{ fontWeight: 800 }}>
                   Uni<span style={{ color: logoColor }}>Folio</span>
                 </Typography>
               </Box>

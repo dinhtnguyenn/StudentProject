@@ -145,7 +145,7 @@ export default function ProjectDetailModal({ project, allProjects = [], open, on
                 }} />
                 <EmojiEventsIcon sx={{ fontSize: '2.5rem', color: '#F59E0B', filter: 'drop-shadow(0 2px 4px rgba(245,158,11,0.4))' }} />
                 <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#D97706', mb: 0.5 }}>Dự án Đạt Golden Ticket</Typography>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#D97706', mb: 0.5 }}>Dự án Đạt <span className="notranslate">Golden Ticket</span></Typography>
                   <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: '0.75rem', lineHeight: 1.4 }}>Đây là một trong những DATN xuất sắc, được đánh giá cao về cả giải pháp kỹ thuật lẫn tính ứng dụng.</Typography>
                 </Box>
               </Box>

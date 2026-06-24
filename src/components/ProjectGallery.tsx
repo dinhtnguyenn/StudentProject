@@ -305,7 +305,7 @@ export default function ProjectGallery() {
       {isDefaultView && randomizedGoldenTickets.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
           <Box sx={{ mb: 6 }}>
-            <Typography variant="h5" sx={{ fontWeight: 800, mb: 3, display: 'flex', alignItems: 'center', gap: 1, color: '#F59E0B' }}>
+            <Typography variant="h5" className="notranslate" sx={{ fontWeight: 800, mb: 3, display: 'flex', alignItems: 'center', gap: 1, color: '#F59E0B' }}>
               <WorkspacePremiumIcon sx={{ color: '#F59E0B' }} /> Golden Ticket
             </Typography>
             <Box sx={{
@@ -419,7 +419,7 @@ export default function ProjectGallery() {
                     }),
                 }}
               >
-                Golden Ticket
+                <span className="notranslate">Golden Ticket</span>
               </Button>
 
               <Divider />

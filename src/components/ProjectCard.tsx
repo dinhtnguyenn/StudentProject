@@ -138,6 +138,7 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
                 <Box>
                   <Chip
                     icon={<WorkspacePremiumIcon sx={{ fontSize: '14px !important' }} />}
+                    className="notranslate"
                     label="GOLDEN TICKET"
                     size="small"
                     sx={{

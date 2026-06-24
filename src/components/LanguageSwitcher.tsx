@@ -54,7 +54,7 @@ export default function LanguageSwitcher() {
   const currentLang = LANGUAGES.find(l => l.code === lang) || LANGUAGES[0];
 
   return (
-    <Box sx={{ ml: 1 }}>
+    <Box sx={{ ml: 1 }} className="notranslate">
       <Button
         onClick={handleClick}
         sx={{
