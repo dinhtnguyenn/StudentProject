@@ -13,7 +13,6 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import GavelIcon from '@mui/icons-material/Gavel';
 import StorageIcon from '@mui/icons-material/Storage';
 import FolderZipIcon from '@mui/icons-material/FolderZip';
-import CategoryIcon from '@mui/icons-material/Category';
 import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
 import { motion, useInView } from 'framer-motion';
 import type { UnityAsset } from '../types/UnityAsset';
@@ -240,14 +239,16 @@ export default function AssetsGallery() {
         onClose={() => setDisclaimerOpen(false)}
         maxWidth="md"
         fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 4,
-            background: muiTheme.palette.mode === 'light' ? 'rgba(255,255,255,0.97)' : 'rgba(18,18,18,0.97)',
-            backdropFilter: 'blur(24px)',
-            border: '1px solid',
-            borderColor: muiTheme.palette.mode === 'light' ? 'rgba(251,191,36,0.35)' : 'rgba(251,191,36,0.2)',
-            boxShadow: '0 32px 80px rgba(0,0,0,0.22)',
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 4,
+              background: muiTheme.palette.mode === 'light' ? 'rgba(255,255,255,0.97)' : 'rgba(18,18,18,0.97)',
+              backdropFilter: 'blur(24px)',
+              border: '1px solid',
+              borderColor: muiTheme.palette.mode === 'light' ? 'rgba(251,191,36,0.35)' : 'rgba(251,191,36,0.2)',
+              boxShadow: '0 32px 80px rgba(0,0,0,0.22)',
+            }
           }
         }}
       >
