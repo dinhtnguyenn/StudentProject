@@ -220,7 +220,7 @@ function App() {
               </IconButton>
               
               {/* Language Switcher */}
-              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+              <Box>
                 <LanguageSwitcher />
               </Box>
             </Toolbar>

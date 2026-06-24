@@ -58,6 +58,7 @@ export default function LanguageSwitcher() {
       <Button
         onClick={handleClick}
         sx={{
+          display: { xs: 'none', sm: 'flex' },
           height: 36,
           px: 1.5,
           borderRadius: 2,
@@ -73,6 +74,19 @@ export default function LanguageSwitcher() {
         <TranslateIcon sx={{ fontSize: 18, mr: 1, color: 'text.secondary' }} />
         <span style={{ marginRight: 6 }}>{currentLang.flag}</span>
         {currentLang.label}
+      </Button>
+      <Button
+        onClick={handleClick}
+        sx={{
+          display: { xs: 'flex', sm: 'none' },
+          minWidth: 'auto',
+          p: 1,
+          borderRadius: 2,
+          color: 'text.primary',
+          bgcolor: theme.palette.mode === 'light' ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.1)',
+        }}
+      >
+        <TranslateIcon sx={{ fontSize: 20 }} />
       </Button>
       <Menu
         anchorEl={anchorEl}
