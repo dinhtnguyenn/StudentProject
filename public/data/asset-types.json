@@ -1,14 +1,15 @@
 [
   {
-    "id": "GOOGLE_DRIVE",
-    "name": "Google Drive Package",
-    "bg": "#10B981",
-    "text": "#ffffff"
+    "id": "1782283347723",
+    "name": "Unity/Fab Account",
+    "bg": "hsl(103, 80%, 92%)",
+    "text": "hsl(103, 85%, 35%)",
+    "type": "assetType"
   },
   {
-    "id": "ACCOUNT",
-    "name": "Unity Account",
-    "bg": "#3B82F6",
-    "text": "#ffffff"
+    "id": "1782283354102",
+    "name": "Google Drive",
+    "bg": "hsl(327, 80%, 92%)",
+    "text": "hsl(327, 85%, 35%)"
   }
 ]
