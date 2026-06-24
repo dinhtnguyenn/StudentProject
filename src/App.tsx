@@ -52,7 +52,7 @@ function App() {
   const getLogoIcon = () => {
     const defaultImgStyle = { width: { xs: 32, sm: 36 }, height: { xs: 32, sm: 36 }, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))', display: 'block' };
     let decorationUrl = null;
-    
+
     if (season.id === 'XMAS') decorationUrl = ASSETS_3D.SNOWFLAKE;
     else if (season.id === 'TET') decorationUrl = ASSETS_3D.CHERRY_BLOSSOM;
     else if (season.id === 'HALLOWEEN') decorationUrl = ASSETS_3D.BAT;
@@ -75,19 +75,19 @@ function App() {
           </svg>
         </Box>
         {decorationUrl && (
-          <Box sx={{ 
-            position: 'absolute', 
-            top: -12, 
-            right: -14, 
-            width: 24, 
-            height: 24, 
+          <Box sx={{
+            position: 'absolute',
+            top: -12,
+            right: -14,
+            width: 24,
+            height: 24,
             backgroundImage: decorationUrl,
             backgroundSize: 'contain',
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'center',
-            filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.25))', 
-            zIndex: 2, 
-            transform: 'rotate(15deg)' 
+            filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.25))',
+            zIndex: 2,
+            transform: 'rotate(15deg)'
           }} />
         )}
       </Box>
@@ -107,13 +107,13 @@ function App() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary' }}>
-      
+
       <DailyMessage />
 
       {/* Floating Back To Top Button */}
-      <IconButton 
+      <IconButton
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        sx={{ 
+        sx={{
           position: 'fixed',
           bottom: { xs: 20, md: 40 },
           right: { xs: 20, md: 40 },
@@ -125,11 +125,11 @@ function App() {
           color: logoColor,
           border: '1px solid', borderColor: 'divider',
           boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
-          '&:hover': { 
-            bgcolor: logoColor, 
-            color: '#fff', 
-            transform: 'translateY(-4px)', 
-            boxShadow: `0 12px 28px ${logoColor}50` 
+          '&:hover': {
+            bgcolor: logoColor,
+            color: '#fff',
+            transform: 'translateY(-4px)',
+            boxShadow: `0 12px 28px ${logoColor}50`
           },
           transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
         }}
@@ -139,10 +139,10 @@ function App() {
 
       <SeasonalEffects />
       {/* Navbar */}
-      <Box sx={{ 
-        position: 'sticky', 
-        top: isScrolled ? 0 : { xs: 8, md: 16 }, 
-        zIndex: 1100, 
+      <Box sx={{
+        position: 'sticky',
+        top: isScrolled ? 0 : { xs: 8, md: 16 },
+        zIndex: 1100,
         px: isScrolled ? 0 : { xs: 2, sm: 3, md: 4 },
         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
       }}>
@@ -160,84 +160,84 @@ function App() {
           transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
         }}>
           <Container maxWidth="lg">
-          <Toolbar disableGutters sx={{ gap: 1 }}>
-            {/* Logo dynamically changing with season */}
-            <Typography
-              variant="h6" component="div"
-              sx={{ flexGrow: 1, cursor: 'pointer', fontWeight: 800, fontSize: { xs: '1rem', sm: '1.25rem' }, userSelect: 'none', display: 'flex', alignItems: 'center' }}
-              onClick={handleLogoClick}
-            >
-              {getLogoIcon()}
-              Uni<span style={{ color: logoColor }}>Folio</span>
-            </Typography>
+            <Toolbar disableGutters sx={{ gap: 1 }}>
+              {/* Logo dynamically changing with season */}
+              <Typography
+                variant="h6" component="div"
+                sx={{ flexGrow: 1, cursor: 'pointer', fontWeight: 800, fontSize: { xs: '1rem', sm: '1.25rem' }, userSelect: 'none', display: 'flex', alignItems: 'center' }}
+                onClick={handleLogoClick}
+              >
+                {getLogoIcon()}
+                Uni<span style={{ color: logoColor }}>Folio</span>
+              </Typography>
 
-            {/* Mobile Menu */}
-            <IconButton
-              sx={{ display: { xs: 'flex', sm: 'none' }, color: 'text.secondary' }}
-              onClick={(e) => setAnchorEl(e.currentTarget)}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={() => setAnchorEl(null)}
-              sx={{ display: { xs: 'block', sm: 'none' }, mt: 1, '& .MuiPaper-root': { borderRadius: 3, minWidth: 200, boxShadow: '0 10px 40px rgba(0,0,0,0.1)' } }}
-            >
-              <MenuItem onClick={() => { navigate('/'); setAnchorEl(null); }} sx={{ fontWeight: location.pathname === '/' ? 700 : 500, color: location.pathname === '/' ? 'primary.main' : 'text.primary', py: 1.5 }}>
+              {/* Mobile Menu */}
+              <IconButton
+                sx={{ display: { xs: 'flex', sm: 'none' }, color: 'text.secondary' }}
+                onClick={(e) => setAnchorEl(e.currentTarget)}
+              >
+                <MenuIcon />
+              </IconButton>
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={() => setAnchorEl(null)}
+                sx={{ display: { xs: 'block', sm: 'none' }, mt: 1, '& .MuiPaper-root': { borderRadius: 3, minWidth: 200, boxShadow: '0 10px 40px rgba(0,0,0,0.1)' } }}
+              >
+                <MenuItem onClick={() => { navigate('/'); setAnchorEl(null); }} sx={{ fontWeight: location.pathname === '/' ? 700 : 500, color: location.pathname === '/' ? 'primary.main' : 'text.primary', py: 1.5 }}>
+                  Dự án
+                </MenuItem>
+                <MenuItem onClick={() => { navigate('/articles'); setAnchorEl(null); }} sx={{ fontWeight: location.pathname === '/articles' ? 700 : 500, color: location.pathname === '/articles' ? 'primary.main' : 'text.primary', py: 1.5 }}>
+                  Bài viết
+                </MenuItem>
+                <Divider sx={{ my: 1 }} />
+                <MenuItem onClick={() => { navigate('/admin'); setAnchorEl(null); }} sx={{ fontWeight: location.pathname === '/admin' ? 700 : 500, color: location.pathname === '/admin' ? 'primary.main' : 'text.primary', py: 1.5 }}>
+                  <DashboardIcon sx={{ mr: 1, fontSize: 20 }} /> Quản trị
+                </MenuItem>
+              </Menu>
+
+              {/* Desktop Navigation */}
+              <Button
+                onClick={() => navigate('/')}
+                sx={{
+                  display: { xs: 'none', sm: 'flex' },
+                  color: location.pathname === '/' ? 'primary.main' : 'text.secondary',
+                  fontWeight: location.pathname === '/' ? 700 : 500,
+                  '&:hover': { background: theme.palette.action.hover },
+                }}
+              >
                 Dự án
-              </MenuItem>
-              <MenuItem onClick={() => { navigate('/articles'); setAnchorEl(null); }} sx={{ fontWeight: location.pathname === '/articles' ? 700 : 500, color: location.pathname === '/articles' ? 'primary.main' : 'text.primary', py: 1.5 }}>
+              </Button>
+              <Button
+                onClick={() => navigate('/articles')}
+                sx={{
+                  display: { xs: 'none', sm: 'flex' },
+                  color: location.pathname === '/articles' ? 'primary.main' : 'text.secondary',
+                  fontWeight: location.pathname === '/articles' ? 700 : 500,
+                  '&:hover': { background: theme.palette.action.hover },
+                }}
+              >
                 Bài viết
-              </MenuItem>
-              <Divider sx={{ my: 1 }} />
-              <MenuItem onClick={() => { navigate('/admin'); setAnchorEl(null); }} sx={{ fontWeight: location.pathname === '/admin' ? 700 : 500, color: location.pathname === '/admin' ? 'primary.main' : 'text.primary', py: 1.5 }}>
-                <DashboardIcon sx={{ mr: 1, fontSize: 20 }} /> Quản Trị
-              </MenuItem>
-            </Menu>
-
-            {/* Desktop Navigation */}
-            <Button
-              onClick={() => navigate('/')}
-              sx={{
-                display: { xs: 'none', sm: 'flex' },
-                color: location.pathname === '/' ? 'primary.main' : 'text.secondary',
-                fontWeight: location.pathname === '/' ? 700 : 500,
-                '&:hover': { background: theme.palette.action.hover },
-              }}
-            >
-              Dự án
-            </Button>
-            <Button
-              onClick={() => navigate('/articles')}
-              sx={{
-                display: { xs: 'none', sm: 'flex' },
-                color: location.pathname === '/articles' ? 'primary.main' : 'text.secondary',
-                fontWeight: location.pathname === '/articles' ? 700 : 500,
-                '&:hover': { background: theme.palette.action.hover },
-              }}
-            >
-              Bài viết
-            </Button>
-            <IconButton onClick={toggleTheme} sx={{ color: 'text.secondary', ml: 1 }}>
-              {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
-            </IconButton>
-            <Button
-              variant="contained"
-              sx={{
-                display: { xs: 'none', sm: 'flex' },
-                ml: 1,
-                minWidth: { xs: '40px', sm: 'auto' },
-                px: { xs: 1, sm: 2 },
-              }}
-              onClick={() => navigate('/admin')}
-            >
-              <DashboardIcon sx={{ mr: { xs: 0, sm: 1 } }} />
-              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Quản Trị</Box>
-            </Button>
-          </Toolbar>
-        </Container>
-      </AppBar>
+              </Button>
+              <IconButton onClick={toggleTheme} sx={{ color: 'text.secondary', ml: 1 }}>
+                {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+              </IconButton>
+              <Button
+                variant="contained"
+                sx={{
+                  display: { xs: 'none', sm: 'flex' },
+                  ml: 1,
+                  minWidth: { xs: '40px', sm: 'auto' },
+                  px: { xs: 1, sm: 2 },
+                }}
+                onClick={() => navigate('/admin')}
+              >
+                <DashboardIcon sx={{ mr: { xs: 0, sm: 1 } }} />
+                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Quản trị</Box>
+              </Button>
+            </Toolbar>
+          </Container>
+        </AppBar>
       </Box>
 
       {/* Main */}
@@ -268,12 +268,12 @@ function App() {
           background: `radial-gradient(ellipse, ${logoColor}25 0%, transparent 70%)`,
           filter: 'blur(40px)', zIndex: 0, pointerEvents: 'none'
         }} />
-        
+
         <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: { xs: 'column', md: 'row' }, 
-            alignItems: 'center', 
+          <Box sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            alignItems: 'center',
             justifyContent: 'space-between',
             gap: 3
           }}>
@@ -291,10 +291,10 @@ function App() {
             <Box sx={{ textAlign: { xs: 'center', md: 'right' } }}>
               <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
                 © {new Date().getFullYear()} Bản quyền thuộc về{' '}
-                <a 
-                  href="https://www.facebook.com/tridinhnee/" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
+                <a
+                  href="https://www.facebook.com/tridinhnee/"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   style={{ color: logoColor, fontWeight: 700, textDecoration: 'none' }}
                 >
                   DinhNT24

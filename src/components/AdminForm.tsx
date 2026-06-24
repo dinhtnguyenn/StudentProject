@@ -1348,7 +1348,7 @@ export default function AdminForm() {
           <Box sx={{ width: 64, height: 64, borderRadius: '50%', bgcolor: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 3 }}>
             <LockIcon sx={{ color: 'white', fontSize: 32 }} />
           </Box>
-          <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>Trang Quản Trị</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>Trang Quản trị</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
             Vui lòng nhập mật khẩu để truy cập.
           </Typography>
@@ -1406,7 +1406,7 @@ export default function AdminForm() {
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                   <Button type="submit" variant="contained" size="large" fullWidth sx={{ mt: 1, borderRadius: 2, textTransform: 'none', fontWeight: 700, fontSize: '1rem', py: 1.5, background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', boxShadow: '0 6px 20px rgba(37, 99, 235, 0.4)' }}>
-                    Truy Cập Quản Trị
+                    Truy cập Quản trị
                   </Button>
                 </Grid>
               </Grid>
@@ -1450,7 +1450,7 @@ export default function AdminForm() {
           <Box>
             <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mb: 1, px: 2, py: 0.5, borderRadius: 100, bgcolor: 'action.hover', color: 'primary.main' }}>
               <EditNoteIcon sx={{ fontSize: 18 }} />
-              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Quản trị Serverless</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.8rem' }}>Quản trị nội dung</Typography>
             </Box>
             <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary' }}>
               Hệ Thống <span style={{ color: muiTheme.palette.primary.main }}>Quản Lý</span>
