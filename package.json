@@ -28,6 +28,7 @@
     "canvas-confetti": "^1.9.4",
     "dompurify": "^3.4.11",
     "framer-motion": "^12.40.0",
+    "puppeteer": "^25.2.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-force-graph-2d": "^1.29.1",
