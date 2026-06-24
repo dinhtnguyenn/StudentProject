@@ -1,0 +1,14 @@
+[
+  {
+    "id": "GOOGLE_DRIVE",
+    "name": "Google Drive Package",
+    "bg": "#10B981",
+    "text": "#ffffff"
+  },
+  {
+    "id": "ACCOUNT",
+    "name": "Unity Account",
+    "bg": "#3B82F6",
+    "text": "#ffffff"
+  }
+]

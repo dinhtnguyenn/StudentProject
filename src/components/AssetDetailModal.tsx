@@ -2,6 +2,7 @@ import { Dialog, Box, Typography, IconButton, Button, TextField, CircularProgres
 import CloseIcon from '@mui/icons-material/Close';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import SendIcon from '@mui/icons-material/Send';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import type { UnityAsset } from '../types/UnityAsset';
 import { useState, useEffect } from 'react';
 import ImageWithFallback from './ImageWithFallback';
@@ -55,7 +56,7 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
           subject: `[Yêu cầu cấp quyền Tài Nguyên] ${asset.name} - ${formData.studentId}`,
           from_name: formData.name,
           Tài_Nguyên: asset.name,
-          Loại: asset.assetType === 'ACCOUNT' ? 'Unity Account' : 'Google Drive',
+          Loại: asset.assetTypeName || (asset.assetType === 'ACCOUNT' ? 'Unity Account' : 'Google Drive'),
           Họ_Và_Tên: formData.name,
           MSSV: formData.studentId,
           Trường: formData.school,
@@ -90,9 +91,11 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
 
       <Box sx={{ p: { xs: 3, md: 5 }, bgcolor: 'background.default' }}>
         <Box sx={{ mb: 4 }}>
-          <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
-            <Chip label={asset.assetType === 'ACCOUNT' ? 'Acc Unity' : 'Google Drive'} size="small" sx={{ fontWeight: 800, bgcolor: asset.assetType === 'ACCOUNT' ? 'primary.main' : 'success.main', color: '#fff' }} />
-            {asset.owner && <Chip label={`Người đóng góp: ${asset.owner}`} size="small" variant="outlined" />}
+          <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+            <Chip label={asset.assetTypeName || (asset.assetType === 'ACCOUNT' ? 'Acc Unity' : 'Google Drive')} size="small" sx={{ fontWeight: 800, bgcolor: asset.assetTypeBg || (asset.assetType === 'ACCOUNT' ? 'primary.main' : 'success.main'), color: asset.assetTypeText || '#fff' }} />
+            {asset.createdAt && <Chip icon={<CalendarMonthIcon fontSize="small" />} label={new Date(asset.createdAt).toLocaleDateString('vi-VN')} size="small" variant="outlined" sx={{ fontWeight: 600 }} />}
+            {asset.owner && <Chip label={`Tác giả: ${asset.owner}`} size="small" variant="outlined" sx={{ fontWeight: 600 }} />}
+            {asset.sourceName && <Chip label={`Nguồn: ${asset.sourceName}`} size="small" color="primary" variant="outlined" sx={{ fontWeight: 600 }} />}
           </Box>
           <Typography variant="h4" sx={{ fontWeight: 800, mb: 1, color: 'text.primary' }}>{asset.name}</Typography>
           <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.8, whiteSpace: 'pre-line' }}>{asset.description}</Typography>

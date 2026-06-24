@@ -3,6 +3,7 @@ import { Box, Typography, Grid, Card, CardContent, CardMedia, Chip, IconButton, 
 import SearchIcon from '@mui/icons-material/Search';
 import ShareIcon from '@mui/icons-material/Share';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { motion } from 'framer-motion';
 import type { UnityAsset } from '../types/UnityAsset';
 import AssetDetailModal from './AssetDetailModal';
@@ -18,12 +19,27 @@ export default function AssetsGallery() {
   const [selectedAsset, setSelectedAsset] = useState<UnityAsset | null>(null);
 
   useEffect(() => {
-    fetch('/data/unity-assets.json')
-      .then(res => res.json())
-      .then(data => {
-        setAssets(data);
+    Promise.all([
+      fetch('/data/unity-assets.json').then(res => res.json()),
+      fetch('/data/asset-sources.json').then(res => res.json().catch(() => [])),
+      fetch('/data/asset-types.json').then(res => res.json().catch(() => []))
+    ])
+      .then(([assetsData, sourcesData, typesData]) => {
+        // Map sourceName and type object to asset object
+        const enrichedAssets = assetsData.map((a: any) => {
+          const matchedType = typesData.find((t: any) => t.id === a.assetType);
+          return {
+            ...a,
+            sourceName: sourcesData.find((s: any) => s.id === a.sourceId)?.name,
+            assetTypeName: matchedType?.name || a.assetType,
+            assetTypeBg: matchedType?.bg,
+            assetTypeText: matchedType?.text
+          };
+        });
+        setAssets(enrichedAssets);
+        
         if (assetId) {
-          const found = data.find((a: UnityAsset) => a.id === assetId);
+          const found = enrichedAssets.find((a: UnityAsset) => a.id === assetId);
           if (found) setSelectedAsset(found);
         }
       })
@@ -99,9 +115,9 @@ export default function AssetsGallery() {
                   <Box sx={{ position: 'relative', height: 200 }}>
                     <CardMedia component="img" image={asset.imageUrl} alt={asset.name} sx={{ height: '100%', objectFit: 'cover' }} />
                     <Chip 
-                      label={asset.assetType === 'ACCOUNT' ? 'Acc Unity' : 'Google Drive'} 
+                      label={asset.assetTypeName || (asset.assetType === 'ACCOUNT' ? 'Acc Unity' : 'Google Drive')} 
                       size="small" 
-                      sx={{ position: 'absolute', top: 12, left: 12, fontWeight: 800, bgcolor: asset.assetType === 'ACCOUNT' ? 'primary.main' : 'success.main', color: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }} 
+                      sx={{ position: 'absolute', top: 12, left: 12, fontWeight: 800, bgcolor: asset.assetTypeBg || (asset.assetType === 'ACCOUNT' ? 'primary.main' : 'success.main'), color: asset.assetTypeText || '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }} 
                     />
                   </Box>
                   <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 3 }}>
@@ -112,7 +128,11 @@ export default function AssetsGallery() {
                       {asset.description}
                     </Typography>
                     <Box sx={{ mt: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      {asset.owner && <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>Tác giả: {asset.owner}</Typography>}
+                      <Box>
+                        {asset.createdAt && <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontWeight: 500, color: 'text.secondary', mb: 0.5 }}><CalendarMonthIcon sx={{ fontSize: 14 }} /> {new Date(asset.createdAt).toLocaleDateString('vi-VN')}</Typography>}
+                        {asset.owner && <Typography variant="caption" sx={{ display: 'block', fontWeight: 600, color: 'text.secondary' }}>Tác giả: {asset.owner}</Typography>}
+                        {asset.sourceName && <Typography variant="caption" sx={{ display: 'block', fontWeight: 600, color: 'primary.main' }}>Nguồn: {asset.sourceName}</Typography>}
+                      </Box>
                       <IconButton size="small" onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(`${window.location.origin}/asset/${asset.id}`); alert('Đã copy link!'); }}><ShareIcon fontSize="small" /></IconButton>
                     </Box>
                   </CardContent>

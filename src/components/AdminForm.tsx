@@ -38,6 +38,8 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import SchoolIcon from '@mui/icons-material/School';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import CategoryIcon from '@mui/icons-material/Category';
+import StorageIcon from '@mui/icons-material/Storage';
 import { motion } from 'framer-motion';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -437,6 +439,71 @@ function SortableArticleItem({ article, onDelete, onInlineEdit, articleTypesList
   );
 }
 
+// --- Sortable Unity Asset Item Component ---
+function SortableUnityAssetItem({ asset, onDelete, onInlineEdit, assetTypesList, assetSourcesList, onImageUpload, isUploadingImage, isSelected, onToggle }: any) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: asset.id });
+  const theme = useTheme();
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const style = { transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 100 : 1, opacity: isDragging ? 0.8 : 1 };
+
+  return (
+    <Box ref={setNodeRef} style={style} sx={{ mb: 1.5 }}>
+      <Paper elevation={0} sx={{ p: 1.5, borderRadius: 3, border: '1px solid', borderColor: isSelected ? 'primary.main' : 'divider', bgcolor: isDragging ? 'action.hover' : 'background.paper', transition: 'all 0.2s', '&:hover': { borderColor: 'primary.light' } }}>
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
+          <Box {...attributes} {...listeners} sx={{ cursor: 'grab', mr: 1, mt: 1, display: 'flex', alignItems: 'center', color: 'text.disabled' }}><DragIndicatorIcon fontSize="small" /></Box>
+          <Checkbox size="small" checked={isSelected} onChange={() => onToggle(asset.id)} sx={{ mr: 1, mt: 0.5 }} />
+          <Avatar src={asset.imageUrl} variant="rounded" sx={{ width: 64, height: 44, mr: 2, mt: 0.5, border: '1px solid', borderColor: 'divider', borderRadius: 2 }} />
+          <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <InputBase value={asset.name} placeholder="Tên tài nguyên..." onChange={(e) => onInlineEdit(asset.id, 'name', e.target.value)} sx={{ flexGrow: 1, fontWeight: 700, color: 'text.primary', fontSize: '1.05rem', '& input': { p: 0 } }} />
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+              <InputBase placeholder="Tác giả..." value={asset.owner || ''} onChange={(e) => onInlineEdit(asset.id, 'owner', e.target.value)} sx={{ width: 100, fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& input': { p: 0, textAlign: 'center' } }} />
+              <Select variant="standard" disableUnderline displayEmpty value={asset.assetType || ''} onChange={(e) => onInlineEdit(asset.id, 'assetType', e.target.value as string)} sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& .MuiSelect-select': { p: 0, pb: 0, minHeight: 'auto' } }}>
+                <MenuItem value="" disabled>Chọn loại</MenuItem>
+                {assetTypesList?.map((t: any) => <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>)}
+              </Select>
+              <Select variant="standard" disableUnderline displayEmpty value={asset.sourceId || ''} onChange={(e) => onInlineEdit(asset.id, 'sourceId', e.target.value as string)} sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& .MuiSelect-select': { p: 0, pb: 0, minHeight: 'auto' } }}>
+                <MenuItem value="" disabled>Chọn nguồn</MenuItem>
+                {assetSourcesList?.map((s: any) => <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>)}
+              </Select>
+            </Box>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 0.5, ml: 2, alignItems: 'center', mt: 0.5 }}>
+            <IconButton size="small" onClick={() => setIsExpanded(!isExpanded)} sx={{ bgcolor: isExpanded ? 'rgba(59, 130, 246, 0.1)' : 'transparent', color: isExpanded ? 'primary.main' : 'text.secondary', transition: 'all 0.2s', '&:hover': { bgcolor: 'rgba(59, 130, 246, 0.1)', color: 'primary.main' } }}>
+              {isExpanded ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />}
+            </IconButton>
+            <IconButton size="small" onClick={() => onDelete(asset.id)} sx={{ color: 'text.disabled', transition: 'all 0.2s', '&:hover': { color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)' } }}>
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        </Box>
+        <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+          <Divider sx={{ my: 2 }} />
+          <Grid container spacing={3}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <TextField fullWidth size="small" label="Link Ảnh" value={asset.imageUrl || ''} onChange={(e) => onInlineEdit(asset.id, 'imageUrl', e.target.value)} />
+                <IconButton component="label" disabled={isUploadingImage} sx={{ bgcolor: 'action.hover' }} title="Tải ảnh từ máy">
+                  {isUploadingImage ? <CircularProgress size={20} /> : <CloudUploadIcon fontSize="small" />}
+                  <input type="file" hidden accept="image/*" onChange={(e) => onImageUpload(e, asset.id)} />
+                </IconButton>
+              </Box>
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <TextField fullWidth size="small" label="Link Nguồn" value={asset.originalLink || ''} onChange={(e) => onInlineEdit(asset.id, 'originalLink', e.target.value)} />
+                {asset.originalLink && <IconButton size="small" onClick={() => window.open(asset.originalLink, '_blank')} sx={{ color: 'info.main', bgcolor: 'rgba(59, 130, 246, 0.1)' }}><OpenInNewIcon /></IconButton>}
+              </Box>
+            </Grid>
+          </Grid>
+        </Collapse>
+      </Paper>
+    </Box>
+  );
+}
+
 // --- Sortable Preview Item (For Modal) ---
 function SortablePreviewItem({ project, idx }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: project.id });
@@ -598,9 +665,17 @@ export default function AdminForm() {
   const [unityAssetsList, setUnityAssetsList] = useState<any[]>([]);
   const [unityAssetsSha, setUnityAssetsSha] = useState('');
 
+  const [originalAssetSources, setOriginalAssetSources] = useState<Category[]>([]);
+  const [assetSourcesList, setAssetSourcesList] = useState<Category[]>([]);
+  const [assetSourcesSha, setAssetSourcesSha] = useState('');
+
+  const [originalAssetTypes, setOriginalAssetTypes] = useState<Category[]>([]);
+  const [assetTypesList, setAssetTypesList] = useState<Category[]>([]);
+  const [assetTypesSha, setAssetTypesSha] = useState('');
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [unityAssetFormData, setUnityAssetFormData] = useState<any>({
-    id: '', name: '', description: '', imageUrl: '', assetType: 'GOOGLE_DRIVE', originalLink: '', driveLink: '', owner: ''
+    id: '', name: '', description: '', imageUrl: '', assetType: 'GOOGLE_DRIVE', originalLink: '', driveLink: '', owner: '', sourceId: ''
   });
 
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -612,7 +687,9 @@ export default function AdminForm() {
   const isMajorsChanged = JSON.stringify(originalMajors) !== JSON.stringify(majorsList);
   const isArticleTypesChanged = JSON.stringify(originalArticleTypes) !== JSON.stringify(articleTypesList);
   const isUnityAssetsChanged = JSON.stringify(originalUnityAssets) !== JSON.stringify(unityAssetsList);
-  const hasUnsavedChanges = isProjectsChanged || isCategoriesChanged || isArticlesChanged || isMajorsChanged || isArticleTypesChanged || isUnityAssetsChanged;
+  const isAssetSourcesChanged = JSON.stringify(originalAssetSources) !== JSON.stringify(assetSourcesList);
+  const isAssetTypesChanged = JSON.stringify(originalAssetTypes) !== JSON.stringify(assetTypesList);
+  const hasUnsavedChanges = isProjectsChanged || isCategoriesChanged || isArticlesChanged || isMajorsChanged || isArticleTypesChanged || isUnityAssetsChanged || isAssetSourcesChanged || isAssetTypesChanged;
   const [isSavingAll, setIsSavingAll] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isTriggeringBuild, setIsTriggeringBuild] = useState(false);
@@ -641,6 +718,8 @@ export default function AdminForm() {
   const getMajorsApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/majors.json`;
   const getArticleTypesApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/articleTypes.json`;
   const getUnityAssetsApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/unity-assets.json`;
+  const getAssetSourcesApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/asset-sources.json`;
+  const getAssetTypesApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/asset-types.json`;
   const getTriggerApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/trigger.json`;
 
   const fetchFile = async (url: string) => {
@@ -709,6 +788,14 @@ export default function AdminForm() {
       fetchFile(getUnityAssetsApiUrl())
         .then(res => { setUnityAssetsList(res.data); setOriginalUnityAssets(res.data); setUnityAssetsSha(res.sha); })
         .catch(err => { console.error(err); setFetchError('Lỗi tải danh mục tài nguyên. Vui lòng không lưu!'); });
+
+      fetchFile(getAssetSourcesApiUrl())
+        .then(res => { setAssetSourcesList(res.data); setOriginalAssetSources(res.data); setAssetSourcesSha(res.sha); })
+        .catch(err => { console.error(err); setFetchError('Lỗi tải danh mục Nguồn Asset. Vui lòng không lưu!'); });
+
+      fetchFile(getAssetTypesApiUrl())
+        .then(res => { setAssetTypesList(res.data); setOriginalAssetTypes(res.data); setAssetTypesSha(res.sha); })
+        .catch(err => { console.error(err); setFetchError('Lỗi tải danh mục Loại Asset. Vui lòng không lưu!'); });
     }
   }, [isAuthenticated, githubToken, githubOwner, githubRepo]);
 
@@ -1108,6 +1195,51 @@ export default function AdminForm() {
     setArticlesList(prev => prev.map(a => a.id === id ? { ...a, [field]: value } : a));
   };
 
+  const handleInlineEditUnityAsset = (id: string, field: string, value: string) => {
+    setUnityAssetsList(prev => prev.map(a => a.id === id ? { ...a, [field]: value } : a));
+  };
+
+  const handleUnityAssetDragEnd = (event: any) => {
+    const { active, over } = event;
+    if (active.id !== over.id) {
+      setUnityAssetsList((items) => {
+        const oldIndex = items.findIndex(i => i.id === active.id);
+        const newIndex = items.findIndex(i => i.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
+  const handleInlineAssetImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, assetId: string) => {
+    if (!e.target.files || !e.target.files[0]) return;
+    setIsUploadingImage(true);
+    try {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Content = (reader.result as string).split(',')[1];
+        const ext = file.name.split('.').pop() || 'jpg';
+        const fileName = `asset_${Date.now()}.${ext}`;
+        const uploadUrl = `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/assets/${fileName}`;
+        const res = await fetch(uploadUrl, {
+          method: 'PUT',
+          headers: { 'Authorization': `token ${githubToken}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: `Upload image for asset ${fileName} [skip ci]`, content: base64Content, branch: 'main' })
+        });
+        if (!res.ok) throw new Error('Không thể upload ảnh');
+        setUnityAssetsList(prev => prev.map(a => a.id === assetId ? { ...a, imageUrl: `https://raw.githubusercontent.com/${githubOwner}/${githubRepo}/main/public/assets/${fileName}` } : a));
+        setStatus({ type: 'success', message: 'Upload ảnh thành công!' });
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error(err);
+      setStatus({ type: 'error', message: 'Lỗi upload ảnh.' });
+    } finally {
+      setIsUploadingImage(false);
+      e.target.value = '';
+    }
+  };
+
   // Categories Draft Actions
   const handleAddCategory = () => {
     if (!newCategoryName.trim()) return;
@@ -1197,6 +1329,80 @@ export default function AdminForm() {
   const [selectedArticleTypes, setSelectedArticleTypes] = useState<string[]>([]);
   const [bulkDeleteArticleTypesConfirm, setBulkDeleteArticleTypesConfirm] = useState(false);
 
+  // Asset Sources Draft Actions
+  const [newAssetSourceName, setNewAssetSourceName] = useState('');
+  const [assetSourceToDelete, setAssetSourceToDelete] = useState<string | null>(null);
+  const [selectedAssetSources, setSelectedAssetSources] = useState<string[]>([]);
+  const [bulkDeleteAssetSourcesConfirm, setBulkDeleteAssetSourcesConfirm] = useState(false);
+
+  const handleAddAssetSource = () => {
+    if (!newAssetSourceName.trim()) return;
+    const colors = generateCategoryColors();
+    const newSource: Category = { id: Date.now().toString(), name: newAssetSourceName.trim(), ...colors };
+    setAssetSourcesList(prev => [...prev, newSource]);
+    setNewAssetSourceName('');
+    setStatus({ type: 'success', message: 'Đã lưu nháp Nguồn Asset mới!' });
+  };
+
+  const confirmDeleteAssetSourceHandler = () => {
+    if (!assetSourceToDelete) return;
+    setAssetSourcesList(prev => prev.filter(c => c.id !== assetSourceToDelete));
+    setAssetSourceToDelete(null);
+    setStatus({ type: 'info', message: 'Đã xoá Nguồn Asset khỏi bản nháp.' });
+  };
+
+  const confirmBulkDeleteAssetSourcesAction = () => {
+    if (selectedAssetSources.length === 0) return;
+    setAssetSourcesList(prev => prev.filter(c => !selectedAssetSources.includes(c.id)));
+    setSelectedAssetSources([]);
+    setBulkDeleteAssetSourcesConfirm(false);
+    setStatus({ type: 'info', message: `Đã xoá nháp ${selectedAssetSources.length} Nguồn Asset.` });
+  };
+
+  const handleToggleAssetSource = (id: string) => setSelectedAssetSources(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  const handleToggleAllAssetSources = () => setSelectedAssetSources(selectedAssetSources.length === assetSourcesList.length ? [] : assetSourcesList.map(c => c.id));
+
+  const handleMoveAssetSource = (index: number, direction: 'up' | 'down') => {
+    setAssetSourcesList(prev => moveItem(prev, index, direction));
+  };
+
+  // Asset Types Draft Actions
+  const [newAssetTypeName, setNewAssetTypeName] = useState('');
+  const [assetTypeToDelete, setAssetTypeToDelete] = useState<string | null>(null);
+  const [selectedAssetTypes, setSelectedAssetTypes] = useState<string[]>([]);
+  const [bulkDeleteAssetTypesConfirm, setBulkDeleteAssetTypesConfirm] = useState(false);
+
+  const handleAddAssetType = () => {
+    if (!newAssetTypeName.trim()) return;
+    const colors = generateCategoryColors();
+    const newType: Category = { id: Date.now().toString(), name: newAssetTypeName.trim(), ...colors };
+    setAssetTypesList(prev => [...prev, newType]);
+    setNewAssetTypeName('');
+    setStatus({ type: 'success', message: 'Đã lưu nháp Loại Asset mới!' });
+  };
+
+  const confirmDeleteAssetTypeHandler = () => {
+    if (!assetTypeToDelete) return;
+    setAssetTypesList(prev => prev.filter(c => c.id !== assetTypeToDelete));
+    setAssetTypeToDelete(null);
+    setStatus({ type: 'info', message: 'Đã xoá Loại Asset khỏi bản nháp.' });
+  };
+
+  const confirmBulkDeleteAssetTypesAction = () => {
+    if (selectedAssetTypes.length === 0) return;
+    setAssetTypesList(prev => prev.filter(c => !selectedAssetTypes.includes(c.id)));
+    setSelectedAssetTypes([]);
+    setBulkDeleteAssetTypesConfirm(false);
+    setStatus({ type: 'info', message: `Đã xoá nháp ${selectedAssetTypes.length} Loại Asset.` });
+  };
+
+  const handleToggleAssetType = (id: string) => setSelectedAssetTypes(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  const handleToggleAllAssetTypes = () => setSelectedAssetTypes(selectedAssetTypes.length === assetTypesList.length ? [] : assetTypesList.map(c => c.id));
+
+  const handleMoveAssetType = (index: number, direction: 'up' | 'down') => {
+    setAssetTypesList(prev => moveItem(prev, index, direction));
+  };
+
   // --- AI Functions ---
   const handleGenerateTags = async () => {
     if (!geminiApiKey) { setStatus({ type: 'error', message: 'Vui lòng cấu hình Gemini API Key ở mục Cài Đặt AI' }); return; }
@@ -1245,18 +1451,18 @@ export default function AdminForm() {
     setStatus({ type: 'success', message: 'Đã lưu nháp loại bài viết mới!' });
   };
 
-  // --- Category / Major / ArticleType Edit State ---
-  const [editCategoryItem, setEditCategoryItem] = useState<Category | null>(null);
-  const [editCategoryType, setEditCategoryType] = useState<'category' | 'major' | 'articleType'>('category');
+  const [editCategoryItem, setEditCategoryItem] = useState<any>(null);
 
   const handleSaveCategoryEdit = () => {
     if (!editCategoryItem) return;
-    if (editCategoryType === 'category') {
+    if (editCategoryItem.type === 'category') {
       setCategoriesList(prev => prev.map(c => c.id === editCategoryItem.id ? editCategoryItem : c));
-    } else if (editCategoryType === 'major') {
+    } else if (editCategoryItem.type === 'major') {
       setMajorsList(prev => prev.map(c => c.id === editCategoryItem.id ? editCategoryItem : c));
-    } else {
+    } else if (editCategoryItem.type === 'articleType') {
       setArticleTypesList(prev => prev.map(c => c.id === editCategoryItem.id ? editCategoryItem : c));
+    } else if (editCategoryItem.type === 'assetType') {
+      setAssetTypesList(prev => prev.map(c => c.id === editCategoryItem.id ? editCategoryItem : c));
     }
     setEditCategoryItem(null);
     setStatus({ type: 'success', message: 'Đã lưu chỉnh sửa!' });
@@ -1301,10 +1507,23 @@ export default function AdminForm() {
 
   const handleExportUnityAssetsTemplate = () => {
     const ws = XLSX.utils.json_to_sheet([
-      { id: '123-abc', name: 'Tên Tài Nguyên', description: 'Mô tả ngắn gọn', imageUrl: 'https://...', assetType: 'GOOGLE_DRIVE', originalLink: 'https://...', driveLink: 'https://...', owner: 'Tên Tác Giả' }
+      { id: '123-abc', name: 'Tên Tài Nguyên', description: 'Mô tả ngắn gọn', imageUrl: 'https://...', assetType: 'Nhập ID Loại Asset từ Sheet "Hướng Dẫn"', sourceId: 'Nhập ID Nguồn Asset từ Sheet "Hướng Dẫn"', originalLink: 'https://...', driveLink: 'https://...', owner: 'Tên Tác Giả', createdAt: '2026-06-24' }
     ]);
+    
+    const wsInstructionsData: any[] = [
+      { 'Tên Trường': 'DANH SÁCH LOẠI TÀI NGUYÊN (assetType)', 'Giá trị hợp lệ': '' }
+    ];
+    assetTypesList.forEach(t => wsInstructionsData.push({ 'Tên Trường': t.id, 'Giá trị hợp lệ': t.name }));
+
+    wsInstructionsData.push({});
+    wsInstructionsData.push({ 'Tên Trường': 'DANH SÁCH NGUỒN TÀI NGUYÊN (sourceId)', 'Giá trị hợp lệ': '' });
+    assetSourcesList.forEach(s => wsInstructionsData.push({ 'Tên Trường': s.id, 'Giá trị hợp lệ': s.name }));
+    
+    const wsInstructions = XLSX.utils.json_to_sheet(wsInstructionsData);
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Unity Assets');
+    XLSX.utils.book_append_sheet(wb, wsInstructions, 'Hướng Dẫn Nhập Liệu');
     XLSX.writeFile(wb, 'UnityAssets_Template.xlsx');
   };
 
@@ -1325,21 +1544,34 @@ export default function AdminForm() {
           return;
         }
 
-        const validAssets = importedData.map(row => ({
-          id: row.id || `asset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          name: row.name || 'Untitled Asset',
-          description: row.description || '',
-          imageUrl: row.imageUrl || '',
-          assetType: row.assetType === 'ACCOUNT' ? 'ACCOUNT' : 'GOOGLE_DRIVE',
-          originalLink: row.originalLink || '',
-          driveLink: row.driveLink || '',
-          owner: row.owner || ''
-        }));
+        const validAssets = importedData.map(row => {
+          let parsedDate;
+          if (row.createdAt) {
+            const parsed = new Date(row.createdAt).getTime();
+            if (!isNaN(parsed)) parsedDate = parsed;
+            else if (typeof row.createdAt === 'number') parsedDate = row.createdAt;
+          }
+          return {
+            id: row.id || `asset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            name: row.name || 'Untitled Asset',
+            description: row.description || '',
+            imageUrl: row.imageUrl || '',
+            assetType: row.assetType || 'GOOGLE_DRIVE',
+            originalLink: row.originalLink || '',
+            driveLink: row.driveLink || '',
+            owner: row.owner || '',
+            sourceId: row.sourceId || '',
+            createdAt: parsedDate
+          };
+        });
 
         setUnityAssetsList(prev => {
           const map = new Map();
           prev.forEach(item => map.set(item.id, item));
-          validAssets.forEach(item => map.set(item.id, item));
+          validAssets.forEach(item => {
+            const existing = map.get(item.id);
+            map.set(item.id, { ...item, createdAt: item.createdAt || existing?.createdAt || Date.now() });
+          });
           return Array.from(map.values());
         });
 
@@ -1421,6 +1653,18 @@ export default function AdminForm() {
         setUnityAssetsSha(newSha);
         successCount++;
       }
+      if (isAssetSourcesChanged) {
+        const newSha = await commitFile(getAssetSourcesApiUrl(), assetSourcesList, assetSourcesSha, `Update asset sources (Bulk save) [skip ci]`);
+        setOriginalAssetSources(assetSourcesList);
+        setAssetSourcesSha(newSha);
+        successCount++;
+      }
+      if (isAssetTypesChanged) {
+        const newSha = await commitFile(getAssetTypesApiUrl(), assetTypesList, assetTypesSha, `Update asset types (Bulk save) [skip ci]`);
+        setOriginalAssetTypes(assetTypesList);
+        setAssetTypesSha(newSha);
+        successCount++;
+      }
 
       setStatus({ type: 'success', message: `Commit thành công ${successCount} file lên GitHub! Quá trình build sẽ tự động chạy.` });
     } catch (err: any) {
@@ -1463,6 +1707,18 @@ export default function AdminForm() {
             const merged = autoMergeData(remote.data, unityAssetsList);
             const newSha = await commitFile(getUnityAssetsApiUrl(), merged, remote.sha, `Merge & Update unity assets [skip ci]`);
             setUnityAssetsList(merged); setOriginalUnityAssets(merged); setUnityAssetsSha(newSha);
+          }
+          if (isAssetSourcesChanged) {
+            const remote = await fetchFile(getAssetSourcesApiUrl());
+            const merged = autoMergeData(remote.data, assetSourcesList);
+            const newSha = await commitFile(getAssetSourcesApiUrl(), merged, remote.sha, `Merge & Update asset sources [skip ci]`);
+            setAssetSourcesList(merged); setOriginalAssetSources(merged); setAssetSourcesSha(newSha);
+          }
+          if (isAssetTypesChanged) {
+            const remote = await fetchFile(getAssetTypesApiUrl());
+            const merged = autoMergeData(remote.data, assetTypesList);
+            const newSha = await commitFile(getAssetTypesApiUrl(), merged, remote.sha, `Merge & Update asset types [skip ci]`);
+            setAssetTypesList(merged); setOriginalAssetTypes(merged); setAssetTypesSha(newSha);
           }
           setStatus({ type: 'success', message: `Gộp dữ liệu và Commit thành công lên GitHub! Quá trình build sẽ tự động chạy.` });
         } catch (mergeErr: any) {
@@ -1725,6 +1981,12 @@ export default function AdminForm() {
               <ListItemButton selected={tabIndex === 10} onClick={() => setTabIndex(10)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 10 ? 700 : 500, fontSize: '0.9rem' }}>{unityAssetFormData.id ? "Sửa Tài Nguyên" : "Thêm Tài Nguyên"}</Typography>} />
               </ListItemButton>
+              <ListItemButton selected={tabIndex === 11} onClick={() => setTabIndex(11)}>
+                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 11 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Nguồn Tài Nguyên</Typography>} />
+              </ListItemButton>
+              <ListItemButton selected={tabIndex === 12} onClick={() => setTabIndex(12)}>
+                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 12 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Loại Tài Nguyên</Typography>} />
+              </ListItemButton>
 
               <ListSubheader sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'info.main', fontSize: '0.75rem', letterSpacing: '0.05em', mt: 1 }}>
                 <SettingsIcon fontSize="small" /> QUẢN LÝ CHUNG
@@ -1748,21 +2010,50 @@ export default function AdminForm() {
                 <Typography variant="h5" sx={{ fontWeight: 800, mb: 4, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <DashboardIcon sx={{ color: 'primary.main', fontSize: 32 }} /> Tổng Quan Hệ Thống
                 </Typography>
-                <Grid container spacing={3} sx={{ mb: 6 }}>
-                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                
+                {/* 1. Summary Cards */}
+                <Grid container spacing={3} sx={{ mb: 4 }}>
+                  <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
                       <Paper elevation={0} sx={{ p: 3, borderRadius: 4, background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)', color: '#1E3A8A', display: 'flex', flexDirection: 'column', gap: 1, position: 'relative', overflow: 'hidden', boxShadow: '0 10px 25px -5px rgba(37, 99, 235, 0.15)', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-4px)' } }}>
                         <FolderIcon sx={{ position: 'absolute', right: -16, bottom: -16, fontSize: 120, opacity: 0.08, transform: 'rotate(-15deg)' }} />
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, opacity: 0.9 }}>
                           <FolderIcon fontSize="small" />
-                          <Typography variant="body2" sx={{ fontWeight: 800, letterSpacing: '0.05em' }}>TỔNG SỐ DỰ ÁN</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 800, letterSpacing: '0.05em' }}>TỔNG DỰ ÁN</Typography>
                         </Box>
                         <Typography variant="h3" sx={{ fontWeight: 900 }}>{projectsList.length}</Typography>
                       </Paper>
                     </motion.div>
                   </Grid>
-                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+
+                  <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}>
+                      <Paper elevation={0} sx={{ p: 3, borderRadius: 4, background: 'linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)', color: '#6B21A8', display: 'flex', flexDirection: 'column', gap: 1, position: 'relative', overflow: 'hidden', boxShadow: '0 10px 25px -5px rgba(168, 85, 247, 0.15)', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-4px)' } }}>
+                        <ArticleIcon sx={{ position: 'absolute', right: -16, bottom: -16, fontSize: 120, opacity: 0.08, transform: 'rotate(-15deg)' }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, opacity: 0.9 }}>
+                          <ArticleIcon fontSize="small" />
+                          <Typography variant="body2" sx={{ fontWeight: 800, letterSpacing: '0.05em' }}>TỔNG BÀI VIẾT</Typography>
+                        </Box>
+                        <Typography variant="h3" sx={{ fontWeight: 900 }}>{articlesList.length}</Typography>
+                      </Paper>
+                    </motion.div>
+                  </Grid>
+
+                  <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }}>
+                      <Paper elevation={0} sx={{ p: 3, borderRadius: 4, background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)', color: '#065F46', display: 'flex', flexDirection: 'column', gap: 1, position: 'relative', overflow: 'hidden', boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.15)', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-4px)' } }}>
+                        <AutoAwesomeIcon sx={{ position: 'absolute', right: -16, bottom: -16, fontSize: 120, opacity: 0.08, transform: 'rotate(-15deg)' }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, opacity: 0.9 }}>
+                          <AutoAwesomeIcon fontSize="small" />
+                          <Typography variant="body2" sx={{ fontWeight: 800, letterSpacing: '0.05em' }}>TỔNG TÀI NGUYÊN</Typography>
+                        </Box>
+                        <Typography variant="h3" sx={{ fontWeight: 900 }}>{unityAssetsList.length}</Typography>
+                      </Paper>
+                    </motion.div>
+                  </Grid>
+
+                  <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.4 }}>
                       <Paper elevation={0} sx={{ p: 3, borderRadius: 4, background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)', color: '#92400E', display: 'flex', flexDirection: 'column', gap: 1, position: 'relative', overflow: 'hidden', boxShadow: '0 10px 25px -5px rgba(245, 158, 11, 0.15)', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-4px)' } }}>
                         <WorkspacePremiumIcon sx={{ position: 'absolute', right: -16, bottom: -16, fontSize: 120, opacity: 0.08, transform: 'rotate(-15deg)' }} />
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, opacity: 0.9 }}>
@@ -1773,50 +2064,34 @@ export default function AdminForm() {
                       </Paper>
                     </motion.div>
                   </Grid>
-                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }}>
-                      <Paper elevation={0} sx={{ p: 3, borderRadius: 4, background: 'linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)', color: '#6B21A8', display: 'flex', flexDirection: 'column', gap: 1, position: 'relative', overflow: 'hidden', boxShadow: '0 10px 25px -5px rgba(168, 85, 247, 0.15)', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-4px)' } }}>
-                        <ArticleIcon sx={{ position: 'absolute', right: -16, bottom: -16, fontSize: 120, opacity: 0.08, transform: 'rotate(-15deg)' }} />
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, opacity: 0.9 }}>
-                          <ArticleIcon fontSize="small" />
-                          <Typography variant="body2" sx={{ fontWeight: 800, letterSpacing: '0.05em' }}>TỔNG SỐ BÀI VIẾT</Typography>
-                        </Box>
-                        <Typography variant="h3" sx={{ fontWeight: 900 }}>{articlesList.length}</Typography>
-                      </Paper>
-                    </motion.div>
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.4 }}>
-                      <Paper elevation={0} sx={{ p: 3, borderRadius: 4, background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)', color: '#065F46', display: 'flex', flexDirection: 'column', gap: 1, position: 'relative', overflow: 'hidden', boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.15)', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-4px)' } }}>
-                        <SchoolIcon sx={{ position: 'absolute', right: -16, bottom: -16, fontSize: 120, opacity: 0.08, transform: 'rotate(-15deg)' }} />
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, opacity: 0.9 }}>
-                          <SchoolIcon fontSize="small" />
-                          <Typography variant="body2" sx={{ fontWeight: 800, letterSpacing: '0.05em' }}>CHUYÊN NGÀNH</Typography>
-                        </Box>
-                        <Typography variant="h3" sx={{ fontWeight: 900 }}>{majorsList.length}</Typography>
-                      </Paper>
-                    </motion.div>
-                  </Grid>
                 </Grid>
 
+                {/* 2. Detailed Distribution Sections */}
                 <Grid container spacing={3}>
+                  {/* Left Column: Projects & Articles by Major */}
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 3, color: 'text.primary' }}>Dự Án</Typography>
-                    <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid', borderColor: 'divider', height: '100%' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 2, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}><SchoolIcon color="primary" /> Phân Bổ Theo Chuyên Ngành</Typography>
+                    <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid', borderColor: 'divider', height: '100%', minHeight: 300 }}>
                       {majorsList.length === 0 ? (
                         <Typography color="text.secondary">Chưa có dữ liệu chuyên ngành.</Typography>
                       ) : (
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                           {majorsList.map(major => {
-                            const count = projectsList.filter(p => p.major === major.id).length;
-                            const percentage = projectsList.length > 0 ? (count / projectsList.length) * 100 : 0;
+                            const pCount = projectsList.filter(p => p.major === major.id).length;
+                            const aCount = articlesList.filter(a => a.major === major.id).length;
+                            const totalItems = projectsList.length + articlesList.length;
+                            const pPercentage = totalItems > 0 ? (pCount / totalItems) * 100 : 0;
+                            const aPercentage = totalItems > 0 ? (aCount / totalItems) * 100 : 0;
                             return (
-                              <Box key={major.id} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <Typography sx={{ width: 100, fontWeight: 600, fontSize: '0.85rem' }} noWrap>{major.name}</Typography>
-                                <Box sx={{ flexGrow: 1, height: 12, bgcolor: 'action.hover', borderRadius: 10, overflow: 'hidden' }}>
-                                  <Box sx={{ width: `${percentage}%`, height: '100%', bgcolor: major.bg !== 'transparent' ? major.bg : 'primary.main', transition: 'width 1s ease-in-out' }} />
+                              <Box key={major.id}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                                  <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: 'text.primary' }}>{major.name}</Typography>
+                                  <Typography sx={{ fontWeight: 600, fontSize: '0.8rem', color: 'text.secondary' }}>Dự án: {pCount} | Bài viết: {aCount}</Typography>
                                 </Box>
-                                <Typography sx={{ width: 30, textAlign: 'right', fontWeight: 800, fontSize: '0.85rem' }}>{count}</Typography>
+                                <Box sx={{ display: 'flex', height: 12, borderRadius: 10, overflow: 'hidden', bgcolor: 'action.hover' }}>
+                                  <Box sx={{ width: `${pPercentage}%`, bgcolor: major.bg !== 'transparent' ? major.bg : 'primary.main', transition: 'width 1s ease-in-out' }} />
+                                  <Box sx={{ width: `${aPercentage}%`, bgcolor: major.text !== 'transparent' ? major.text : 'secondary.main', transition: 'width 1s ease-in-out', opacity: 0.7 }} />
+                                </Box>
                               </Box>
                             );
                           })}
@@ -1825,31 +2100,103 @@ export default function AdminForm() {
                     </Paper>
                   </Grid>
 
+                  {/* Right Column: Other Categorizations */}
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 3, color: 'text.primary' }}>Bài Viết</Typography>
-                    <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid', borderColor: 'divider', height: '100%' }}>
-                      {articleTypesList.length === 0 ? (
-                        <Typography color="text.secondary">Chưa có dữ liệu loại bài viết.</Typography>
-                      ) : (
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                          {articleTypesList.map(type => {
-                            const count = articlesList.filter(a => a.type === type.id).length;
-                            const percentage = articlesList.length > 0 ? (count / articlesList.length) * 100 : 0;
-                            return (
-                              <Box key={type.id} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                <Typography sx={{ width: 150, fontWeight: 600, fontSize: '0.85rem' }} noWrap>{type.name}</Typography>
-                                <Box sx={{ flexGrow: 1, height: 12, bgcolor: 'action.hover', borderRadius: 10, overflow: 'hidden' }}>
-                                  <Box sx={{ width: `${percentage}%`, height: '100%', bgcolor: type.bg !== 'transparent' ? type.bg : 'secondary.main', transition: 'width 1s ease-in-out' }} />
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      
+                      {/* Categories for Projects */}
+                      <Box>
+                        <Typography variant="h6" sx={{ fontWeight: 800, mb: 2, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}><CategoryIcon color="info" /> Phân Loại Dự Án</Typography>
+                        <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
+                          {categoriesList.length === 0 ? <Typography color="text.secondary">Chưa có phân loại dự án.</Typography> : (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                              {categoriesList.map(cat => {
+                                const count = projectsList.filter(p => p.category === cat.id).length;
+                                const percentage = projectsList.length > 0 ? (count / projectsList.length) * 100 : 0;
+                                return (
+                                  <Box key={cat.id} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                    <Typography sx={{ width: 120, fontWeight: 600, fontSize: '0.85rem' }} noWrap>{cat.name}</Typography>
+                                    <Box sx={{ flexGrow: 1, height: 8, bgcolor: 'action.hover', borderRadius: 10, overflow: 'hidden' }}>
+                                      <Box sx={{ width: `${percentage}%`, height: '100%', bgcolor: cat.bg !== 'transparent' ? cat.bg : 'info.main', transition: 'width 1s ease-in-out' }} />
+                                    </Box>
+                                    <Typography sx={{ width: 30, textAlign: 'right', fontWeight: 800, fontSize: '0.85rem' }}>{count}</Typography>
+                                  </Box>
+                                );
+                              })}
+                            </Box>
+                          )}
+                        </Paper>
+                      </Box>
+
+                      {/* Types for Articles */}
+                      <Box>
+                        <Typography variant="h6" sx={{ fontWeight: 800, mb: 2, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}><ArticleIcon color="secondary" /> Loại Hình Bài Viết</Typography>
+                        <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
+                          {articleTypesList.length === 0 ? <Typography color="text.secondary">Chưa có loại bài viết.</Typography> : (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                              {articleTypesList.map(type => {
+                                const count = articlesList.filter(a => a.type === type.id).length;
+                                const percentage = articlesList.length > 0 ? (count / articlesList.length) * 100 : 0;
+                                return (
+                                  <Box key={type.id} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                    <Typography sx={{ width: 120, fontWeight: 600, fontSize: '0.85rem' }} noWrap>{type.name}</Typography>
+                                    <Box sx={{ flexGrow: 1, height: 8, bgcolor: 'action.hover', borderRadius: 10, overflow: 'hidden' }}>
+                                      <Box sx={{ width: `${percentage}%`, height: '100%', bgcolor: type.bg !== 'transparent' ? type.bg : 'secondary.main', transition: 'width 1s ease-in-out' }} />
+                                    </Box>
+                                    <Typography sx={{ width: 30, textAlign: 'right', fontWeight: 800, fontSize: '0.85rem' }}>{count}</Typography>
+                                  </Box>
+                                );
+                              })}
+                            </Box>
+                          )}
+                        </Paper>
+                      </Box>
+
+                      {/* Unity Assets Sources & Types */}
+                      <Box>
+                        <Typography variant="h6" sx={{ fontWeight: 800, mb: 2, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}><StorageIcon color="success" /> Cơ Cấu Tài Nguyên</Typography>
+                        <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
+                          <Grid container spacing={2}>
+                            <Grid size={{ xs: 6 }}>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: 'text.secondary' }}>Theo Nguồn</Typography>
+                              {assetSourcesList.length === 0 ? <Typography variant="body2" color="text.disabled">Trống</Typography> : (
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                                  {assetSourcesList.map(src => {
+                                    const count = unityAssetsList.filter(a => a.sourceId === src.id).length;
+                                    return (
+                                      <Box key={src.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{src.name}</Typography>
+                                        <Chip label={count} size="small" sx={{ fontWeight: 800, bgcolor: 'action.selected' }} />
+                                      </Box>
+                                    )
+                                  })}
                                 </Box>
-                                <Typography sx={{ width: 30, textAlign: 'right', fontWeight: 800, fontSize: '0.85rem' }}>{count}</Typography>
-                              </Box>
-                            );
-                          })}
-                        </Box>
-                      )}
-                    </Paper>
+                              )}
+                            </Grid>
+                            <Grid size={{ xs: 6 }}>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: 'text.secondary' }}>Theo Loại</Typography>
+                              {assetTypesList.length === 0 ? <Typography variant="body2" color="text.disabled">Trống</Typography> : (
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                                  {assetTypesList.map(type => {
+                                    const count = unityAssetsList.filter(a => a.assetType === type.id).length;
+                                    return (
+                                      <Box key={type.id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <Typography variant="body2" sx={{ fontWeight: 600, color: type.text }}>{type.name}</Typography>
+                                        <Chip label={count} size="small" sx={{ fontWeight: 800, bgcolor: type.bg, color: type.text }} />
+                                      </Box>
+                                    )
+                                  })}
+                                </Box>
+                              )}
+                            </Grid>
+                          </Grid>
+                        </Paper>
+                      </Box>
+
+                    </Box>
                   </Grid>
                 </Grid>
+
               </Box>
             )}
 
@@ -1910,38 +2257,42 @@ export default function AdminForm() {
                     <Button variant="contained" startIcon={<AddIcon />} onClick={() => { setUnityAssetFormData({ id: '', name: '', description: '', imageUrl: '', assetType: 'GOOGLE_DRIVE', originalLink: '', driveLink: '', owner: '' }); setTabIndex(10); }} sx={{ borderRadius: 100, textTransform: 'none', fontWeight: 600 }}>Thêm Tài Nguyên</Button>
                   </Box>
                 </Box>
-                <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4 }}>
-                  <Table>
-                    <TableHead sx={{ bgcolor: 'background.default' }}>
-                      <TableRow>
-                        <TableCell padding="checkbox"><Checkbox indeterminate={selectedUnityAssets.length > 0 && selectedUnityAssets.length < unityAssetsList.length} checked={unityAssetsList.length > 0 && selectedUnityAssets.length === unityAssetsList.length} onChange={(e) => setSelectedUnityAssets(e.target.checked ? unityAssetsList.map(a => a.id) : [])} /></TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>Ảnh</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>Tên Tài Nguyên</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>Loại</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>Tác giả</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 700 }}>Thao Tác</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {unityAssetsList.map((asset) => (
-                        <TableRow key={asset.id} hover>
-                          <TableCell padding="checkbox"><Checkbox checked={selectedUnityAssets.includes(asset.id)} onChange={(e) => setSelectedUnityAssets(e.target.checked ? [...selectedUnityAssets, asset.id] : selectedUnityAssets.filter(id => id !== asset.id))} /></TableCell>
-                          <TableCell><Avatar src={asset.imageUrl} variant="rounded" sx={{ width: 48, height: 48 }} /></TableCell>
-                          <TableCell sx={{ fontWeight: 600 }}>{asset.name}</TableCell>
-                          <TableCell><Chip label={asset.assetType === 'ACCOUNT' ? 'Acc Unity' : 'Google Drive'} size="small" color={asset.assetType === 'ACCOUNT' ? 'primary' : 'success'} /></TableCell>
-                          <TableCell>{asset.owner || '-'}</TableCell>
-                          <TableCell align="right">
-                            <IconButton onClick={() => { setUnityAssetFormData(asset); setTabIndex(10); }} color="primary"><EditIcon /></IconButton>
-                            <IconButton onClick={() => setUnityAssetToDelete(asset.id)} color="error"><DeleteIcon /></IconButton>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {unityAssetsList.length === 0 && (
-                        <TableRow><TableCell colSpan={6} align="center" sx={{ py: 4 }}><Typography color="text.secondary">Chưa có tài nguyên nào.</Typography></TableCell></TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
+                  {unityAssetsList.length === 0 ? (
+                    <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có tài nguyên nào.</Typography></Box>
+                  ) : (
+                    <>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
+                        <FormControlLabel
+                          control={<Checkbox checked={selectedUnityAssets.length > 0 && selectedUnityAssets.length === unityAssetsList.length} indeterminate={selectedUnityAssets.length > 0 && selectedUnityAssets.length < unityAssetsList.length} onChange={(e) => setSelectedUnityAssets(e.target.checked ? unityAssetsList.map(a => a.id) : [])} />}
+                          label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Chọn tất cả</Typography>}
+                          sx={{ ml: 0.5 }}
+                        />
+                      </Box>
+                      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleUnityAssetDragEnd}>
+                        <SortableContext items={unityAssetsList.map(a => a.id)} strategy={verticalListSortingStrategy}>
+                          <List sx={{ p: 0 }}>
+                            {unityAssetsList.map((asset) => (
+                              <Box key={asset.id} sx={{ px: 2, pt: 1.5, pb: 0 }}>
+                                <SortableUnityAssetItem
+                                  asset={asset}
+                                  assetTypesList={assetTypesList}
+                                  assetSourcesList={assetSourcesList}
+                                  isSelected={selectedUnityAssets.includes(asset.id)}
+                                  onToggle={(id: string) => setSelectedUnityAssets(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id])}
+                                  onInlineEdit={handleInlineEditUnityAsset}
+                                  onDelete={(id: string) => setUnityAssetToDelete(id)}
+                                  onImageUpload={handleInlineAssetImageUpload}
+                                  isUploadingImage={isUploadingImage}
+                                />
+                              </Box>
+                            ))}
+                          </List>
+                        </SortableContext>
+                      </DndContext>
+                    </>
+                  )}
+                </Paper>
               </Box>
             )}
 
@@ -1965,10 +2316,31 @@ export default function AdminForm() {
                       <FormControl fullWidth sx={{ mb: 3 }}>
                         <InputLabel>Loại Tài Nguyên</InputLabel>
                         <Select value={unityAssetFormData.assetType} label="Loại Tài Nguyên" onChange={e => setUnityAssetFormData({ ...unityAssetFormData, assetType: e.target.value })}>
-                          <MenuItem value="GOOGLE_DRIVE">Google Drive Package</MenuItem>
-                          <MenuItem value="ACCOUNT">Unity Account</MenuItem>
+                          {assetTypesList.map(type => (
+                            <MenuItem key={type.id} value={type.id}>{type.name}</MenuItem>
+                          ))}
                         </Select>
                       </FormControl>
+                      
+                      <FormControl fullWidth sx={{ mb: 3 }}>
+                        <InputLabel>Nguồn Tài Nguyên</InputLabel>
+                        <Select value={unityAssetFormData.sourceId || ''} label="Nguồn Tài Nguyên" onChange={e => setUnityAssetFormData({ ...unityAssetFormData, sourceId: e.target.value })}>
+                          <MenuItem value=""><em>(Không chọn)</em></MenuItem>
+                          {assetSourcesList.map(source => (
+                            <MenuItem key={source.id} value={source.id}>{source.name}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+
+                      <TextField 
+                        fullWidth 
+                        label="Ngày Tạo" 
+                        type="date" 
+                        slotProps={{ inputLabel: { shrink: true } }}
+                        value={unityAssetFormData.createdAt ? new Date(unityAssetFormData.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]} 
+                        onChange={e => setUnityAssetFormData({ ...unityAssetFormData, createdAt: e.target.value ? new Date(e.target.value).getTime() : Date.now() })} 
+                        sx={{ mb: 3 }} 
+                      />
                       
                       <Box sx={{ mb: 3, border: '1px dashed', borderColor: 'divider', borderRadius: 2, p: 2, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
                         {unityAssetFormData.imageUrl ? (
@@ -2037,6 +2409,112 @@ export default function AdminForm() {
                     </Grid>
                   </Grid>
                 </Paper>
+              </Box>
+            )}
+
+            {/* Tab 11: Asset Sources List */}
+            {tabIndex === 11 && (
+              <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 800 }}>Quản Lý Nguồn Tài Nguyên</Typography>
+                  {selectedAssetSources.length > 0 && (
+                    <Button variant="contained" color="error" startIcon={<DeleteIcon />} onClick={() => setBulkDeleteAssetSourcesConfirm(true)} sx={{ borderRadius: 100, textTransform: 'none', fontWeight: 600 }}>Xoá {selectedAssetSources.length} mục</Button>
+                  )}
+                </Box>
+                <Paper elevation={0} sx={{ p: 3, mb: 4, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.default' }}>
+                  <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 700, color: 'text.secondary' }}>Thêm Nguồn Tài Nguyên Mới</Typography>
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    <TextField fullWidth size="small" placeholder="VD: Unity Asset Store, Github, Tự Viết..." value={newAssetSourceName} onChange={e => setNewAssetSourceName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddAssetSource()} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} />
+                    <Button variant="contained" startIcon={<AddIcon />} onClick={handleAddAssetSource} disabled={!newAssetSourceName.trim()} sx={{ minWidth: 120, borderRadius: 2, fontWeight: 700 }}>Thêm</Button>
+                  </Box>
+                </Paper>
+                <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4 }}>
+                  <Table>
+                    <TableHead sx={{ bgcolor: 'background.default' }}>
+                      <TableRow>
+                        <TableCell padding="checkbox"><Checkbox indeterminate={selectedAssetSources.length > 0 && selectedAssetSources.length < assetSourcesList.length} checked={assetSourcesList.length > 0 && selectedAssetSources.length === assetSourcesList.length} onChange={handleToggleAllAssetSources} /></TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>Tên Nguồn Tài Nguyên</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 700 }}>Sắp xếp</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 700 }}>Thao Tác</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {assetSourcesList.map((source, index) => (
+                        <TableRow key={source.id} hover>
+                          <TableCell padding="checkbox"><Checkbox checked={selectedAssetSources.includes(source.id)} onChange={() => handleToggleAssetSource(source.id)} /></TableCell>
+                          <TableCell sx={{ fontWeight: 600 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                              <Box sx={{ width: 12, height: 12, borderRadius: '50%', background: source.bg }} />
+                              {source.name}
+                            </Box>
+                          </TableCell>
+                          <TableCell align="center">
+                            <IconButton size="small" disabled={index === 0} onClick={() => handleMoveAssetSource(index, 'up')} sx={{ bgcolor: 'action.hover', mr: 0.5 }}><ArrowUpwardIcon fontSize="small" /></IconButton>
+                            <IconButton size="small" disabled={index === assetSourcesList.length - 1} onClick={() => handleMoveAssetSource(index, 'down')} sx={{ bgcolor: 'action.hover' }}><ArrowDownwardIcon fontSize="small" /></IconButton>
+                          </TableCell>
+                          <TableCell align="right">
+                            <IconButton onClick={() => setAssetSourceToDelete(source.id)} color="error"><DeleteIcon /></IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {assetSourcesList.length === 0 && (
+                        <TableRow><TableCell colSpan={4} align="center" sx={{ py: 4 }}><Typography color="text.secondary">Chưa có nguồn tài nguyên nào.</Typography></TableCell></TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            )}
+
+            {/* Tab 12: Asset Types List */}
+            {tabIndex === 12 && (
+              <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 800 }}>Quản Lý Loại Tài Nguyên</Typography>
+                  {selectedAssetTypes.length > 0 && (
+                    <Button variant="contained" color="error" startIcon={<DeleteIcon />} onClick={() => setBulkDeleteAssetTypesConfirm(true)} sx={{ borderRadius: 100, textTransform: 'none', fontWeight: 600 }}>Xoá {selectedAssetTypes.length} mục</Button>
+                  )}
+                </Box>
+                <Paper elevation={0} sx={{ p: 3, mb: 4, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.default' }}>
+                  <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 700, color: 'text.secondary' }}>Thêm Loại Tài Nguyên Mới</Typography>
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    <TextField fullWidth size="small" placeholder="VD: Unity Account, Google Drive, OneDrive..." value={newAssetTypeName} onChange={e => setNewAssetTypeName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddAssetType()} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} />
+                    <Button variant="contained" startIcon={<AddIcon />} onClick={handleAddAssetType} disabled={!newAssetTypeName.trim()} sx={{ minWidth: 120, borderRadius: 2, fontWeight: 700 }}>Thêm</Button>
+                  </Box>
+                </Paper>
+                <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4 }}>
+                  <Table>
+                    <TableHead sx={{ bgcolor: 'background.default' }}>
+                      <TableRow>
+                        <TableCell padding="checkbox"><Checkbox indeterminate={selectedAssetTypes.length > 0 && selectedAssetTypes.length < assetTypesList.length} checked={assetTypesList.length > 0 && selectedAssetTypes.length === assetTypesList.length} onChange={handleToggleAllAssetTypes} /></TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>Tên Loại Tài Nguyên</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 700 }}>Sắp xếp</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 700 }}>Thao Tác</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {assetTypesList.map((type, index) => (
+                        <TableRow key={type.id} hover>
+                          <TableCell padding="checkbox"><Checkbox checked={selectedAssetTypes.includes(type.id)} onChange={() => handleToggleAssetType(type.id)} /></TableCell>
+                          <TableCell sx={{ fontWeight: 600 }}>
+                            <Chip label={type.name} sx={{ bgcolor: type.bg, color: type.text, fontWeight: 700 }} />
+                          </TableCell>
+                          <TableCell align="center">
+                            <IconButton size="small" disabled={index === 0} onClick={() => handleMoveAssetType(index, 'up')} sx={{ bgcolor: 'action.hover', mr: 0.5 }}><ArrowUpwardIcon fontSize="small" /></IconButton>
+                            <IconButton size="small" disabled={index === assetTypesList.length - 1} onClick={() => handleMoveAssetType(index, 'down')} sx={{ bgcolor: 'action.hover' }}><ArrowDownwardIcon fontSize="small" /></IconButton>
+                          </TableCell>
+                          <TableCell align="right">
+                            <IconButton onClick={() => setEditCategoryItem({ ...type, type: 'assetType' })} color="primary" sx={{ mr: 1 }}><EditIcon /></IconButton>
+                            <IconButton onClick={() => setAssetTypeToDelete(type.id)} color="error"><DeleteIcon /></IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {assetTypesList.length === 0 && (
+                        <TableRow><TableCell colSpan={4} align="center" sx={{ py: 4 }}><Typography color="text.secondary">Chưa có loại tài nguyên nào.</Typography></TableCell></TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               </Box>
             )}
 
@@ -2317,7 +2795,7 @@ export default function AdminForm() {
                               <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
                                 <IconButton size="small" onClick={() => handleMoveCategory(idx, 'up')} disabled={idx === 0} sx={{ color: 'action.active' }}><ArrowUpwardIcon fontSize="small" /></IconButton>
                                 <IconButton size="small" onClick={() => handleMoveCategory(idx, 'down')} disabled={idx === categoriesList.length - 1} sx={{ color: 'action.active' }}><ArrowDownwardIcon fontSize="small" /></IconButton>
-                                <IconButton size="small" onClick={() => { setEditCategoryType('category'); setEditCategoryItem(cat); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
+                                <IconButton size="small" onClick={() => setEditCategoryItem({ ...cat, type: 'category' })} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
                                 <IconButton size="small" onClick={() => { setCategoryToDelete(cat.id); setDeleteConfirmOpen(true); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
                               </Box>
                             </ListItem>
@@ -2482,7 +2960,7 @@ export default function AdminForm() {
                               <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
                                 <IconButton size="small" onClick={() => handleMoveMajor(idx, 'up')} disabled={idx === 0} sx={{ color: 'action.active' }}><ArrowUpwardIcon fontSize="small" /></IconButton>
                                 <IconButton size="small" onClick={() => handleMoveMajor(idx, 'down')} disabled={idx === majorsList.length - 1} sx={{ color: 'action.active' }}><ArrowDownwardIcon fontSize="small" /></IconButton>
-                                <IconButton size="small" onClick={() => { setEditCategoryType('major'); setEditCategoryItem(cat); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
+                                <IconButton size="small" onClick={() => setEditCategoryItem({ ...cat, type: 'major' })} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
                                 <IconButton size="small" onClick={() => { setMajorToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
                               </Box>
                             </ListItem>
@@ -2541,7 +3019,7 @@ export default function AdminForm() {
                               <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
                                 <IconButton size="small" onClick={() => handleMoveArticleType(idx, 'up')} disabled={idx === 0} sx={{ color: 'action.active' }}><ArrowUpwardIcon fontSize="small" /></IconButton>
                                 <IconButton size="small" onClick={() => handleMoveArticleType(idx, 'down')} disabled={idx === articleTypesList.length - 1} sx={{ color: 'action.active' }}><ArrowDownwardIcon fontSize="small" /></IconButton>
-                                <IconButton size="small" onClick={() => { setEditCategoryType('articleType'); setEditCategoryItem(cat); }} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
+                                <IconButton size="small" onClick={() => setEditCategoryItem({ ...cat, type: 'articleType' })} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
                                 <IconButton size="small" onClick={() => { setArticleTypeToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
                               </Box>
                             </ListItem>
@@ -2649,6 +3127,44 @@ export default function AdminForm() {
         <DialogActions sx={{ p: 2, pt: 0 }}>
           <Button onClick={() => setBulkDeleteUnityAssetsConfirm(false)} color="inherit" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Huỷ</Button>
           <Button onClick={confirmBulkDeleteUnityAssetsAction} variant="contained" color="error" disableElevation sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Xoá Hàng Loạt</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Asset Sources Dialogs */}
+      <Dialog open={!!assetSourceToDelete} onClose={() => setAssetSourceToDelete(null)} sx={{ '& .MuiDialog-paper': { borderRadius: 3 } }}>
+        <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá Nguồn tài nguyên</DialogTitle>
+        <DialogContent><DialogContentText>Xoá Nguồn tài nguyên này khỏi bản nháp?</DialogContentText></DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setAssetSourceToDelete(null)} color="inherit" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Huỷ</Button>
+          <Button onClick={confirmDeleteAssetSourceHandler} variant="contained" color="error" disableElevation sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Xoá</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={bulkDeleteAssetSourcesConfirm} onClose={() => setBulkDeleteAssetSourcesConfirm(false)} sx={{ '& .MuiDialog-paper': { borderRadius: 3 } }}>
+        <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá nhiều Nguồn tài nguyên</DialogTitle>
+        <DialogContent><DialogContentText>Xoá {selectedAssetSources.length} Nguồn tài nguyên khỏi bản nháp?</DialogContentText></DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setBulkDeleteAssetSourcesConfirm(false)} color="inherit" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Huỷ</Button>
+          <Button onClick={confirmBulkDeleteAssetSourcesAction} variant="contained" color="error" disableElevation sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Xoá Hàng Loạt</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Asset Types Dialogs */}
+      <Dialog open={!!assetTypeToDelete} onClose={() => setAssetTypeToDelete(null)} sx={{ '& .MuiDialog-paper': { borderRadius: 3 } }}>
+        <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá Loại tài nguyên</DialogTitle>
+        <DialogContent><DialogContentText>Xoá Loại tài nguyên này khỏi bản nháp?</DialogContentText></DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setAssetTypeToDelete(null)} color="inherit" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Huỷ</Button>
+          <Button onClick={confirmDeleteAssetTypeHandler} variant="contained" color="error" disableElevation sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Xoá</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={bulkDeleteAssetTypesConfirm} onClose={() => setBulkDeleteAssetTypesConfirm(false)} sx={{ '& .MuiDialog-paper': { borderRadius: 3 } }}>
+        <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá nhiều Loại tài nguyên</DialogTitle>
+        <DialogContent><DialogContentText>Xoá {selectedAssetTypes.length} Loại tài nguyên khỏi bản nháp?</DialogContentText></DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setBulkDeleteAssetTypesConfirm(false)} color="inherit" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Huỷ</Button>
+          <Button onClick={confirmBulkDeleteAssetTypesAction} variant="contained" color="error" disableElevation sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Xoá Hàng Loạt</Button>
         </DialogActions>
       </Dialog>
 

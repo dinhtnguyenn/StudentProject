@@ -7,5 +7,10 @@ export interface UnityAsset {
   originalLink: string;
   driveLink?: string;
   owner?: string;
+  sourceId?: string;
+  sourceName?: string;
+  assetTypeName?: string;
+  assetTypeBg?: string;
+  assetTypeText?: string;
   createdAt?: number;
 }
