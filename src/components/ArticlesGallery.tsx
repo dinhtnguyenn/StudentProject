@@ -72,12 +72,11 @@ export default function ArticlesGallery() {
 
   const handleShare = () => {
     if (sharedArticle) {
-      const shareUrl = `${window.location.origin}/article/${sharedArticle.id}`;
-      navigator.clipboard.writeText(shareUrl);
+      const shareText = `Bài viết: ${sharedArticle.title}\nXem tại: ${window.location.origin}/article/${sharedArticle.id}`;
+      navigator.clipboard.writeText(shareText);
       setShareSuccess(true);
     }
   };
-
   const observer = useRef<IntersectionObserver | null>(null);
   const lastElementRef = (node: HTMLDivElement | null) => {
     if (loading || isFiltering) return;
