@@ -132,7 +132,7 @@ function generateCategoryColors() {
 }
 
 // --- Sortable Item Component ---
-function SortableProjectItem({ project, onDelete, onToggle, isSelected, categoriesList, majorsList, allTags, onUpdateTechTags, onInlineEdit }: any) {
+function SortableProjectItem({ project, onDelete, onToggle, isSelected, categoriesList, majorsList, allTags, onUpdateTechTags, onInlineEdit, onImageUpload, isUploadingImage }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: project.id });
   const theme = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -245,11 +245,17 @@ function SortableProjectItem({ project, onDelete, onToggle, isSelected, categori
             {/* Left Column */}
             <Grid size={{ xs: 12, md: 6 }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <TextField
-                  fullWidth size="small" label="Link Thumbnail (Ảnh)"
-                  value={project.thumbnail}
-                  onChange={(e) => onInlineEdit(project.id, 'thumbnail', e.target.value)}
-                />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <TextField
+                    fullWidth size="small" label="Link Thumbnail (Ảnh)"
+                    value={project.thumbnail}
+                    onChange={(e) => onInlineEdit(project.id, 'thumbnail', e.target.value)}
+                  />
+                  <IconButton component="label" disabled={isUploadingImage} sx={{ bgcolor: 'action.hover' }} title="Tải ảnh từ máy">
+                    {isUploadingImage ? <CircularProgress size={20} /> : <CloudUploadIcon fontSize="small" />}
+                    <input type="file" hidden accept="image/*" onChange={(e) => onImageUpload(e, false, project.id)} />
+                  </IconButton>
+                </Box>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <TextField
                     fullWidth size="small" label="Link YouTube"
@@ -307,7 +313,7 @@ function SortableProjectItem({ project, onDelete, onToggle, isSelected, categori
 }
 
 // --- Sortable Article Item Component ---
-function SortableArticleItem({ article, onDelete, onInlineEdit, articleTypesList, majorsList }: any) {
+function SortableArticleItem({ article, onDelete, onInlineEdit, articleTypesList, majorsList, onImageUpload, isUploadingImage }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: article.id });
   const theme = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -401,7 +407,13 @@ function SortableArticleItem({ article, onDelete, onInlineEdit, articleTypesList
           <Divider sx={{ my: 2 }} />
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField fullWidth size="small" label="Link Ảnh" value={article.imageUrl || ''} onChange={(e) => onInlineEdit(article.id, 'imageUrl', e.target.value)} />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <TextField fullWidth size="small" label="Link Ảnh" value={article.imageUrl || ''} onChange={(e) => onInlineEdit(article.id, 'imageUrl', e.target.value)} />
+                <IconButton component="label" disabled={isUploadingImage} sx={{ bgcolor: 'action.hover' }} title="Tải ảnh từ máy">
+                  {isUploadingImage ? <CircularProgress size={20} /> : <CloudUploadIcon fontSize="small" />}
+                  <input type="file" hidden accept="image/*" onChange={(e) => onImageUpload(e, true, article.id)} />
+                </IconButton>
+              </Box>
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
               <Box sx={{ display: 'flex', gap: 1 }}>
@@ -587,6 +599,7 @@ export default function AdminForm() {
   const isArticleTypesChanged = JSON.stringify(originalArticleTypes) !== JSON.stringify(articleTypesList);
   const hasUnsavedChanges = isProjectsChanged || isCategoriesChanged || isArticlesChanged || isMajorsChanged || isArticleTypesChanged;
   const [isSavingAll, setIsSavingAll] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Modal States
   const [showSortPreview, setShowSortPreview] = useState(false);
@@ -797,6 +810,71 @@ export default function AdminForm() {
       setStatus({ type: 'error', message: err.message || 'Lỗi lấy dữ liệu bài viết.' });
     } finally {
       setFetchingArticle(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isArticle: boolean, targetId?: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!githubToken || !githubOwner || !githubRepo) {
+      setStatus({ type: 'error', message: 'Vui lòng đăng nhập Github trước khi tải ảnh lên.' });
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      const base64Data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const timestamp = Date.now();
+      const extMatch = file.name.match(/\.[0-9a-z]+$/i);
+      const ext = extMatch ? extMatch[0] : '.jpg';
+      const folder = isArticle ? 'articles' : 'projects';
+      const filename = `${folder}_${timestamp}${ext}`;
+      const filePath = `public/images/${folder}/${filename}`;
+
+      const uploadRes = await fetch(`https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/${filePath}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${githubToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: `Upload ${folder} image ${filename}`,
+          content: base64Data
+        })
+      });
+
+      if (!uploadRes.ok) throw new Error('Không thể upload ảnh lên Github');
+      
+      const rawUrl = `https://raw.githubusercontent.com/${githubOwner}/${githubRepo}/main/${filePath}`;
+      
+      if (targetId) {
+        if (isArticle) {
+          setArticlesList(prev => prev.map(a => a.id === targetId ? { ...a, imageUrl: rawUrl } : a));
+        } else {
+          setProjectsList(prev => prev.map(p => p.id === targetId ? { ...p, thumbnail: rawUrl } : p));
+        }
+      } else {
+        if (isArticle) {
+          setArticleFormData(prev => ({ ...prev, imageUrl: rawUrl }));
+        } else {
+          setFormData(prev => ({ ...prev, thumbnail: rawUrl }));
+        }
+      }
+      
+      setStatus({ type: 'success', message: 'Upload ảnh thành công!' });
+    } catch (error: any) {
+      console.error(error);
+      setStatus({ type: 'error', message: error.message || 'Có lỗi xảy ra khi upload ảnh.' });
+    } finally {
+      setIsUploadingImage(false);
+      e.target.value = ''; // Reset input file
     }
   };
 
@@ -1773,7 +1851,13 @@ export default function AdminForm() {
                         />
                       </Grid>
                       <Grid size={{ xs: 12 }}>
-                        <TextField fullWidth label="Link ảnh Thumbnail" name="thumbnail" value={formData.thumbnail} onChange={handleChange} required />
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <TextField fullWidth label="Link ảnh Thumbnail" name="thumbnail" value={formData.thumbnail} onChange={handleChange} required />
+                          <IconButton component="label" disabled={isUploadingImage} sx={{ bgcolor: 'action.hover', p: 1.5 }} title="Tải ảnh từ máy">
+                            {isUploadingImage ? <CircularProgress size={24} /> : <CloudUploadIcon />}
+                            <input type="file" hidden accept="image/*" onChange={(e) => handleImageUpload(e, false)} />
+                          </IconButton>
+                        </Box>
                       </Grid>
                       <Grid size={{ xs: 12 }}>
                         <TextField fullWidth label="Link YouTube" name="youtubeUrl" value={formData.youtubeUrl} onChange={handleChange} />
@@ -1865,6 +1949,8 @@ export default function AdminForm() {
                                 categoriesList={categoriesList}
                                 majorsList={majorsList}
                                 allTags={allTags}
+                                onImageUpload={handleImageUpload}
+                                isUploadingImage={isUploadingImage}
                                 onUpdateTechTags={(id: string, newTags: string[]) => {
                                   setProjectsList(prev => prev.map(p => p.id === id ? { ...p, techTags: newTags } : p));
                                 }}
@@ -1976,7 +2062,13 @@ export default function AdminForm() {
                         <TextField fullWidth label="Tên bài viết" value={articleFormData.title} onChange={e => setArticleFormData({ ...articleFormData, title: e.target.value })} required />
                       </Grid>
                       <Grid size={{ xs: 12 }}>
-                        <TextField fullWidth label="Link ảnh bài viết (Không bắt buộc)" value={articleFormData.imageUrl} onChange={e => setArticleFormData({ ...articleFormData, imageUrl: e.target.value })} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <TextField fullWidth label="Link ảnh bài viết (Không bắt buộc)" value={articleFormData.imageUrl} onChange={e => setArticleFormData({ ...articleFormData, imageUrl: e.target.value })} />
+                          <IconButton component="label" disabled={isUploadingImage} sx={{ bgcolor: 'action.hover', p: 1.5 }} title="Tải ảnh từ máy">
+                            {isUploadingImage ? <CircularProgress size={24} /> : <CloudUploadIcon />}
+                            <input type="file" hidden accept="image/*" onChange={(e) => handleImageUpload(e, true)} />
+                          </IconButton>
+                        </Box>
                       </Grid>
                       <Grid size={{ xs: 12, sm: 4 }}>
                         <FormControl fullWidth required>
@@ -2040,6 +2132,8 @@ export default function AdminForm() {
                             onEdit={(a: any) => { setArticleFormData(a); setTabIndex(3); }}
                             onDelete={(id: string) => setArticlesList(prev => prev.filter(item => item.id !== id))}
                             onInlineEdit={handleInlineEditArticle}
+                            onImageUpload={handleImageUpload}
+                            isUploadingImage={isUploadingImage}
                           />
                         ))}
                       </List>
