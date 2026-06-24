@@ -6,8 +6,7 @@ import ArticlesGallery from './components/ArticlesGallery';
 import DailyMessage from './components/DailyMessage';
 import { getCurrentSeason } from './lib/seasonalEngine';
 import AdminForm from './components/AdminForm';
-import { AppBar, Toolbar, Typography, Button, Container, Box, IconButton, useTheme, Menu, MenuItem, Divider } from '@mui/material';
-import DashboardIcon from '@mui/icons-material/Dashboard';
+import { AppBar, Toolbar, Typography, Button, Container, Box, IconButton, useTheme, Menu, MenuItem } from '@mui/material';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -18,6 +17,7 @@ import confetti from 'canvas-confetti';
 import { ASSETS_3D } from './components/SeasonalEffects';
 import UIEasterEggs from './components/UIEasterEggs';
 import CommandPalette from './components/CommandPalette';
+import LanguageSwitcher from './components/LanguageSwitcher';
 
 function App() {
   const navigate = useNavigate();
@@ -190,10 +190,6 @@ function App() {
                 <MenuItem onClick={() => { navigate('/articles'); setAnchorEl(null); }} sx={{ fontWeight: location.pathname === '/articles' ? 700 : 500, color: location.pathname === '/articles' ? 'primary.main' : 'text.primary', py: 1.5 }}>
                   Bài viết
                 </MenuItem>
-                <Divider sx={{ my: 1 }} />
-                <MenuItem onClick={() => { navigate('/admin'); setAnchorEl(null); }} sx={{ fontWeight: location.pathname === '/admin' ? 700 : 500, color: location.pathname === '/admin' ? 'primary.main' : 'text.primary', py: 1.5 }}>
-                  <DashboardIcon sx={{ mr: 1, fontSize: 20 }} /> Quản trị
-                </MenuItem>
               </Menu>
 
               {/* Desktop Navigation */}
@@ -222,19 +218,11 @@ function App() {
               <IconButton onClick={toggleTheme} sx={{ color: 'text.secondary', ml: 1 }}>
                 {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
               </IconButton>
-              <Button
-                variant="contained"
-                sx={{
-                  display: { xs: 'none', sm: 'flex' },
-                  ml: 1,
-                  minWidth: { xs: '40px', sm: 'auto' },
-                  px: { xs: 1, sm: 2 },
-                }}
-                onClick={() => navigate('/admin')}
-              >
-                <DashboardIcon sx={{ mr: { xs: 0, sm: 1 } }} />
-                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Quản trị</Box>
-              </Button>
+              
+              {/* Language Switcher */}
+              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                <LanguageSwitcher />
+              </Box>
             </Toolbar>
           </Container>
         </AppBar>

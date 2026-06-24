@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://giscus.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://giscus.app; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-src https://www.youtube.com https://giscus.app;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://giscus.app https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://giscus.app https://translate.googleapis.com https://www.gstatic.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-src https://www.youtube.com https://giscus.app https://translate.google.com https://translate.googleapis.com;">
   <link rel="icon" type="image/svg+xml" href="/logo.svg?v=5" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -97,6 +97,46 @@
 
 <body>
   <div id="root"></div>
+  <!-- Khởi tạo Google Translate ẩn -->
+  <div id="google_translate_element" style="visibility:hidden; width:0; height:0; position:absolute; left:-9999px;"></div>
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'vi',
+        includedLanguages: 'vi,en,ja,ko,zh-CN',
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+  </script>
+  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <style>
+    /* Ẩn hoàn toàn thanh công cụ của Google Translate trên đỉnh màn hình */
+    .VIpgJd-ZVi9od-ORHb-OEVmcd,
+    .VIpgJd-ZVi9od-aZ2wEe-wOHMyf,
+    .VIpgJd-ZVi9od-aZ2wEe-wOHMyf-ti6hGc,
+    .VIpgJd-ZVi9od-ORHb,
+    .goog-te-banner-frame.skiptranslate,
+    .goog-te-spinner-pos {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      height: 0 !important;
+      pointer-events: none !important;
+    }
+    
+    body {
+      top: 0 !important;
+    }
+    
+    /* Ẩn tooltip dịch khi hover */
+    #goog-gt-tt, .goog-te-balloon-frame {
+      display: none !important;
+    }
+    .goog-text-highlight {
+      background-color: transparent !important;
+      box-shadow: none !important;
+    }
+  </style>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 

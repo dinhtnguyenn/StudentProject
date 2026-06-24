@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAppTheme } from '../ThemeContext';
 import HomeIcon from '@mui/icons-material/Home';
 import ArticleIcon from '@mui/icons-material/Article';
-import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import ThreeDRotationIcon from '@mui/icons-material/ThreeDRotation';
@@ -55,14 +54,6 @@ export default function CommandPalette() {
       category: 'Điều hướng',
       onSelect: () => navigate('/articles'),
       keywords: ['bai viet', 'article', 'blog']
-    },
-    {
-      id: 'nav-admin',
-      label: 'Đi tới Quản trị',
-      icon: <AdminPanelSettingsIcon />,
-      category: 'Điều hướng',
-      onSelect: () => navigate('/admin'),
-      keywords: ['quan tri', 'admin', 'dashboard']
     },
     {
       id: 'theme-toggle',
