@@ -1,4 +1,4 @@
-import { Dialog, Box, Typography, IconButton, Button, TextField, CircularProgress, Chip, Grid, Avatar, useTheme, useMediaQuery, DialogContent } from '@mui/material';
+import { Dialog, Box, Typography, IconButton, Button, TextField, CircularProgress, Chip, Grid, Avatar, useTheme, useMediaQuery, DialogContent, FormControlLabel, Checkbox, DialogActions, DialogTitle } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import SendIcon from '@mui/icons-material/Send';
@@ -8,6 +8,7 @@ import FolderZipIcon from '@mui/icons-material/FolderZip';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import PersonIcon from '@mui/icons-material/Person';
+import WarningIcon from '@mui/icons-material/Warning';
 import type { UnityAsset } from '../types/UnityAsset';
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
@@ -32,6 +33,63 @@ interface Props {
   onClose: () => void;
 }
 
+// Disclaimer Dialog Component
+const DisclaimerDialog = ({ open, onAgree, onDisagree, type }: { open: boolean; onAgree: () => void; onDisagree: () => void; type: 'submit' | 'drive' }) => {
+  const [checked, setChecked] = useState(false);
+
+  const disclaimerTexts = {
+    submit: {
+      title: 'Điều khoản và Tuyên bố miễn trừ trách nhiệm',
+      content: `1. Tôi sẽ chỉ sử dụng tài nguyên này cho các mục đích học tập, nghiên cứu học thuật hoặc dự án thực hành trong phạm vi trường học.
+
+      2. Tôi cam kết không sử dụng tài nguyên này cho mục đích thương mại, lợi nhuận hoặc bất kỳ hoạt động nào trái pháp luật.
+
+      3. Tôi chịu trách nhiệm hoàn toàn về việc tuân thủ các điều khoản sử dụng từ nhà cung cấp tài nguyên gốc (Unity Asset Store, Fab.com, v.v.).
+
+      4. UniFolio không chịu trách nhiệm cho bất kỳ hậu quả nào phát sinh từ việc sử dụng tài nguyên này, bao gồm nhưng không giới hạn: lỗi kỹ thuật, mất dữ liệu, hoặc vi phạm bản quyền.
+
+      5. Tôi hiểu rằng việc sử dụng sai mục đích có thể dẫn đến việc hủy bỏ quyền truy cập và có thể có hậu quả pháp lý.`
+    },
+    drive: {
+      title: 'Điều khoản và Tuyên bố miễn trừ trách nhiệm',
+      content: `1. Tài nguyên trên Google Drive có thể chứa các file được chia sẻ bởi bên thứ ba. Vui lòng kiểm tra virus và bảo mật trước khi sử dụng.
+
+      2. UniFolio không chịu trách nhiệm cho bất kỳ thiệt hại nào phát sinh từ việc tải xuống hoặc sử dụng các file từ Google Drive.
+
+      3. Hãy chắc chắn rằng bạn có quyền truy cập hợp pháp vào nội dung này và sẽ tuân thủ tất cả các điều khoản sử dụng.
+
+      4. Nếu bạn phát hiện bất kỳ vấn đề nào, vui lòng báo cáo cho Unifolio ngay lập tức.`
+    }
+  };
+
+  const currentText = disclaimerTexts[type];
+
+  return (
+    <Dialog open={open} onClose={onDisagree} maxWidth="sm" fullWidth>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 900, color: 'warning.main' }}>
+        <WarningIcon /> {currentText.title}
+      </DialogTitle>
+      <DialogContent sx={{ py: 3 }}>
+        <Typography variant="body2" sx={{ whiteSpace: 'pre-line', lineHeight: 1.8, color: 'text.secondary', mb: 3, textAlign: 'justify' }}>
+          {currentText.content}
+        </Typography>
+        <FormControlLabel
+          control={<Checkbox checked={checked} onChange={(e) => setChecked(e.target.checked)} />}
+          label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Tôi đã đọc và đồng ý với các điều khoản trên</Typography>}
+        />
+      </DialogContent>
+      <DialogActions sx={{ p: 2, gap: 1 }}>
+        <Button onClick={onDisagree} variant="outlined" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}>
+          Hủy
+        </Button>
+        <Button onClick={onAgree} variant="contained" disabled={!checked} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}>
+          Tôi đã hiểu và đồng ý
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
 export default function AssetDetailModal({ asset, open, onClose }: Props) {
   const muiTheme = useTheme();
   const isLight = muiTheme.palette.mode === 'light';
@@ -40,6 +98,9 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
   const [formData, setFormData] = useState({ name: '', studentId: '', school: '', email: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [disclaimerOpen, setDisclaimerOpen] = useState(false);
+  const [disclaimerType, setDisclaimerType] = useState<'submit' | 'drive'>('submit');
+  const [driveLink, setDriveLink] = useState<string>('');
 
   if (!asset) return null;
 
@@ -50,12 +111,27 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Show disclaimer first
+    setDisclaimerType('submit');
+    setDisclaimerOpen(true);
+  };
+
+  const handleDisclaimerAgree = async () => {
+    setDisclaimerOpen(false);
+    if (disclaimerType === 'submit') {
+      await submitForm();
+    } else if (disclaimerType === 'drive' && driveLink) {
+      window.open(driveLink, '_blank');
+    }
+  };
+
+  const submitForm = async () => {
     setIsSubmitting(true);
     setSubmitStatus('idle');
 
     const accessKey = "a5b2c357-ae00-48e5-9f59-2945167199be";
     if (!accessKey) {
-      alert("Hệ thống chưa được cấu hình API Key gửi Email. Vui lòng liên hệ Admin.");
+      alert("Hệ thống chưa được cấu hình API Key gửi Email. Vui lòng liên hệ Unifolio.");
       setIsSubmitting(false);
       return;
     }
@@ -91,6 +167,15 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
     }
   };
 
+  const handleGoogleDriveClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (asset?.driveLink) {
+      setDriveLink(asset.driveLink);
+      setDisclaimerType('drive');
+      setDisclaimerOpen(true);
+    }
+  };
+
   return (
     <>
       <Helmet>
@@ -122,7 +207,7 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
         }}
       >
         {/* Hero Banner Area */}
-        <Box sx={{ position: 'relative', width: '100%', height: { xs: 200, md: 320 }, bgcolor: '#000' }}>
+        <Box sx={{ position: 'relative', width: '100%', height: { xs: 120, md: 200 }, bgcolor: '#000' }}>
           {asset.imageUrl ? (
             <Box component="img" src={asset.imageUrl} alt={asset.name} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
@@ -180,22 +265,22 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
             <Typography variant="h6" sx={{ fontWeight: 800, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
               <AutoAwesomeIcon color="primary" /> Chi Tiết
             </Typography>
-            <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.8, whiteSpace: 'pre-line', fontSize: '1.05rem', mb: 4 }}>
+            <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.8, whiteSpace: 'pre-line', fontSize: '1.05rem', mb: 4, textAlign: 'justify' }}>
               {asset.description || 'Chưa có mô tả chi tiết cho tài nguyên này.'}
             </Typography>
 
             {(asset.driveLink || asset.originalLink) && (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 5, p: 4, borderRadius: 5, bgcolor: isLight ? 'rgba(37,99,235,0.08)' : 'rgba(37,99,235,0.12)', border: '1px solid', borderColor: 'primary.light' }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 900, color: 'text.primary' }}>Bạn muốn tải tài nguyên?</Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.8 }}>
-                  Nếu bạn muốn tải tài nguyên với mục đích học tập, hãy gửi thông tin yêu cầu ở form bên dưới để Admin kiểm duyệt và cấp quyền.
+                <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.8, textAlign: 'justify' }}>
+                  Nếu bạn muốn tải tài nguyên với mục đích học tập, hãy gửi thông tin yêu cầu ở form bên dưới để Unifolio kiểm duyệt và cấp quyền.
                 </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 700, mt: 1 }}>
                   Hình thức nhận tài nguyên thông qua: {receiveMethod}
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, pt: 1 }}>
                   {asset.driveLink && (
-                    <Button variant="contained" href={asset.driveLink} target="_blank" startIcon={<FileDownloadIcon />} sx={{ fontWeight: 800, borderRadius: 100, px: 3, py: 1.25, textTransform: 'none', boxShadow: '0 10px 30px -10px rgba(37,99,235,0.75)' }}>
+                    <Button variant="contained" onClick={handleGoogleDriveClick} startIcon={<FileDownloadIcon />} sx={{ fontWeight: 800, borderRadius: 100, px: 3, py: 1.25, textTransform: 'none', boxShadow: '0 10px 30px -10px rgba(37,99,235,0.75)' }}>
                       Link Drive tài nguyên
                     </Button>
                   )}
@@ -218,13 +303,13 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
               <Typography variant="h6" sx={{ fontWeight: 900 }}>Yêu cầu truy cập tài nguyên</Typography>
             </Box>
             <Typography color="text.secondary" sx={{ mb: 4, fontWeight: 500, lineHeight: 1.8 }}>
-              Điền đầy đủ thông tin bên dưới để Admin xem xét và cấp quyền truy cập tài nguyên trên.
+              Điền đầy đủ thông tin bên dưới để Unifolio xem xét và cấp quyền truy cập tài nguyên trên.
             </Typography>
 
             {submitStatus === 'success' ? (
               <Box sx={{ textAlign: 'center', py: 4, animation: 'fadeIn 0.5s ease-out' }}>
                 <Typography variant="h5" sx={{ fontWeight: 900, color: 'success.main', mb: 2 }}>Gửi yêu cầu thành công!</Typography>
-                <Typography color="text.secondary">Yêu cầu của bạn đã được gửi. Chúng tôi sẽ phản hồi qua Email trong thời gian sớm nhất.</Typography>
+                <Typography color="text.secondary">Yêu cầu của bạn đã được gửi. Unifolio sẽ phản hồi qua email trong thời gian sớm nhất.</Typography>
                 <Button variant="contained" color="primary" onClick={onClose} sx={{ mt: 4, borderRadius: 100, fontWeight: 800, px: 5, py: 1.5, textTransform: 'none' }}>Đóng Cửa Sổ</Button>
               </Box>
             ) : (
@@ -243,7 +328,7 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
                     <TextField fullWidth label="Email liên hệ" type="email" required value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'background.paper' } }} />
                   </Grid>
                 </Grid>
-                <TextField fullWidth multiline rows={3} label="Lý do / Mục đích sử dụng cụ thể" required value={formData.message} onChange={e => setFormData({ ...formData, message: e.target.value })} helperText="Chi tiết mục đích sẽ giúp Admin duyệt nhanh hơn." sx={{ mb: 4, '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'background.paper' } }} />
+                <TextField fullWidth multiline rows={3} label="Lý do / Mục đích sử dụng cụ thể" required value={formData.message} onChange={e => setFormData({ ...formData, message: e.target.value })} helperText="Chi tiết mục đích sẽ giúp Unifolio duyệt nhanh hơn." sx={{ mb: 4, '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'background.paper' } }} />
 
                 <Button type="submit" variant="contained" disabled={isSubmitting} startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : <SendIcon />} sx={{ width: '100%', py: 1.5, borderRadius: 3, fontWeight: 800, fontSize: '1.05rem', textTransform: 'none', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', boxShadow: '0 8px 25px -8px rgba(37,99,235,0.6)', transition: 'all 0.3s ease', '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 12px 30px -10px rgba(37,99,235,0.8)' } }}>
                   {isSubmitting ? 'Đang xử lý...' : 'Gửi yêu cầu'}
@@ -253,6 +338,14 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
           </Box>
         </DialogContent>
       </Dialog>
+
+      {/* Disclaimer Dialog */}
+      <DisclaimerDialog
+        open={disclaimerOpen}
+        type={disclaimerType}
+        onAgree={handleDisclaimerAgree}
+        onDisagree={() => setDisclaimerOpen(false)}
+      />
     </>
   );
 }
