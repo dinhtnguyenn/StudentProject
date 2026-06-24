@@ -41,6 +41,17 @@ function generateSeoPages() {
       });
     }
 
+    // Unity Assets
+    const assetsPath = path.join(DATA_DIR, 'unity-assets.json');
+    if (fs.existsSync(assetsPath)) {
+      const assets = JSON.parse(fs.readFileSync(assetsPath, 'utf8'));
+      assets.forEach(asset => {
+        if (asset.id) {
+          createSeoHtml(templateHtml, 'asset', asset.id, `Tài nguyên: ${asset.name}`, asset.description, asset.imageUrl);
+        }
+      });
+    }
+
     console.log('SEO pages generated successfully!');
   } catch (error) {
     console.error('Error generating SEO pages:', error);

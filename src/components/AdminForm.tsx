@@ -5,7 +5,8 @@ import {
   CircularProgress, Divider, Collapse, IconButton, InputAdornment,
   List, ListItem, ListItemText, Avatar, ListSubheader, ListItemButton,
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
-  FormControl, InputLabel, Select, MenuItem, Chip, Checkbox, FormControlLabel, useTheme, ListItemIcon, Autocomplete, InputBase
+  FormControl, InputLabel, Select, MenuItem, Chip, Checkbox, FormControlLabel, useTheme, ListItemIcon, Autocomplete, InputBase,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import EditNoteIcon from '@mui/icons-material/EditNote';
@@ -590,6 +591,14 @@ export default function AdminForm() {
   const [articlesSha, setArticlesSha] = useState('');
   const [loadingArticles, setLoadingArticles] = useState(false);
 
+  const [originalUnityAssets, setOriginalUnityAssets] = useState<any[]>([]);
+  const [unityAssetsList, setUnityAssetsList] = useState<any[]>([]);
+  const [unityAssetsSha, setUnityAssetsSha] = useState('');
+
+  const [unityAssetFormData, setUnityAssetFormData] = useState<any>({
+    id: '', name: '', description: '', imageUrl: '', assetType: 'GOOGLE_DRIVE', originalLink: '', driveLink: '', owner: ''
+  });
+
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   // Draft State detection
@@ -598,7 +607,8 @@ export default function AdminForm() {
   const isArticlesChanged = JSON.stringify(originalArticles) !== JSON.stringify(articlesList);
   const isMajorsChanged = JSON.stringify(originalMajors) !== JSON.stringify(majorsList);
   const isArticleTypesChanged = JSON.stringify(originalArticleTypes) !== JSON.stringify(articleTypesList);
-  const hasUnsavedChanges = isProjectsChanged || isCategoriesChanged || isArticlesChanged || isMajorsChanged || isArticleTypesChanged;
+  const isUnityAssetsChanged = JSON.stringify(originalUnityAssets) !== JSON.stringify(unityAssetsList);
+  const hasUnsavedChanges = isProjectsChanged || isCategoriesChanged || isArticlesChanged || isMajorsChanged || isArticleTypesChanged || isUnityAssetsChanged;
   const [isSavingAll, setIsSavingAll] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isTriggeringBuild, setIsTriggeringBuild] = useState(false);
@@ -617,11 +627,16 @@ export default function AdminForm() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [bulkDeleteCategoriesConfirm, setBulkDeleteCategoriesConfirm] = useState(false);
 
+  const [unityAssetToDelete, setUnityAssetToDelete] = useState<string | null>(null);
+  const [selectedUnityAssets, setSelectedUnityAssets] = useState<string[]>([]);
+  const [bulkDeleteUnityAssetsConfirm, setBulkDeleteUnityAssetsConfirm] = useState(false);
+
   const getProjectsApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/projects.json`;
   const getCategoriesApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/categories.json`;
   const getArticlesApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/articles.json`;
   const getMajorsApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/majors.json`;
   const getArticleTypesApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/articleTypes.json`;
+  const getUnityAssetsApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/unity-assets.json`;
   const getTriggerApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/trigger.json`;
 
   const fetchFile = async (url: string) => {
@@ -686,6 +701,10 @@ export default function AdminForm() {
         .then(res => { setArticleTypesList(res.data); setOriginalArticleTypes(res.data); setArticleTypesSha(res.sha); })
         .catch(err => { console.error(err); setFetchError('Lỗi tải danh mục loại bài viết. Vui lòng không lưu!'); })
         .finally(() => setLoadingArticleTypes(false));
+
+      fetchFile(getUnityAssetsApiUrl())
+        .then(res => { setUnityAssetsList(res.data); setOriginalUnityAssets(res.data); setUnityAssetsSha(res.sha); })
+        .catch(err => { console.error(err); setFetchError('Lỗi tải danh mục tài nguyên. Vui lòng không lưu!'); });
     }
   }, [isAuthenticated, githubToken, githubOwner, githubRepo]);
 
@@ -1257,6 +1276,21 @@ export default function AdminForm() {
   const handleToggleArticleType = (id: string) => setSelectedArticleTypes(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   const handleToggleAllArticleTypes = () => setSelectedArticleTypes(selectedArticleTypes.length === articleTypesList.length ? [] : articleTypesList.map(c => c.id));
 
+  const confirmDeleteUnityAssetHandler = () => {
+    if (!unityAssetToDelete) return;
+    setUnityAssetsList(prev => prev.filter(c => c.id !== unityAssetToDelete));
+    setUnityAssetToDelete(null);
+    setStatus({ type: 'info', message: 'Đã xoá tài nguyên khỏi bản nháp.' });
+  };
+
+  const confirmBulkDeleteUnityAssetsAction = () => {
+    if (selectedUnityAssets.length === 0) return;
+    setUnityAssetsList(prev => prev.filter(c => !selectedUnityAssets.includes(c.id)));
+    setSelectedUnityAssets([]);
+    setBulkDeleteUnityAssetsConfirm(false);
+    setStatus({ type: 'info', message: `Đã xoá nháp ${selectedUnityAssets.length} tài nguyên.` });
+  };
+
   const handleMoveArticleType = (index: number, direction: 'up' | 'down') => {
     setArticleTypesList(prev => moveItem(prev, index, direction));
   };
@@ -1323,6 +1357,12 @@ export default function AdminForm() {
         setArticleTypesSha(newSha);
         successCount++;
       }
+      if (isUnityAssetsChanged) {
+        const newSha = await commitFile(getUnityAssetsApiUrl(), unityAssetsList, unityAssetsSha, `Update unity assets (Bulk save) [skip ci]`);
+        setOriginalUnityAssets(unityAssetsList);
+        setUnityAssetsSha(newSha);
+        successCount++;
+      }
 
       setStatus({ type: 'success', message: `Commit thành công ${successCount} file lên GitHub! Quá trình build sẽ tự động chạy.` });
     } catch (err: any) {
@@ -1359,6 +1399,12 @@ export default function AdminForm() {
             const merged = autoMergeData(remote.data, articleTypesList);
             const newSha = await commitFile(getArticleTypesApiUrl(), merged, remote.sha, `Merge & Update article types [skip ci]`);
             setArticleTypesList(merged); setOriginalArticleTypes(merged); setArticleTypesSha(newSha);
+          }
+          if (isUnityAssetsChanged) {
+            const remote = await fetchFile(getUnityAssetsApiUrl());
+            const merged = autoMergeData(remote.data, unityAssetsList);
+            const newSha = await commitFile(getUnityAssetsApiUrl(), merged, remote.sha, `Merge & Update unity assets [skip ci]`);
+            setUnityAssetsList(merged); setOriginalUnityAssets(merged); setUnityAssetsSha(newSha);
           }
           setStatus({ type: 'success', message: `Gộp dữ liệu và Commit thành công lên GitHub! Quá trình build sẽ tự động chạy.` });
         } catch (mergeErr: any) {
@@ -1612,6 +1658,16 @@ export default function AdminForm() {
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 6 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Loại Bài Viết</Typography>} />
               </ListItemButton>
 
+              <ListSubheader sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'success.main', fontSize: '0.75rem', letterSpacing: '0.05em', mt: 1 }}>
+                <AutoAwesomeIcon fontSize="small" /> TÀI NGUYÊN (ASSETS)
+              </ListSubheader>
+              <ListItemButton selected={tabIndex === 9} onClick={() => setTabIndex(9)}>
+                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 9 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Tài Nguyên</Typography>} />
+              </ListItemButton>
+              <ListItemButton selected={tabIndex === 10} onClick={() => setTabIndex(10)}>
+                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 10 ? 700 : 500, fontSize: '0.9rem' }}>{unityAssetFormData.id ? "Sửa Tài Nguyên" : "Thêm Tài Nguyên"}</Typography>} />
+              </ListItemButton>
+
               <ListSubheader sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'info.main', fontSize: '0.75rem', letterSpacing: '0.05em', mt: 1 }}>
                 <SettingsIcon fontSize="small" /> QUẢN LÝ CHUNG
               </ListSubheader>
@@ -1777,6 +1833,148 @@ export default function AdminForm() {
                       Lưu Lại
                     </Button>
                   </Box>
+                </Paper>
+              </Box>
+            )}
+
+            {/* Tab 9: Unity Assets List */}
+            {tabIndex === 9 && (
+              <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 800 }}>Quản Lý Tài Nguyên</Typography>
+                  <Box sx={{ display: 'flex', gap: 2 }}>
+                    {selectedUnityAssets.length > 0 && (
+                      <Button variant="contained" color="error" startIcon={<DeleteIcon />} onClick={() => setBulkDeleteUnityAssetsConfirm(true)} sx={{ borderRadius: 100, textTransform: 'none', fontWeight: 600 }}>Xoá {selectedUnityAssets.length} mục</Button>
+                    )}
+                    <Button variant="contained" startIcon={<AddIcon />} onClick={() => { setUnityAssetFormData({ id: '', name: '', description: '', imageUrl: '', assetType: 'GOOGLE_DRIVE', originalLink: '', driveLink: '', owner: '' }); setTabIndex(10); }} sx={{ borderRadius: 100, textTransform: 'none', fontWeight: 600 }}>Thêm Tài Nguyên</Button>
+                  </Box>
+                </Box>
+                <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4 }}>
+                  <Table>
+                    <TableHead sx={{ bgcolor: 'background.default' }}>
+                      <TableRow>
+                        <TableCell padding="checkbox"><Checkbox indeterminate={selectedUnityAssets.length > 0 && selectedUnityAssets.length < unityAssetsList.length} checked={unityAssetsList.length > 0 && selectedUnityAssets.length === unityAssetsList.length} onChange={(e) => setSelectedUnityAssets(e.target.checked ? unityAssetsList.map(a => a.id) : [])} /></TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>Ảnh</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>Tên Tài Nguyên</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>Loại</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>Tác giả</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 700 }}>Thao Tác</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {unityAssetsList.map((asset) => (
+                        <TableRow key={asset.id} hover>
+                          <TableCell padding="checkbox"><Checkbox checked={selectedUnityAssets.includes(asset.id)} onChange={(e) => setSelectedUnityAssets(e.target.checked ? [...selectedUnityAssets, asset.id] : selectedUnityAssets.filter(id => id !== asset.id))} /></TableCell>
+                          <TableCell><Avatar src={asset.imageUrl} variant="rounded" sx={{ width: 48, height: 48 }} /></TableCell>
+                          <TableCell sx={{ fontWeight: 600 }}>{asset.name}</TableCell>
+                          <TableCell><Chip label={asset.assetType === 'ACCOUNT' ? 'Acc Unity' : 'Google Drive'} size="small" color={asset.assetType === 'ACCOUNT' ? 'primary' : 'success'} /></TableCell>
+                          <TableCell>{asset.owner || '-'}</TableCell>
+                          <TableCell align="right">
+                            <IconButton onClick={() => { setUnityAssetFormData(asset); setTabIndex(10); }} color="primary"><EditIcon /></IconButton>
+                            <IconButton onClick={() => setUnityAssetToDelete(asset.id)} color="error"><DeleteIcon /></IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {unityAssetsList.length === 0 && (
+                        <TableRow><TableCell colSpan={6} align="center" sx={{ py: 4 }}><Typography color="text.secondary">Chưa có tài nguyên nào.</Typography></TableCell></TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            )}
+
+            {/* Tab 10: Unity Asset Form */}
+            {tabIndex === 10 && (
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 800, mb: 3 }}>{unityAssetFormData.id ? 'Chỉnh Sửa Tài Nguyên' : 'Thêm Tài Nguyên Mới'}</Typography>
+                <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 4 }}>
+                  <Grid container spacing={3}>
+                    <Grid size={{ xs: 12, md: 8 }}>
+                      <TextField fullWidth label="Tên Tài Nguyên" value={unityAssetFormData.name} onChange={e => setUnityAssetFormData({ ...unityAssetFormData, name: e.target.value })} sx={{ mb: 3 }} />
+                      <TextField fullWidth label="Link Gốc Unity Store" value={unityAssetFormData.originalLink} onChange={e => setUnityAssetFormData({ ...unityAssetFormData, originalLink: e.target.value })} sx={{ mb: 3 }} />
+                      <TextField fullWidth label="Link Google Drive (tuỳ chọn)" value={unityAssetFormData.driveLink || ''} onChange={e => setUnityAssetFormData({ ...unityAssetFormData, driveLink: e.target.value })} sx={{ mb: 3 }} />
+                      <TextField fullWidth label="Người sở hữu/Đóng góp (tuỳ chọn)" value={unityAssetFormData.owner || ''} onChange={e => setUnityAssetFormData({ ...unityAssetFormData, owner: e.target.value })} sx={{ mb: 3 }} />
+                      <Box sx={{ mb: 3 }}>
+                        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Mô tả tài nguyên</Typography>
+                        <TextField fullWidth multiline rows={4} value={unityAssetFormData.description} onChange={e => setUnityAssetFormData({ ...unityAssetFormData, description: e.target.value })} />
+                      </Box>
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 4 }}>
+                      <FormControl fullWidth sx={{ mb: 3 }}>
+                        <InputLabel>Loại Tài Nguyên</InputLabel>
+                        <Select value={unityAssetFormData.assetType} label="Loại Tài Nguyên" onChange={e => setUnityAssetFormData({ ...unityAssetFormData, assetType: e.target.value })}>
+                          <MenuItem value="GOOGLE_DRIVE">Google Drive Package</MenuItem>
+                          <MenuItem value="ACCOUNT">Unity Account</MenuItem>
+                        </Select>
+                      </FormControl>
+                      
+                      <Box sx={{ mb: 3, border: '1px dashed', borderColor: 'divider', borderRadius: 2, p: 2, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+                        {unityAssetFormData.imageUrl ? (
+                          <Box sx={{ position: 'relative' }}>
+                            <img src={unityAssetFormData.imageUrl} alt="Thumbnail" style={{ width: '100%', borderRadius: 8 }} />
+                            <IconButton onClick={() => setUnityAssetFormData({ ...unityAssetFormData, imageUrl: '' })} sx={{ position: 'absolute', top: 8, right: 8, bgcolor: 'rgba(0,0,0,0.5)', color: '#fff', '&:hover': { bgcolor: 'error.main' } }}><DeleteIcon fontSize="small" /></IconButton>
+                          </Box>
+                        ) : (
+                          <>
+                            <CloudUploadIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 1 }} />
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Kéo thả hoặc chọn ảnh minh hoạ</Typography>
+                            <input type="file" accept="image/jpeg, image/png, image/webp" onChange={async (e) => {
+                              if (!e.target.files || !e.target.files[0]) return;
+                              setIsUploadingImage(true);
+                              try {
+                                const file = e.target.files[0];
+                                const reader = new FileReader();
+                                reader.onloadend = async () => {
+                                  const base64Content = (reader.result as string).split(',')[1];
+                                  const ext = file.name.split('.').pop();
+                                  const fileName = `asset_${Date.now()}.${ext}`;
+                                  const uploadUrl = `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/assets/${fileName}`;
+                                  
+                                  const res = await fetch(uploadUrl, {
+                                    method: 'PUT',
+                                    headers: { 'Authorization': `token ${githubToken}`, 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ message: `Upload image for asset ${fileName} [skip ci]`, content: base64Content, branch: 'main' })
+                                  });
+                                  if (!res.ok) throw new Error('Upload ảnh thất bại');
+                                  
+                                  setUnityAssetFormData({ ...unityAssetFormData, imageUrl: `https://raw.githubusercontent.com/${githubOwner}/${githubRepo}/main/public/assets/${fileName}` });
+                                  setStatus({ type: 'success', message: 'Tải ảnh thành công' });
+                                };
+                                reader.readAsDataURL(file);
+                              } catch (err: any) {
+                                setStatus({ type: 'error', message: err.message });
+                              } finally {
+                                setIsUploadingImage(false);
+                              }
+                            }} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }} disabled={isUploadingImage} />
+                            {isUploadingImage && <CircularProgress size={24} sx={{ position: 'absolute', top: '50%', left: '50%', mt: -1.5, ml: -1.5 }} />}
+                          </>
+                        )}
+                      </Box>
+
+                      <Button variant="contained" fullWidth onClick={() => {
+                        if (!unityAssetFormData.name) { setStatus({ type: 'error', message: 'Vui lòng nhập tên tài nguyên!' }); return; }
+                        const newId = unityAssetFormData.id || Date.now().toString();
+                        const newAsset = { ...unityAssetFormData, id: newId, createdAt: unityAssetFormData.createdAt || Date.now() };
+                        let newList = [...unityAssetsList];
+                        if (unityAssetFormData.id) {
+                          newList = newList.map(a => a.id === newId ? newAsset : a);
+                        } else {
+                          newList.unshift(newAsset);
+                        }
+                        setUnityAssetsList(newList);
+                        setUnityAssetFormData({ id: '', name: '', description: '', imageUrl: '', assetType: 'GOOGLE_DRIVE', originalLink: '', driveLink: '', owner: '' });
+                        setTabIndex(9);
+                        setStatus({ type: 'success', message: 'Đã lưu tài nguyên vào bản nháp. Vui lòng bấm Lưu Lên GitHub!' });
+                      }} sx={{ py: 1.5, fontWeight: 700, borderRadius: 2 }}>
+                        {unityAssetFormData.id ? 'Cập Nhật Tài Nguyên' : 'Thêm Tài Nguyên'}
+                      </Button>
+                      <Button variant="outlined" fullWidth onClick={() => { setUnityAssetFormData({ id: '', name: '', description: '', imageUrl: '', assetType: 'GOOGLE_DRIVE', originalLink: '', driveLink: '', owner: '' }); setTabIndex(9); }} sx={{ mt: 2, py: 1.5, fontWeight: 700, borderRadius: 2 }}>
+                        Hủy Bỏ
+                      </Button>
+                    </Grid>
+                  </Grid>
                 </Paper>
               </Box>
             )}
@@ -2371,6 +2569,25 @@ export default function AdminForm() {
         <DialogActions sx={{ p: 2, pt: 0 }}>
           <Button onClick={() => setBulkDeleteArticleTypesConfirm(false)} color="inherit" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Huỷ</Button>
           <Button onClick={confirmBulkDeleteArticleTypesAction} variant="contained" color="error" disableElevation sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Xoá Hàng Loạt</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Unity Assets Dialogs */}
+      <Dialog open={!!unityAssetToDelete} onClose={() => setUnityAssetToDelete(null)} sx={{ '& .MuiDialog-paper': { borderRadius: 3 } }}>
+        <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá tài nguyên</DialogTitle>
+        <DialogContent><DialogContentText>Xoá tài nguyên này khỏi bản nháp?</DialogContentText></DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setUnityAssetToDelete(null)} color="inherit" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Huỷ</Button>
+          <Button onClick={confirmDeleteUnityAssetHandler} variant="contained" color="error" disableElevation sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Xoá</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={bulkDeleteUnityAssetsConfirm} onClose={() => setBulkDeleteUnityAssetsConfirm(false)} sx={{ '& .MuiDialog-paper': { borderRadius: 3 } }}>
+        <DialogTitle sx={{ fontWeight: 700 }}>Xác nhận xoá nhiều tài nguyên</DialogTitle>
+        <DialogContent><DialogContentText>Xoá {selectedUnityAssets.length} tài nguyên khỏi bản nháp?</DialogContentText></DialogContent>
+        <DialogActions sx={{ p: 2, pt: 0 }}>
+          <Button onClick={() => setBulkDeleteUnityAssetsConfirm(false)} color="inherit" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Huỷ</Button>
+          <Button onClick={confirmBulkDeleteUnityAssetsAction} variant="contained" color="error" disableElevation sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>Xoá Hàng Loạt</Button>
         </DialogActions>
       </Dialog>
 

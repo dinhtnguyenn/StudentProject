@@ -23,6 +23,11 @@ function generateSitemap() {
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
+  <url>
+    <loc>${DOMAIN}/assets</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
 `;
 
     // Add Projects
@@ -43,6 +48,17 @@ function generateSitemap() {
       articles.forEach(article => {
         if (article.id) {
           sitemap += `  <url>\n    <loc>${DOMAIN}/article/${article.id}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
+        }
+      });
+    }
+
+    // Add Unity Assets
+    const assetsPath = path.join(PUBLIC_DIR, 'data/unity-assets.json');
+    if (fs.existsSync(assetsPath)) {
+      const assets = JSON.parse(fs.readFileSync(assetsPath, 'utf8'));
+      assets.forEach(asset => {
+        if (asset.id) {
+          sitemap += `  <url>\n    <loc>${DOMAIN}/asset/${asset.id}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
         }
       });
     }

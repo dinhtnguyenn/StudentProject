@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import ProjectGallery from './components/ProjectGallery';
 import SeasonalEffects from './components/SeasonalEffects';
 import ArticlesGallery from './components/ArticlesGallery';
+import AssetsGallery from './components/AssetsGallery';
 import DailyMessage from './components/DailyMessage';
 import { getCurrentSeason } from './lib/seasonalEngine';
 import AdminForm from './components/AdminForm';
@@ -191,6 +192,9 @@ function App() {
                 <MenuItem onClick={() => { navigate('/articles'); setAnchorEl(null); }} sx={{ fontWeight: location.pathname === '/articles' ? 700 : 500, color: location.pathname === '/articles' ? 'primary.main' : 'text.primary', py: 1.5 }}>
                   Bài viết
                 </MenuItem>
+                <MenuItem onClick={() => { navigate('/assets'); setAnchorEl(null); }} sx={{ fontWeight: location.pathname === '/assets' ? 700 : 500, color: location.pathname === '/assets' ? 'primary.main' : 'text.primary', py: 1.5 }}>
+                  Tài nguyên
+                </MenuItem>
               </Menu>
 
               {/* Desktop Navigation */}
@@ -216,6 +220,17 @@ function App() {
               >
                 Bài viết
               </Button>
+              <Button
+                onClick={() => navigate('/assets')}
+                sx={{
+                  display: { xs: 'none', sm: 'flex' },
+                  color: location.pathname === '/assets' ? 'primary.main' : 'text.secondary',
+                  fontWeight: location.pathname === '/assets' ? 700 : 500,
+                  '&:hover': { background: theme.palette.action.hover },
+                }}
+              >
+                Tài nguyên
+              </Button>
               <IconButton onClick={toggleTheme} sx={{ color: 'text.secondary', ml: 1 }}>
                 {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
               </IconButton>
@@ -237,6 +252,8 @@ function App() {
             <Route path="/project/:projectId" element={<ProjectGallery />} />
             <Route path="/articles" element={<ArticlesGallery />} />
             <Route path="/article/:articleId" element={<ArticlesGallery />} />
+            <Route path="/assets" element={<AssetsGallery />} />
+            <Route path="/asset/:assetId" element={<AssetsGallery />} />
             <Route path="/admin" element={<AdminForm />} />
           </Routes>
         </Container>
