@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.youtube.com https://giscus.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://giscus.app; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:; frame-src https://www.youtube.com https://giscus.app;">
   <link rel="icon" type="image/svg+xml" href="/logo.svg?v=5" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,6 +23,75 @@
         );
       }
     }(window.location))
+  </script>
+  <script type="text/javascript">
+    document.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+    });
+
+    let isFakePageShowing = false;
+    document.addEventListener('keydown', function(e) {
+      if (
+        e.keyCode === 123 ||
+        (e.ctrlKey && e.shiftKey && e.keyCode === 73) ||
+        (e.ctrlKey && e.shiftKey && e.keyCode === 74) ||
+        (e.ctrlKey && e.shiftKey && e.keyCode === 67) ||
+        (e.ctrlKey && e.keyCode === 85)
+      ) {
+        e.preventDefault();
+        
+        if (!isFakePageShowing) {
+          isFakePageShowing = true;
+          document.body.innerHTML = `
+            <style>
+              @keyframes floatDetective {
+                0%, 100% { transform: translateY(0px) rotate(0deg); }
+                50% { transform: translateY(-20px) rotate(5deg); }
+              }
+              @keyframes pulseDanger {
+                0%, 100% { box-shadow: inset 0 0 50px rgba(239, 68, 68, 0.2); }
+                50% { box-shadow: inset 0 0 150px rgba(239, 68, 68, 0.6); }
+              }
+            </style>
+            <div style="height: 100vh; width: 100vw; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle at center, #450a0a 0%, #000000 85%); font-family: 'Plus Jakarta Sans', sans-serif; text-align: center; padding: 20px; overflow: hidden; margin: 0; position: fixed; top: 0; left: 0; z-index: 999999; animation: pulseDanger 2s infinite;">
+              <div style="width: 120px; height: 120px; margin-bottom: 30px; display: flex; align-items: center; justify-content: center; background: rgba(239, 68, 68, 0.15); border-radius: 50%; animation: floatDetective 3s ease-in-out infinite; box-shadow: 0 0 40px rgba(239, 68, 68, 0.5); border: 1px solid rgba(239, 68, 68, 0.3);">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  <path d="M12 8v4"></path>
+                  <path d="M12 16h.01"></path>
+                </svg>
+              </div>
+              <h1 style="font-size: 3.5rem; font-weight: 800; margin: 0 0 16px 0; background: linear-gradient(to right, #ff4b4b, #ff0000); -webkit-background-clip: text; color: transparent; line-height: 1.2; text-shadow: 0 0 20px rgba(255, 0, 0, 0.3);">Tính làm Hacker hay gì bạn êyy?</h1>
+              <p style="font-size: 1.25rem; color: #f87171; max-width: 500px; line-height: 1.6; margin: 0; opacity: 0.9;">Đóng F12 lại đi rồi tụi mình nói chuyện tiếp nha!<br/>Source code này đã được yểm bùa rồi, ráng coi cũng hổng hiểu gì đâu!</p>
+            </div>
+          `;
+          document.body.style.margin = '0';
+          document.body.style.overflow = 'hidden';
+        } else {
+          window.location.reload();
+        }
+        return false;
+      }
+    });
+
+    let lastOuterWidth = window.outerWidth;
+    let lastOuterHeight = window.outerHeight;
+    setInterval(function() {
+      if (window.innerWidth < 500) return; 
+      
+      const widthDiff = window.outerWidth - window.innerWidth;
+      const heightDiff = window.outerHeight - window.innerHeight;
+      
+      if (widthDiff > 160 || heightDiff > 160) {
+        if (!isFakePageShowing) {
+          document.dispatchEvent(new KeyboardEvent('keydown', { 'keyCode': 123 }));
+        }
+      } else {
+        if (isFakePageShowing) {
+          window.location.reload();
+        }
+      }
+    }, 500);
   </script>
 </head>
 

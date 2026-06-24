@@ -69,7 +69,7 @@ function normalizeSemester(sem: string) {
   if (!yearMatch) return s;
   let yearStr = yearMatch[0];
   if (yearStr.length === 2) yearStr = '20' + yearStr;
-  
+
   if (s.includes('FA') || s.includes('FALL')) return `FALL ${yearStr}`;
   if (s.includes('SP') || s.includes('SPRING')) return `SPRING ${yearStr}`;
   if (s.includes('SU') || s.includes('SUMMER')) return `SUMMER ${yearStr}`;
@@ -146,12 +146,12 @@ function SortableProjectItem({ project, onDelete, onToggle, isSelected, categori
 
   return (
     <Box ref={setNodeRef} style={style} sx={{ mb: 1.5 }}>
-      <Paper 
-        elevation={0} 
-        sx={{ 
-          p: 1.5, 
-          borderRadius: 3, 
-          border: project.isNewItem ? '2px solid' : '1px solid', 
+      <Paper
+        elevation={0}
+        sx={{
+          p: 1.5,
+          borderRadius: 3,
+          border: project.isNewItem ? '2px solid' : '1px solid',
           borderColor: isSelected ? 'primary.main' : (project.isNewItem ? 'success.main' : 'divider'),
           bgcolor: isDragging ? 'action.hover' : 'background.paper',
           transition: 'all 0.2s',
@@ -166,19 +166,19 @@ function SortableProjectItem({ project, onDelete, onToggle, isSelected, categori
             <DragIndicatorIcon fontSize="small" />
           </Box>
           <Checkbox size="small" checked={isSelected} onChange={() => onToggle(project.id)} sx={{ mr: 1, mt: 0.5 }} />
-          
+
           <Avatar src={project.thumbnail} variant="rounded" sx={{ width: 44, height: 44, mr: 2, mt: 0.5, border: '1px solid', borderColor: 'divider', borderRadius: 2 }} />
-          
+
           <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <InputBase 
-                value={project.name} 
+              <InputBase
+                value={project.name}
                 placeholder="Tên dự án..."
-                onChange={(e) => onInlineEdit(project.id, 'name', e.target.value)} 
-                sx={{ flexGrow: 1, fontWeight: 700, color: 'text.primary', fontSize: '1.05rem', '& input': { p: 0 } }} 
+                onChange={(e) => onInlineEdit(project.id, 'name', e.target.value)}
+                sx={{ flexGrow: 1, fontWeight: 700, color: 'text.primary', fontSize: '1.05rem', '& input': { p: 0 } }}
               />
-              <IconButton 
-                size="small" 
+              <IconButton
+                size="small"
                 onClick={() => onInlineEdit(project.id, 'isGoldenTicket', !project.isGoldenTicket)}
                 sx={{ p: 0.5 }}
                 title={project.isGoldenTicket ? "Bỏ Golden Ticket" : "Đánh dấu Golden Ticket"}
@@ -186,16 +186,16 @@ function SortableProjectItem({ project, onDelete, onToggle, isSelected, categori
                 <StarIcon sx={{ color: project.isGoldenTicket ? '#F59E0B' : 'action.disabled', fontSize: 20 }} />
               </IconButton>
             </Box>
-            
+
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
               {/* Semester */}
-              <InputBase 
-                value={project.semester} 
+              <InputBase
+                value={project.semester}
                 placeholder="Kỳ (VD: FA24)"
-                onChange={(e) => onInlineEdit(project.id, 'semester', e.target.value)} 
-                sx={{ width: 120, fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& input': { p: 0, textAlign: 'center' } }} 
+                onChange={(e) => onInlineEdit(project.id, 'semester', e.target.value)}
+                sx={{ width: 120, fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& input': { p: 0, textAlign: 'center' } }}
               />
-              
+
               {/* Major */}
               <Select
                 variant="standard"
@@ -223,11 +223,11 @@ function SortableProjectItem({ project, onDelete, onToggle, isSelected, categori
               </Select>
             </Box>
           </Box>
-          
+
           <Box sx={{ display: 'flex', gap: 0.5, ml: 2, alignItems: 'center', mt: 0.5 }}>
-            <IconButton 
-              size="small" 
-              onClick={() => setIsExpanded(!isExpanded)} 
+            <IconButton
+              size="small"
+              onClick={() => setIsExpanded(!isExpanded)}
               sx={{ bgcolor: isExpanded ? 'rgba(59, 130, 246, 0.1)' : 'transparent', color: isExpanded ? 'primary.main' : 'text.secondary', transition: 'all 0.2s', '&:hover': { bgcolor: 'rgba(59, 130, 246, 0.1)', color: 'primary.main' } }}
             >
               {isExpanded ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />}
@@ -245,43 +245,43 @@ function SortableProjectItem({ project, onDelete, onToggle, isSelected, categori
             {/* Left Column */}
             <Grid size={{ xs: 12, md: 6 }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <TextField 
-                  fullWidth size="small" label="Link Thumbnail (Ảnh)" 
-                  value={project.thumbnail} 
-                  onChange={(e) => onInlineEdit(project.id, 'thumbnail', e.target.value)} 
+                <TextField
+                  fullWidth size="small" label="Link Thumbnail (Ảnh)"
+                  value={project.thumbnail}
+                  onChange={(e) => onInlineEdit(project.id, 'thumbnail', e.target.value)}
                 />
                 <Box sx={{ display: 'flex', gap: 1 }}>
-                  <TextField 
-                    fullWidth size="small" label="Link YouTube" 
-                    value={project.youtubeUrl || ''} 
-                    onChange={(e) => onInlineEdit(project.id, 'youtubeUrl', e.target.value)} 
+                  <TextField
+                    fullWidth size="small" label="Link YouTube"
+                    value={project.youtubeUrl || ''}
+                    onChange={(e) => onInlineEdit(project.id, 'youtubeUrl', e.target.value)}
                   />
                   {project.youtubeUrl && (
                     <IconButton size="small" onClick={() => window.open(project.youtubeUrl, '_blank')} sx={{ color: '#EF4444', bgcolor: 'rgba(239, 68, 68, 0.1)' }}>
-                      <OpenInNewIcon /> 
+                      <OpenInNewIcon />
                     </IconButton>
                   )}
                 </Box>
                 <Autocomplete
                   multiple freeSolo size="small"
                   options={allTags}
-                  value={Array.isArray(project.techTags) ? project.techTags : (typeof project.techTags === 'string' && project.techTags ? (project.techTags as string).split(',').map(t=>t.trim()) : [])}
+                  value={Array.isArray(project.techTags) ? project.techTags : (typeof project.techTags === 'string' && project.techTags ? (project.techTags as string).split(',').map(t => t.trim()) : [])}
                   onChange={(_, newValue) => onUpdateTechTags(project.id, newValue as string[])}
                   renderInput={(params) => <TextField {...params} label="Công nghệ sử dụng" placeholder="+ Thêm..." />}
                 />
               </Box>
             </Grid>
-            
+
             {/* Right Column */}
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField 
-                fullWidth size="small" multiline rows={6} 
-                label="Thành viên nhóm (Mỗi người 1 dòng)" 
-                value={Array.isArray(project.teamMembers) ? project.teamMembers.join('\n') : project.teamMembers} 
-                onChange={(e) => onInlineEdit(project.id, 'teamMembers', e.target.value)} 
+              <TextField
+                fullWidth size="small" multiline rows={6}
+                label="Thành viên nhóm (Mỗi người 1 dòng)"
+                value={Array.isArray(project.teamMembers) ? project.teamMembers.join('\n') : project.teamMembers}
+                onChange={(e) => onInlineEdit(project.id, 'teamMembers', e.target.value)}
               />
             </Grid>
-            
+
             {/* Description - Full Width */}
             <Grid size={{ xs: 12 }}>
               <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary', fontWeight: 600 }}>Mô tả dự án</Typography>
@@ -292,10 +292,10 @@ function SortableProjectItem({ project, onDelete, onToggle, isSelected, categori
                 '.ql-fill': { fill: theme.palette.text.primary },
                 '.ql-picker': { color: theme.palette.text.primary },
               }}>
-                <ReactQuill 
-                  theme="snow" 
-                  value={project.description || ''} 
-                  onChange={(val) => onInlineEdit(project.id, 'description', val)} 
+                <ReactQuill
+                  theme="snow"
+                  value={project.description || ''}
+                  onChange={(val) => onInlineEdit(project.id, 'description', val)}
                 />
               </Box>
             </Grid>
@@ -321,12 +321,12 @@ function SortableArticleItem({ article, onDelete, onInlineEdit, articleTypesList
 
   return (
     <Box ref={setNodeRef} style={style} sx={{ mb: 1.5 }}>
-      <Paper 
-        elevation={0} 
-        sx={{ 
-          p: 1.5, 
-          borderRadius: 3, 
-          border: '1px solid', 
+      <Paper
+        elevation={0}
+        sx={{
+          p: 1.5,
+          borderRadius: 3,
+          border: '1px solid',
           borderColor: 'divider',
           bgcolor: isDragging ? 'action.hover' : 'background.paper',
           transition: 'all 0.2s',
@@ -339,25 +339,25 @@ function SortableArticleItem({ article, onDelete, onInlineEdit, articleTypesList
           <Box {...attributes} {...listeners} sx={{ cursor: 'grab', mr: 1, mt: 1, display: 'flex', alignItems: 'center', color: 'text.disabled' }}>
             <DragIndicatorIcon fontSize="small" />
           </Box>
-          
+
           <Avatar src={article.imageUrl} variant="rounded" sx={{ width: 64, height: 44, mr: 2, mt: 0.5, border: '1px solid', borderColor: 'divider', borderRadius: 2 }} />
-          
+
           <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <InputBase 
-                value={article.title} 
+              <InputBase
+                value={article.title}
                 placeholder="Tên bài viết..."
-                onChange={(e) => onInlineEdit(article.id, 'title', e.target.value)} 
-                sx={{ flexGrow: 1, fontWeight: 700, color: 'text.primary', fontSize: '1.05rem', '& input': { p: 0 } }} 
+                onChange={(e) => onInlineEdit(article.id, 'title', e.target.value)}
+                sx={{ flexGrow: 1, fontWeight: 700, color: 'text.primary', fontSize: '1.05rem', '& input': { p: 0 } }}
               />
             </Box>
-            
+
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
-              <InputBase 
-                placeholder="Năm..." 
-                value={article.year || ''} 
-                onChange={(e) => onInlineEdit(article.id, 'year', e.target.value)} 
-                sx={{ width: 60, fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& input': { p: 0, textAlign: 'center' } }} 
+              <InputBase
+                placeholder="Năm..."
+                value={article.year || ''}
+                onChange={(e) => onInlineEdit(article.id, 'year', e.target.value)}
+                sx={{ width: 60, fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& input': { p: 0, textAlign: 'center' } }}
               />
               <Select
                 variant="standard"
@@ -383,11 +383,11 @@ function SortableArticleItem({ article, onDelete, onInlineEdit, articleTypesList
               </Select>
             </Box>
           </Box>
-          
+
           <Box sx={{ display: 'flex', gap: 0.5, ml: 2, alignItems: 'center', mt: 0.5 }}>
-            <IconButton 
-              size="small" 
-              onClick={() => setIsExpanded(!isExpanded)} 
+            <IconButton
+              size="small"
+              onClick={() => setIsExpanded(!isExpanded)}
               sx={{ bgcolor: isExpanded ? 'rgba(59, 130, 246, 0.1)' : 'transparent', color: isExpanded ? 'primary.main' : 'text.secondary', transition: 'all 0.2s', '&:hover': { bgcolor: 'rgba(59, 130, 246, 0.1)', color: 'primary.main' } }}
             >
               {isExpanded ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />}
@@ -408,7 +408,7 @@ function SortableArticleItem({ article, onDelete, onInlineEdit, articleTypesList
                 <TextField fullWidth size="small" label="Link Bài Viết" value={article.link || ''} onChange={(e) => onInlineEdit(article.id, 'link', e.target.value)} />
                 {article.link && (
                   <IconButton size="small" onClick={() => window.open(article.link, '_blank')} sx={{ color: 'info.main', bgcolor: 'rgba(59, 130, 246, 0.1)' }}>
-                    <OpenInNewIcon /> 
+                    <OpenInNewIcon />
                   </IconButton>
                 )}
               </Box>
@@ -442,6 +442,10 @@ export default function AdminForm() {
   const [tabIndex, setTabIndex] = useState(7);
   const muiTheme = useTheme();
 
+  const [isAdminUnlocked, setIsAdminUnlocked] = useState(() => sessionStorage.getItem('admin_unlocked') === 'true');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [adminError, setAdminError] = useState('');
+
   // Settings / Auth State
   const [githubToken, setGithubToken] = useState('');
   const [githubOwner, setGithubOwner] = useState('');
@@ -461,12 +465,12 @@ export default function AdminForm() {
       const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
         headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
       });
-      if (!res.ok) throw new Error('Token hoặc Repository không hợp lệ');
+      if (!res.ok) throw new Error('Thông tin truy cập không đúng');
       const data = await res.json();
-      if (!data.permissions?.push) throw new Error('Token không có quyền write (push) vào repository này');
+      if (!data.permissions?.push) throw new Error('Thông tin không có quyền truy cập hệ thống');
       return true;
     } catch (err: any) {
-      throw new Error(err.message || 'Lỗi kết nối GitHub');
+      throw new Error(err.message || 'Lỗi kết nối');
     }
   };
 
@@ -805,7 +809,7 @@ export default function AdminForm() {
 
     setIsBulkFetching(true);
     setStatus({ type: 'info', message: 'Đang lấy danh sách video từ Playlist (thông qua YouTube API)...' });
-    
+
     try {
       let playlistId = bulkYoutubeUrl;
       try {
@@ -878,7 +882,7 @@ export default function AdminForm() {
 
         setBulkProgress(prev => ({ ...prev, current: i + 1 }));
         // Rút ngắn thời gian chờ vì API chính chủ xử lý rất mượt, không cần wait lâu
-        await new Promise(resolve => setTimeout(resolve, 50)); 
+        await new Promise(resolve => setTimeout(resolve, 50));
       }
 
       if (newProjects.length > 0) {
@@ -1318,6 +1322,57 @@ export default function AdminForm() {
     }
   };
 
+  const hashPassword = async (password: string) => {
+    const msgBuffer = new TextEncoder().encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  };
+
+  const handleUnlockAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const hash = await hashPassword(adminPassword);
+
+    if (hash === '46e4f685d950d3813695125d5cfb77889e6d3aa122ee2d9c1cf70a6d3f47461a') {
+      setIsAdminUnlocked(true);
+      sessionStorage.setItem('admin_unlocked', 'true');
+    } else {
+      setAdminError('Mật khẩu không chính xác!');
+    }
+  };
+
+  if (!isAdminUnlocked) {
+    return (
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 3 }}>
+        <Paper elevation={0} sx={{ p: 5, borderRadius: 6, width: '100%', maxWidth: 400, textAlign: 'center', border: '1px solid', borderColor: 'divider', boxShadow: '0 20px 40px rgba(0,0,0,0.08)' }}>
+          <Box sx={{ width: 64, height: 64, borderRadius: '50%', bgcolor: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 3 }}>
+            <LockIcon sx={{ color: 'white', fontSize: 32 }} />
+          </Box>
+          <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>Trang Quản Trị</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+            Vui lòng nhập mật khẩu để truy cập.
+          </Typography>
+          <form onSubmit={handleUnlockAdmin}>
+            <TextField
+              fullWidth
+              type={showPassword ? 'text' : 'password'}
+              label="Mật khẩu"
+              value={adminPassword}
+              onChange={e => { setAdminPassword(e.target.value); setAdminError(''); }}
+              error={!!adminError}
+              helperText={adminError}
+              sx={{ mb: 3 }}
+              slotProps={{ input: { endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">{showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}</IconButton></InputAdornment>) } }}
+            />
+            <Button fullWidth variant="contained" type="submit" size="large" sx={{ borderRadius: 3, fontWeight: 700, py: 1.5 }}>
+              Mở Khóa
+            </Button>
+          </form>
+        </Paper>
+      </Box>
+    );
+  }
+
   if (!isAuthenticated) {
     return (
       <Box sx={{ maxWidth: 480, mx: 'auto', mt: 8, pb: 10, px: 2 }}>
@@ -1634,17 +1689,17 @@ export default function AdminForm() {
                         <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.secondary' }}>Nhập hàng loạt từ Playlist</Typography>
                       </Box>
                       <Box sx={{ display: 'flex', gap: 1.5, mb: 1.5 }}>
-                        <TextField 
-                          fullWidth 
-                          size="small" 
+                        <TextField
+                          fullWidth
+                          size="small"
                           type="password"
-                          placeholder="Dán YouTube API Key của bạn (Bắt buộc)..." 
-                          value={youtubeApiKey} 
+                          placeholder="Dán YouTube API Key của bạn (Bắt buộc)..."
+                          value={youtubeApiKey}
                           onChange={e => {
                             setYoutubeApiKey(e.target.value);
                             localStorage.setItem('youtube_api_key', e.target.value);
-                          }} 
-                          sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} 
+                          }}
+                          sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }}
                         />
                       </Box>
                       <Box sx={{ display: 'flex', gap: 1.5 }}>
@@ -1706,8 +1761,8 @@ export default function AdminForm() {
                         <Autocomplete
                           multiple
                           freeSolo
-                          options={Array.from(new Set(projectsList.flatMap(p => Array.isArray(p.techTags) ? p.techTags : (typeof p.techTags === 'string' && p.techTags ? (p.techTags as string).split(',').map(t=>t.trim()) : []))))}
-                          value={Array.isArray(formData.techTags) ? formData.techTags : (typeof formData.techTags === 'string' && formData.techTags ? (formData.techTags as string).split(',').map(t=>t.trim()) : [])}
+                          options={Array.from(new Set(projectsList.flatMap(p => Array.isArray(p.techTags) ? p.techTags : (typeof p.techTags === 'string' && p.techTags ? (p.techTags as string).split(',').map(t => t.trim()) : []))))}
+                          value={Array.isArray(formData.techTags) ? formData.techTags : (typeof formData.techTags === 'string' && formData.techTags ? (formData.techTags as string).split(',').map(t => t.trim()) : [])}
                           onChange={(_, newValue) => setFormData({ ...formData, techTags: newValue as string[] })}
                           renderInput={(params) => (
                             <TextField
@@ -1798,36 +1853,36 @@ export default function AdminForm() {
                       <SortableContext items={projectsList.map(p => p.id)} strategy={verticalListSortingStrategy}>
                         <List sx={{ p: 0 }}>
                           {projectsList.map((project, idx) => {
-                            const allTags = Array.from(new Set(projectsList.flatMap(p => Array.isArray(p.techTags) ? p.techTags : (typeof p.techTags === 'string' && p.techTags ? (p.techTags as string).split(',').map(t=>t.trim()) : []))));
+                            const allTags = Array.from(new Set(projectsList.flatMap(p => Array.isArray(p.techTags) ? p.techTags : (typeof p.techTags === 'string' && p.techTags ? (p.techTags as string).split(',').map(t => t.trim()) : []))));
                             return (
-                            <SortableProjectItem
-                              key={project.id}
-                              id={project.id}
-                              project={project}
-                              idx={idx}
-                              isSelected={selectedProjects.includes(project.id)}
-                              onToggle={handleToggleProject}
-                              categoriesList={categoriesList}
-                              majorsList={majorsList}
-                              allTags={allTags}
-                              onUpdateTechTags={(id: string, newTags: string[]) => {
-                                setProjectsList(prev => prev.map(p => p.id === id ? { ...p, techTags: newTags } : p));
-                              }}
-                              onEdit={(p: any) => {
-                                setFormData({
-                                  id: p.id, name: p.name, description: p.description, thumbnail: p.thumbnail,
-                                  youtubeUrl: p.youtubeUrl || '', category: p.category,
-                                  teamMembers: Array.isArray(p.teamMembers) ? p.teamMembers.join('\n') : p.teamMembers,
-                                  semester: p.semester,
-                                  techTags: Array.isArray(p.techTags) ? p.techTags : [],
-                                  isGoldenTicket: !!p.isGoldenTicket,
-                                  major: p.major || '',
-                                });
-                                setTabIndex(0);
-                              }}
-                              onDelete={(id: string) => { setProjectToDelete(id); setDeleteConfirmOpen(true); }}
-                              onInlineEdit={handleInlineEditProject}
-                            />
+                              <SortableProjectItem
+                                key={project.id}
+                                id={project.id}
+                                project={project}
+                                idx={idx}
+                                isSelected={selectedProjects.includes(project.id)}
+                                onToggle={handleToggleProject}
+                                categoriesList={categoriesList}
+                                majorsList={majorsList}
+                                allTags={allTags}
+                                onUpdateTechTags={(id: string, newTags: string[]) => {
+                                  setProjectsList(prev => prev.map(p => p.id === id ? { ...p, techTags: newTags } : p));
+                                }}
+                                onEdit={(p: any) => {
+                                  setFormData({
+                                    id: p.id, name: p.name, description: p.description, thumbnail: p.thumbnail,
+                                    youtubeUrl: p.youtubeUrl || '', category: p.category,
+                                    teamMembers: Array.isArray(p.teamMembers) ? p.teamMembers.join('\n') : p.teamMembers,
+                                    semester: p.semester,
+                                    techTags: Array.isArray(p.techTags) ? p.techTags : [],
+                                    isGoldenTicket: !!p.isGoldenTicket,
+                                    major: p.major || '',
+                                  });
+                                  setTabIndex(0);
+                                }}
+                                onDelete={(id: string) => { setProjectToDelete(id); setDeleteConfirmOpen(true); }}
+                                onInlineEdit={handleInlineEditProject}
+                              />
                             );
                           })}
                         </List>
