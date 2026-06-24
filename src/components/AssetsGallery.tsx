@@ -268,30 +268,58 @@ export default function AssetsGallery() {
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ pt: 3, pb: 2 }}>
-          <Typography variant="body1" sx={{ lineHeight: 1.9, color: 'text.primary', whiteSpace: 'pre-line' }}>
-            {/* ===== NỘI DUNG TUYÊN BỐ MIỄN TRỪ TRÁCH NHIỆM ===== */}
-            {`1. Mục đích thông tin
-Tất cả các tài nguyên, tài liệu và thông tin được chia sẻ bởi Unifolio chỉ nhằm mục đích cung cấp thông tin tham khảo và giáo dục. Những nội dung này không cấu thành và không nên được xem là những lời khuyên chuyên môn (như tư vấn pháp lý, tài chính, y tế, hay kỹ thuật chuyên sâu).
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Typography variant="body1" sx={{ lineHeight: 1.9, color: 'text.primary', textAlign: 'justify' }}>
+              <Box component="span" sx={{ fontWeight: 700, mr: 1 }}>1. Mục đích thông tin</Box>
+              <Box component="span" sx={{ display: 'block', mt: 1, fontWeight: 400 }}>
+                Tất cả các tài nguyên, tài liệu và thông tin được chia sẻ bởi Unifolio chỉ nhằm mục đích cung cấp thông tin tham khảo và giáo dục. Những nội dung này không cấu thành và không nên được xem là những lời khuyên chuyên môn (như tư vấn pháp lý, tài chính, y tế, hay kỹ thuật chuyên sâu).
+              </Box>
+            </Typography>
 
-2. Tính chính xác và tính trọn vẹn
-Mặc dù chúng tôi đã nỗ lực hết sức để đảm bảo rằng các tài nguyên được chia sẻ là chính xác và hữu ích tại thời điểm đăng tải, Unifolio không đưa ra bất kỳ sự đảm bảo hay cam kết nào, dù là tường minh hay ngụ ý, về tính chính xác, tính đầy đủ, độ tin cậy hoặc sự phù hợp của các thông tin này. Thông tin có thể trở nên lỗi thời theo thời gian hoặc thay đổi tùy theo từng ngữ cảnh cụ thể.
+            <Typography variant="body1" sx={{ lineHeight: 1.9, color: 'text.primary', textAlign: 'justify' }}>
+              <Box component="span" sx={{ fontWeight: 700, mr: 1 }}>2. Tính chính xác và tính trọn vẹn</Box>
+              <Box component="span" sx={{ display: 'block', mt: 1, fontWeight: 400 }}>
+                Mặc dù chúng tôi đã nỗ lực hết sức để đảm bảo rằng các tài nguyên được chia sẻ là chính xác và hữu ích tại thời điểm đăng tải, Unifolio không đưa ra bất kỳ sự đảm bảo hay cam kết nào, dù là tường minh hay ngụ ý, về tính chính xác, tính đầy đủ, độ tin cậy hoặc sự phù hợp của các thông tin này. Thông tin có thể trở nên lỗi thời theo thời gian hoặc thay đổi tùy theo từng ngữ cảnh cụ thể.
+              </Box>
+            </Typography>
 
-3. Giới hạn trách nhiệm pháp lý
-Người sử dụng hoàn toàn tự chịu rủi ro khi quyết định áp dụng hoặc sử dụng các tài nguyên được chia sẻ. Trong mọi trường hợp, Unifolio sẽ không chịu trách nhiệm đối với bất kỳ tổn thất, thiệt hại nào (bao gồm nhưng không giới hạn ở các thiệt hại trực tiếp, gián tiếp, do ngẫu nhiên, hoặc do hậu quả của việc mất dữ liệu, mất lợi nhuận) phát sinh từ:
-- Việc tải xuống, cài đặt hoặc sử dụng các tài nguyên này.
-- Những sai sót hoặc thiếu sót có trong nội dung tài nguyên.
-- Bất kỳ quyết định nào được đưa ra dựa trên thông tin từ các tài nguyên này.
+            <Typography variant="body1" sx={{ lineHeight: 1.9, color: 'text.primary', textAlign: 'justify' }}>
+              <Box component="span" sx={{ fontWeight: 700, mr: 1 }}>3. Giới hạn trách nhiệm pháp lý</Box>
+              <Box component="span" sx={{ display: 'block', mt: 1, fontWeight: 400 }}>
+                Người sử dụng hoàn toàn tự chịu rủi ro khi quyết định áp dụng hoặc sử dụng các tài nguyên được chia sẻ. Trong mọi trường hợp, Unifolio sẽ không chịu trách nhiệm đối với bất kỳ tổn thất, thiệt hại nào (bao gồm nhưng không giới hạn ở các thiệt hại trực tiếp, gián tiếp, do ngẫu nhiên, hoặc do hậu quả của việc mất dữ liệu, mất lợi nhuận) phát sinh từ:
+                <Box component="span" sx={{ display: 'block', mt: 1, ml: 3, fontStyle: 'italic' }}>
+                  - Việc tải xuống, cài đặt hoặc sử dụng các tài nguyên này.
+                </Box>
+                <Box component="span" sx={{ display: 'block', mt: 1, ml: 3, fontStyle: 'italic' }}>
+                  - Những sai sót hoặc thiếu sót có trong nội dung tài nguyên.
+                </Box>
+                <Box component="span" sx={{ display: 'block', mt: 1, ml: 3, fontStyle: 'italic' }}>
+                  - Bất kỳ quyết định nào được đưa ra dựa trên thông tin từ các tài nguyên này.
+                </Box>
+              </Box>
+            </Typography>
 
-4. Bản quyền và Sở hữu trí tuệ
-Các tài nguyên có thể bao gồm nội dung thuộc bản quyền của bên thứ ba. Việc chia sẻ của chúng tôi tuân thủ mục đích sử dụng hợp lý (Fair Use) và tôn trọng quyền sở hữu trí tuệ của tác giả gốc. Người dùng khi tải về và sử dụng có trách nhiệm tự đảm bảo không vi phạm các quy định về bản quyền khi phân phối lại hoặc sử dụng cho mục đích thương mại.
+            <Typography variant="body1" sx={{ lineHeight: 1.9, color: 'text.primary', textAlign: 'justify' }}>
+              <Box component="span" sx={{ fontWeight: 700, mr: 1 }}>4. Bản quyền và Sở hữu trí tuệ</Box>
+              <Box component="span" sx={{ display: 'block', mt: 1, fontWeight: 400 }}>
+                Các tài nguyên có thể bao gồm nội dung thuộc bản quyền của bên thứ ba. Việc chia sẻ của chúng tôi tuân thủ mục đích sử dụng hợp lý (Fair Use) và tôn trọng quyền sở hữu trí tuệ của tác giả gốc. Người dùng khi tải về và sử dụng có trách nhiệm tự đảm bảo không vi phạm các quy định về bản quyền khi phân phối lại hoặc sử dụng cho mục đích thương mại.
+              </Box>
+            </Typography>
 
-5. Liên kết bên ngoài (Nếu có)
-Các tài nguyên có thể chứa các liên kết dẫn đến các trang web hoặc phần mềm của bên thứ ba. Chúng tôi không kiểm soát và không chịu trách nhiệm về nội dung, chính sách bảo mật hoặc các thực tiễn của bất kỳ trang web hay dịch vụ nào của bên thứ ba đó.
+            <Typography variant="body1" sx={{ lineHeight: 1.9, color: 'text.primary', textAlign: 'justify' }}>
+              <Box component="span" sx={{ fontWeight: 700, mr: 1 }}>5. Liên kết bên ngoài (Nếu có)</Box>
+              <Box component="span" sx={{ display: 'block', mt: 1, fontWeight: 400 }}>
+                Các tài nguyên có thể chứa các liên kết dẫn đến các trang web hoặc phần mềm của bên thứ ba. Chúng tôi không kiểm soát và không chịu trách nhiệm về nội dung, chính sách bảo mật hoặc các thực tiễn của bất kỳ trang web hay dịch vụ nào của bên thứ ba đó.
+              </Box>
+            </Typography>
 
-6. Sự chấp thuận
-Bằng việc truy cập, tải xuống hoặc sử dụng các tài nguyên được chia sẻ này, bạn được coi là đã đọc, hiểu và hoàn toàn đồng ý với Tuyên bố Miễn trừ Trách nhiệm này. Nếu bạn không đồng ý với bất kỳ điều khoản nào, vui lòng không sử dụng các tài nguyên này.`}
-            {/* ===================================================== */}
-          </Typography>
+            <Typography variant="body1" sx={{ lineHeight: 1.9, color: 'text.primary', textAlign: 'justify' }}>
+              <Box component="span" sx={{ fontWeight: 700, mr: 1 }}>6. Sự chấp thuận</Box>
+              <Box component="span" sx={{ display: 'block', mt: 1, fontWeight: 400 }}>
+                Bằng việc truy cập, tải xuống hoặc sử dụng các tài nguyên được chia sẻ này, bạn được coi là đã đọc, hiểu và hoàn toàn đồng ý với Tuyên bố Miễn trừ Trách nhiệm này. Nếu bạn không đồng ý với bất kỳ điều khoản nào, vui lòng không sử dụng các tài nguyên này.
+              </Box>
+            </Typography>
+          </Box>
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid', borderColor: 'divider' }}>
           <Button

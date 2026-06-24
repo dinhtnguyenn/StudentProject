@@ -40,25 +40,22 @@ const DisclaimerDialog = ({ open, onAgree, onDisagree, type }: { open: boolean; 
   const disclaimerTexts = {
     submit: {
       title: 'Điều khoản và Tuyên bố miễn trừ trách nhiệm',
-      content: `1. Tôi sẽ chỉ sử dụng tài nguyên này cho các mục đích học tập, nghiên cứu học thuật hoặc dự án thực hành trong phạm vi trường học.
-
-      2. Tôi cam kết không sử dụng tài nguyên này cho mục đích thương mại, lợi nhuận hoặc bất kỳ hoạt động nào trái pháp luật.
-
-      3. Tôi chịu trách nhiệm hoàn toàn về việc tuân thủ các điều khoản sử dụng từ nhà cung cấp tài nguyên gốc (Unity Asset Store, Fab.com, v.v.).
-
-      4. UniFolio không chịu trách nhiệm cho bất kỳ hậu quả nào phát sinh từ việc sử dụng tài nguyên này, bao gồm nhưng không giới hạn: lỗi kỹ thuật, mất dữ liệu, hoặc vi phạm bản quyền.
-
-      5. Tôi hiểu rằng việc sử dụng sai mục đích có thể dẫn đến việc hủy bỏ quyền truy cập và có thể có hậu quả pháp lý.`
+      items: [
+        { label: '1.', text: 'Tôi sẽ chỉ sử dụng tài nguyên này cho các mục đích học tập, nghiên cứu học thuật hoặc dự án thực hành trong phạm vi trường học.' },
+        { label: '2.', text: 'Tôi cam kết không sử dụng tài nguyên này cho mục đích thương mại, lợi nhuận hoặc bất kỳ hoạt động nào trái pháp luật.' },
+        { label: '3.', text: 'Tôi chịu trách nhiệm hoàn toàn về việc tuân thủ các điều khoản sử dụng từ nhà cung cấp tài nguyên gốc (Unity Asset Store, Fab.com, v.v.).' },
+        { label: '4.', text: 'UniFolio không chịu trách nhiệm cho bất kỳ hậu quả nào phát sinh từ việc sử dụng tài nguyên này, bao gồm nhưng không giới hạn: lỗi kỹ thuật, mất dữ liệu, hoặc vi phạm bản quyền.' },
+        { label: '5.', text: 'Tôi hiểu rằng việc sử dụng sai mục đích có thể dẫn đến việc hủy bỏ quyền truy cập và có thể có hậu quả pháp lý.' }
+      ]
     },
     drive: {
       title: 'Điều khoản và Tuyên bố miễn trừ trách nhiệm',
-      content: `1. Tài nguyên trên Google Drive có thể chứa các file được chia sẻ bởi bên thứ ba. Vui lòng kiểm tra virus và bảo mật trước khi sử dụng.
-
-      2. UniFolio không chịu trách nhiệm cho bất kỳ thiệt hại nào phát sinh từ việc tải xuống hoặc sử dụng các file từ Google Drive.
-
-      3. Hãy chắc chắn rằng bạn có quyền truy cập hợp pháp vào nội dung này và sẽ tuân thủ tất cả các điều khoản sử dụng.
-
-      4. Nếu bạn phát hiện bất kỳ vấn đề nào, vui lòng báo cáo cho Unifolio ngay lập tức.`
+      items: [
+        { label: '1.', text: 'Tài nguyên trên Google Drive có thể chứa các file được chia sẻ bởi bên thứ ba. Vui lòng kiểm tra virus và bảo mật trước khi sử dụng.' },
+        { label: '2.', text: 'UniFolio không chịu trách nhiệm cho bất kỳ thiệt hại nào phát sinh từ việc tải xuống hoặc sử dụng các file từ Google Drive.' },
+        { label: '3.', text: 'Hãy chắc chắn rằng bạn có quyền truy cập hợp pháp vào nội dung này và sẽ tuân thủ tất cả các điều khoản sử dụng.' },
+        { label: '4.', text: 'Nếu bạn phát hiện bất kỳ vấn đề nào, vui lòng báo cáo cho Unifolio ngay lập tức.' }
+      ]
     }
   };
 
@@ -70,9 +67,12 @@ const DisclaimerDialog = ({ open, onAgree, onDisagree, type }: { open: boolean; 
         <WarningIcon /> {currentText.title}
       </DialogTitle>
       <DialogContent sx={{ py: 3 }}>
-        <Typography variant="body2" sx={{ whiteSpace: 'pre-line', lineHeight: 1.8, color: 'text.secondary', mb: 3, textAlign: 'justify' }}>
-          {currentText.content}
-        </Typography>
+        {currentText.items.map((item) => (
+          <Typography key={item.label} variant="body2" sx={{ whiteSpace: 'pre-line', lineHeight: 1.8, color: 'text.secondary', mb: 2, textAlign: 'justify' }}>
+            <Box component="span" sx={{ fontWeight: 700, mr: 1 }}>{item.label}</Box>
+            {item.text}
+          </Typography>
+        ))}
         <FormControlLabel
           control={<Checkbox checked={checked} onChange={(e) => setChecked(e.target.checked)} />}
           label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Tôi đã đọc và đồng ý với các điều khoản trên</Typography>}
