@@ -1,9 +1,10 @@
 [
   {
     "id": "1782283347723",
-    "name": "Unity Account",
+    "name": "Unity/Fab Account",
     "bg": "hsl(103, 80%, 92%)",
-    "text": "hsl(103, 85%, 35%)"
+    "text": "hsl(103, 85%, 35%)",
+    "type": "assetType"
   },
   {
     "id": "1782283354102",
