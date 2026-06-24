@@ -458,7 +458,7 @@ function SortableUnityAssetItem({ asset, onDelete, onInlineEdit, assetTypesList,
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <InputBase value={asset.name} placeholder="Tên tài nguyên..." onChange={(e) => onInlineEdit(asset.id, 'name', e.target.value)} sx={{ flexGrow: 1, fontWeight: 700, color: 'text.primary', fontSize: '1.05rem', '& input': { p: 0 } }} />
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5, flexWrap: 'wrap', width: '100%' }}>
               <InputBase placeholder="Tác giả..." value={asset.owner || ''} onChange={(e) => onInlineEdit(asset.id, 'owner', e.target.value)} sx={{ width: 100, fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& input': { p: 0, textAlign: 'center' } }} />
               <Select variant="standard" disableUnderline displayEmpty value={asset.assetType || ''} onChange={(e) => onInlineEdit(asset.id, 'assetType', e.target.value as string)} sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& .MuiSelect-select': { p: 0, pb: 0, minHeight: 'auto' } }}>
                 <MenuItem value="" disabled>Chọn loại</MenuItem>
@@ -468,6 +468,11 @@ function SortableUnityAssetItem({ asset, onDelete, onInlineEdit, assetTypesList,
                 <MenuItem value="" disabled>Chọn nguồn</MenuItem>
                 {assetSourcesList?.map((s: any) => <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>)}
               </Select>
+              {asset.createdAt && (
+                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem', fontWeight: 600, ml: 'auto', mr: 1 }}>
+                  {new Date(typeof asset.createdAt === 'number' && asset.createdAt < 100000 ? Math.round((asset.createdAt - 25569) * 86400 * 1000) : asset.createdAt).toLocaleDateString('vi-VN')}
+                </Typography>
+              )}
             </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: 0.5, ml: 2, alignItems: 'center', mt: 0.5 }}>
@@ -483,19 +488,39 @@ function SortableUnityAssetItem({ asset, onDelete, onInlineEdit, assetTypesList,
           <Divider sx={{ my: 2 }} />
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 6 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <TextField fullWidth size="small" label="Link Ảnh" value={asset.imageUrl || ''} onChange={(e) => onInlineEdit(asset.id, 'imageUrl', e.target.value)} />
-                <IconButton component="label" disabled={isUploadingImage} sx={{ bgcolor: 'action.hover' }} title="Tải ảnh từ máy">
-                  {isUploadingImage ? <CircularProgress size={20} /> : <CloudUploadIcon fontSize="small" />}
-                  <input type="file" hidden accept="image/*" onChange={(e) => onImageUpload(e, asset.id)} />
-                </IconButton>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <TextField fullWidth size="small" label="Link Ảnh" value={asset.imageUrl || ''} onChange={(e) => onInlineEdit(asset.id, 'imageUrl', e.target.value)} />
+                  <IconButton component="label" disabled={isUploadingImage} sx={{ bgcolor: 'action.hover' }} title="Tải ảnh từ máy">
+                    {isUploadingImage ? <CircularProgress size={20} /> : <CloudUploadIcon fontSize="small" />}
+                    <input type="file" hidden accept="image/*" onChange={(e) => onImageUpload(e, asset.id)} />
+                  </IconButton>
+                </Box>
+                <TextField 
+                  fullWidth 
+                  size="small" 
+                  label="Ngày Tạo" 
+                  type="date" 
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  value={asset.createdAt ? new Date(typeof asset.createdAt === 'number' && asset.createdAt < 100000 ? Math.round((asset.createdAt - 25569) * 86400 * 1000) : asset.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]} 
+                  onChange={e => onInlineEdit(asset.id, 'createdAt', e.target.value ? new Date(e.target.value).getTime() : Date.now())} 
+                />
               </Box>
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <TextField fullWidth size="small" label="Link Nguồn" value={asset.originalLink || ''} onChange={(e) => onInlineEdit(asset.id, 'originalLink', e.target.value)} />
-                {asset.originalLink && <IconButton size="small" onClick={() => window.open(asset.originalLink, '_blank')} sx={{ color: 'info.main', bgcolor: 'rgba(59, 130, 246, 0.1)' }}><OpenInNewIcon /></IconButton>}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <TextField fullWidth size="small" label="Link Nguồn" value={asset.originalLink || ''} onChange={(e) => onInlineEdit(asset.id, 'originalLink', e.target.value)} />
+                  {asset.originalLink && <IconButton size="small" onClick={() => window.open(asset.originalLink, '_blank')} sx={{ color: 'info.main', bgcolor: 'rgba(59, 130, 246, 0.1)' }}><OpenInNewIcon /></IconButton>}
+                </Box>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <TextField fullWidth size="small" label="Link Drive" value={asset.driveLink || ''} onChange={(e) => onInlineEdit(asset.id, 'driveLink', e.target.value)} />
+                  {asset.driveLink && <IconButton size="small" onClick={() => window.open(asset.driveLink, '_blank')} sx={{ color: 'success.main', bgcolor: 'rgba(16, 185, 129, 0.1)' }}><OpenInNewIcon /></IconButton>}
+                </Box>
               </Box>
+            </Grid>
+            <Grid size={{ xs: 12 }}>
+              <TextField fullWidth size="small" multiline rows={3} label="Mô tả chi tiết" value={asset.description || ''} onChange={(e) => onInlineEdit(asset.id, 'description', e.target.value)} />
             </Grid>
           </Grid>
         </Collapse>
@@ -524,6 +549,7 @@ function SortablePreviewItem({ project, idx }: any) {
 // --- Main Component ---
 export default function AdminForm() {
   const [tabIndex, setTabIndex] = useState(7);
+  const [visibleUnityAssetsCount, setVisibleUnityAssetsCount] = useState(20);
   const muiTheme = useTheme();
 
   const [isAdminUnlocked, setIsAdminUnlocked] = useState(() => sessionStorage.getItem('admin_unlocked') === 'true');
@@ -786,7 +812,12 @@ export default function AdminForm() {
         .finally(() => setLoadingArticleTypes(false));
 
       fetchFile(getUnityAssetsApiUrl())
-        .then(res => { setUnityAssetsList(res.data); setOriginalUnityAssets(res.data); setUnityAssetsSha(res.sha); })
+        .then(res => { 
+          const normalized = res.data.map((a: any) => ({ ...a, assetType: a.assetType ? String(a.assetType) : '', sourceId: a.sourceId ? String(a.sourceId) : '' }));
+          setUnityAssetsList(normalized); 
+          setOriginalUnityAssets(normalized); 
+          setUnityAssetsSha(res.sha); 
+        })
         .catch(err => { console.error(err); setFetchError('Lỗi tải danh mục tài nguyên. Vui lòng không lưu!'); });
 
       fetchFile(getAssetSourcesApiUrl())
@@ -1486,6 +1517,63 @@ export default function AdminForm() {
   const handleToggleArticleType = (id: string) => setSelectedArticleTypes(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   const handleToggleAllArticleTypes = () => setSelectedArticleTypes(selectedArticleTypes.length === articleTypesList.length ? [] : articleTypesList.map(c => c.id));
 
+  const handleExportUnityAssetsTemplate = () => {
+    const data = unityAssetsList.map(a => {
+      const matchedType = assetTypesList.find(t => String(t.id) === String(a.assetType));
+      const matchedSource = assetSourcesList.find(s => String(s.id) === String(a.sourceId));
+      return {
+        'ID (Không sửa)': a.id,
+        'Tên Tài Nguyên (*)': a.name,
+        'Mô Tả': a.description || '',
+        'Link Ảnh': a.imageUrl || '',
+        'Loại (Tên)': matchedType?.name || '',
+        'Loại (Mã)': a.assetType || '',
+        'Nguồn (Tên)': matchedSource?.name || '',
+        'Nguồn (Mã)': a.sourceId || '',
+        'Link Gốc': a.originalLink || '',
+        'Link Drive': a.driveLink || '',
+        'Tác Giả': a.owner || '',
+        'Ngày Tạo': a.createdAt ? new Date(a.createdAt).toLocaleString('vi-VN') : ''
+      };
+    });
+    const ws = XLSX.utils.json_to_sheet(data.length > 0 ? data : [{
+      'ID (Không sửa)': '',
+      'Tên Tài Nguyên (*)': 'Mẫu Tài Nguyên',
+      'Mô Tả': '',
+      'Link Ảnh': '',
+      'Loại (Tên)': '',
+      'Loại (Mã)': '',
+      'Nguồn (Tên)': '',
+      'Nguồn (Mã)': '',
+      'Link Gốc': '',
+      'Link Drive': '',
+      'Tác Giả': '',
+      'Ngày Tạo': ''
+    }]);
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'UnityAssets');
+    
+    // Tạo sheet hướng dẫn
+    const instructions = [
+      { 'Tên Cột': 'ID (Không sửa)', 'Hướng dẫn': 'Bắt buộc để cập nhật. Nếu bỏ trống sẽ tạo mới' },
+      { 'Tên Cột': 'Tên Tài Nguyên (*)', 'Hướng dẫn': 'Bắt buộc' },
+      { 'Tên Cột': 'Loại (Mã) HOẶC Loại (Tên)', 'Hướng dẫn': 'Chỉ điền MÃ hoặc TÊN LOẠI. Hệ thống tự động nhận diện' },
+      { 'Tên Cột': 'Nguồn (Mã) HOẶC Nguồn (Tên)', 'Hướng dẫn': 'Chỉ điền MÃ hoặc TÊN NGUỒN. Hệ thống tự động nhận diện' }
+    ];
+    instructions.push({ 'Tên Cột': '', 'Hướng dẫn': '' });
+    instructions.push({ 'Tên Cột': '--- MÃ LOẠI ---', 'Hướng dẫn': '--- TÊN LOẠI ---' });
+    assetTypesList.forEach(t => instructions.push({ 'Tên Cột': t.id, 'Hướng dẫn': t.name }));
+    instructions.push({ 'Tên Cột': '', 'Hướng dẫn': '' });
+    instructions.push({ 'Tên Cột': '--- MÃ NGUỒN ---', 'Hướng dẫn': '--- TÊN NGUỒN ---' });
+    assetSourcesList.forEach(s => instructions.push({ 'Tên Cột': s.id, 'Hướng dẫn': s.name }));
+
+    const wsInstructions = XLSX.utils.json_to_sheet(instructions);
+    XLSX.utils.book_append_sheet(wb, wsInstructions, 'HuongDan');
+
+    XLSX.writeFile(wb, `KHO_TAI_NGUYEN_${Date.now()}.xlsx`);
+  };
+
   const confirmDeleteUnityAssetHandler = () => {
     if (!unityAssetToDelete) return;
     setUnityAssetsList(prev => prev.filter(c => c.id !== unityAssetToDelete));
@@ -1503,28 +1591,6 @@ export default function AdminForm() {
 
   const handleMoveArticleType = (index: number, direction: 'up' | 'down') => {
     setArticleTypesList(prev => moveItem(prev, index, direction));
-  };
-
-  const handleExportUnityAssetsTemplate = () => {
-    const ws = XLSX.utils.json_to_sheet([
-      { id: '123-abc', name: 'Tên Tài Nguyên', description: 'Mô tả ngắn gọn', imageUrl: 'https://...', assetType: 'Nhập ID Loại Asset từ Sheet "Hướng Dẫn"', sourceId: 'Nhập ID Nguồn Asset từ Sheet "Hướng Dẫn"', originalLink: 'https://...', driveLink: 'https://...', owner: 'Tên Tác Giả', createdAt: '2026-06-24' }
-    ]);
-    
-    const wsInstructionsData: any[] = [
-      { 'Tên Trường': 'DANH SÁCH LOẠI TÀI NGUYÊN (assetType)', 'Giá trị hợp lệ': '' }
-    ];
-    assetTypesList.forEach(t => wsInstructionsData.push({ 'Tên Trường': t.id, 'Giá trị hợp lệ': t.name }));
-
-    wsInstructionsData.push({});
-    wsInstructionsData.push({ 'Tên Trường': 'DANH SÁCH NGUỒN TÀI NGUYÊN (sourceId)', 'Giá trị hợp lệ': '' });
-    assetSourcesList.forEach(s => wsInstructionsData.push({ 'Tên Trường': s.id, 'Giá trị hợp lệ': s.name }));
-    
-    const wsInstructions = XLSX.utils.json_to_sheet(wsInstructionsData);
-
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Unity Assets');
-    XLSX.utils.book_append_sheet(wb, wsInstructions, 'Hướng Dẫn Nhập Liệu');
-    XLSX.writeFile(wb, 'UnityAssets_Template.xlsx');
   };
 
   const handleImportUnityAssetsExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1545,22 +1611,58 @@ export default function AdminForm() {
         }
 
         const validAssets = importedData.map(row => {
-          let parsedDate;
-          if (row.createdAt) {
-            const parsed = new Date(row.createdAt).getTime();
-            if (!isNaN(parsed)) parsedDate = parsed;
-            else if (typeof row.createdAt === 'number') parsedDate = row.createdAt;
+          const id = row.id || row['ID (Không sửa)'];
+          const name = row.name || row['Tên Tài Nguyên (*)'];
+          const description = row.description || row['Mô Tả'];
+          const imageUrl = row.imageUrl || row['Link Ảnh'];
+          let assetType = row.assetType || row['Loại (Mã)'] || row['Loại (Tên)'];
+          let sourceId = row.sourceId || row['Nguồn (Mã)'] || row['Nguồn (Tên)'];
+          const originalLink = row.originalLink || row['Link Gốc'];
+          const driveLink = row.driveLink || row['Link Drive'];
+          const owner = row.owner || row['Tác Giả'];
+          const dateVal = row.createdAt || row['Ngày Tạo'];
+
+          // Xử lý ngược từ tên thành ID nếu người dùng nhập tên thay vì mã
+          if (assetType && isNaN(Number(assetType)) && assetType.length < 13) {
+             const found = assetTypesList.find(t => t.name.toLowerCase() === String(assetType).toLowerCase());
+             if (found) assetType = found.id;
           }
+          if (sourceId && isNaN(Number(sourceId)) && sourceId.length < 13) {
+             const found = assetSourcesList.find(s => s.name.toLowerCase() === String(sourceId).toLowerCase());
+             if (found) sourceId = found.id;
+          }
+
+          let parsedDate;
+          if (dateVal) {
+            if (typeof dateVal === 'number') {
+              if (dateVal < 100000) parsedDate = new Date(Math.round((dateVal - 25569) * 86400 * 1000)).getTime();
+              else parsedDate = dateVal;
+            } else {
+              // Parse từ string DD/MM/YYYY hh:mm:ss
+              const parts = String(dateVal).split(/[\s/:]+/);
+              if (parts.length >= 3) {
+                 const day = parseInt(parts[0], 10);
+                 const month = parseInt(parts[1], 10) - 1;
+                 const year = parseInt(parts[2], 10);
+                 const d = new Date(year, month, day);
+                 if (!isNaN(d.getTime())) parsedDate = d.getTime();
+              } else {
+                 const d = new Date(dateVal).getTime();
+                 if (!isNaN(d)) parsedDate = d;
+              }
+            }
+          }
+
           return {
-            id: row.id || `asset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            name: row.name || 'Untitled Asset',
-            description: row.description || '',
-            imageUrl: row.imageUrl || '',
-            assetType: row.assetType || 'GOOGLE_DRIVE',
-            originalLink: row.originalLink || '',
-            driveLink: row.driveLink || '',
-            owner: row.owner || '',
-            sourceId: row.sourceId || '',
+            id: id || `asset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            name: name || 'Untitled Asset',
+            description: description || '',
+            imageUrl: imageUrl || '',
+            assetType: String(assetType || ''),
+            originalLink: originalLink || '',
+            driveLink: driveLink || '',
+            owner: owner || '',
+            sourceId: String(sourceId || ''),
             createdAt: parsedDate
           };
         });
@@ -1572,7 +1674,11 @@ export default function AdminForm() {
             const existing = map.get(item.id);
             map.set(item.id, { ...item, createdAt: item.createdAt || existing?.createdAt || Date.now() });
           });
-          return Array.from(map.values());
+          return Array.from(map.values()).sort((a, b) => {
+            const timeA = typeof a.createdAt === 'number' ? a.createdAt : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+            const timeB = typeof b.createdAt === 'number' ? b.createdAt : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+            return timeB - timeA;
+          });
         });
 
         setStatus({ type: 'success', message: `Nhập thành công ${validAssets.length} tài nguyên. Vui lòng bấm 'Lưu Lên GitHub' để hoàn tất.` });
@@ -1584,6 +1690,8 @@ export default function AdminForm() {
     reader.readAsArrayBuffer(file);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+
 
   const autoMergeData = (remoteData: any[], localData: any[]) => {
     const map = new Map();
@@ -1648,8 +1756,14 @@ export default function AdminForm() {
         successCount++;
       }
       if (isUnityAssetsChanged) {
-        const newSha = await commitFile(getUnityAssetsApiUrl(), unityAssetsList, unityAssetsSha, `Update unity assets (Bulk save) [skip ci]`);
-        setOriginalUnityAssets(unityAssetsList);
+        const sortedAssets = [...unityAssetsList].sort((a, b) => {
+          const timeA = typeof a.createdAt === 'number' ? a.createdAt : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+          const timeB = typeof b.createdAt === 'number' ? b.createdAt : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+          return timeB - timeA;
+        });
+        const newSha = await commitFile(getUnityAssetsApiUrl(), sortedAssets, unityAssetsSha, `Update unity assets (Bulk save) [skip ci]`);
+        setOriginalUnityAssets(sortedAssets);
+        setUnityAssetsList(sortedAssets);
         setUnityAssetsSha(newSha);
         successCount++;
       }
@@ -1985,7 +2099,7 @@ export default function AdminForm() {
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 11 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Nguồn Tài Nguyên</Typography>} />
               </ListItemButton>
               <ListItemButton selected={tabIndex === 12} onClick={() => setTabIndex(12)}>
-                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 12 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Loại Tài Nguyên</Typography>} />
+                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 12 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Hình Thức Sở Hữu</Typography>} />
               </ListItemButton>
 
               <ListSubheader sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'info.main', fontSize: '0.75rem', letterSpacing: '0.05em', mt: 1 }}>
@@ -2270,9 +2384,9 @@ export default function AdminForm() {
                         />
                       </Box>
                       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleUnityAssetDragEnd}>
-                        <SortableContext items={unityAssetsList.map(a => a.id)} strategy={verticalListSortingStrategy}>
+                        <SortableContext items={unityAssetsList.slice(0, visibleUnityAssetsCount).map(a => a.id)} strategy={verticalListSortingStrategy}>
                           <List sx={{ p: 0 }}>
-                            {unityAssetsList.map((asset) => (
+                            {unityAssetsList.slice(0, visibleUnityAssetsCount).map((asset) => (
                               <Box key={asset.id} sx={{ px: 2, pt: 1.5, pb: 0 }}>
                                 <SortableUnityAssetItem
                                   asset={asset}
@@ -2290,6 +2404,14 @@ export default function AdminForm() {
                           </List>
                         </SortableContext>
                       </DndContext>
+                      
+                      {visibleUnityAssetsCount < unityAssetsList.length && (
+                        <Box sx={{ textAlign: 'center', mt: 3, pb: 3 }}>
+                          <Button variant="outlined" onClick={() => setVisibleUnityAssetsCount(prev => prev + 20)} sx={{ borderRadius: 100, px: 4, fontWeight: 700 }}>
+                            Tải thêm tài nguyên ({unityAssetsList.length - visibleUnityAssetsCount} mục còn lại)
+                          </Button>
+                        </Box>
+                      )}
                     </>
                   )}
                 </Paper>
@@ -2314,8 +2436,8 @@ export default function AdminForm() {
                     </Grid>
                     <Grid size={{ xs: 12, md: 4 }}>
                       <FormControl fullWidth sx={{ mb: 3 }}>
-                        <InputLabel>Loại Tài Nguyên</InputLabel>
-                        <Select value={unityAssetFormData.assetType} label="Loại Tài Nguyên" onChange={e => setUnityAssetFormData({ ...unityAssetFormData, assetType: e.target.value })}>
+                        <InputLabel>Hình Thức Sở Hữu</InputLabel>
+                        <Select value={unityAssetFormData.assetType} label="Hình Thức Sở Hữu" onChange={e => setUnityAssetFormData({ ...unityAssetFormData, assetType: e.target.value })}>
                           {assetTypesList.map(type => (
                             <MenuItem key={type.id} value={type.id}>{type.name}</MenuItem>
                           ))}
@@ -2487,7 +2609,7 @@ export default function AdminForm() {
                     <TableHead sx={{ bgcolor: 'background.default' }}>
                       <TableRow>
                         <TableCell padding="checkbox"><Checkbox indeterminate={selectedAssetTypes.length > 0 && selectedAssetTypes.length < assetTypesList.length} checked={assetTypesList.length > 0 && selectedAssetTypes.length === assetTypesList.length} onChange={handleToggleAllAssetTypes} /></TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>Tên Loại Tài Nguyên</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>Tên Hình Thức Sở Hữu</TableCell>
                         <TableCell align="center" sx={{ fontWeight: 700 }}>Sắp xếp</TableCell>
                         <TableCell align="right" sx={{ fontWeight: 700 }}>Thao Tác</TableCell>
                       </TableRow>

@@ -1,11 +1,29 @@
-import { Dialog, Box, Typography, IconButton, Button, TextField, CircularProgress, Chip } from '@mui/material';
+import { Dialog, Box, Typography, IconButton, Button, TextField, CircularProgress, Chip, Grid, Avatar, useTheme, useMediaQuery, DialogContent } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import SendIcon from '@mui/icons-material/Send';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import StorageIcon from '@mui/icons-material/Storage';
+import FolderZipIcon from '@mui/icons-material/FolderZip';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import PersonIcon from '@mui/icons-material/Person';
 import type { UnityAsset } from '../types/UnityAsset';
 import { useState, useEffect } from 'react';
-import ImageWithFallback from './ImageWithFallback';
+
+const AssetFallbackImage = ({ asset }: { asset: any }) => {
+  const isUnity = asset.sourceName?.toLowerCase().includes('unity');
+  const isFab = asset.sourceName?.toLowerCase().includes('fab');
+  const gradient1 = asset.sourceBg || 'hsl(220, 80%, 92%)';
+  const gradient2 = asset.sourceText || 'hsl(220, 85%, 35%)';
+  return (
+    <Box sx={{ height: '100%', width: '100%', background: `linear-gradient(135deg, ${gradient1} 0%, ${gradient2} 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#fff', position: 'relative', overflow: 'hidden' }}>
+      {isUnity ? <AutoAwesomeIcon sx={{ fontSize: 100, mb: 1, opacity: 0.9 }} /> : isFab ? <StorageIcon sx={{ fontSize: 100, mb: 1, opacity: 0.9 }} /> : <FolderZipIcon sx={{ fontSize: 100, mb: 1, opacity: 0.9 }} />}
+      <Typography variant="h5" sx={{ fontWeight: 900, letterSpacing: 2, opacity: 0.9, textTransform: 'uppercase' }}>{asset.sourceName || 'ASSET STORE'}</Typography>
+      <Box sx={{ position: 'absolute', top: '-20%', right: '-10%', width: '150%', height: '150%', background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%)', transform: 'rotate(-45deg)' }} />
+    </Box>
+  );
+};
 
 interface Props {
   asset: UnityAsset | null;
@@ -14,6 +32,10 @@ interface Props {
 }
 
 export default function AssetDetailModal({ asset, open, onClose }: Props) {
+  const muiTheme = useTheme();
+  const isLight = muiTheme.palette.mode === 'light';
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
+
   const [formData, setFormData] = useState({ name: '', studentId: '', school: '', email: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -21,12 +43,8 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
   useEffect(() => {
     if (open && asset) {
       document.title = `Tài nguyên: ${asset.name} | UniFolio`;
-      
       const metaDesc = document.querySelector('meta[name="description"]');
       if (metaDesc) metaDesc.setAttribute('content', `Tài nguyên Unity: ${asset.name}. Cung cấp bởi ${asset.owner || 'UniFolio'}`);
-      
-      const ogTitle = document.querySelector('meta[property="og:title"]');
-      if (ogTitle) ogTitle.setAttribute('content', `Tài nguyên: ${asset.name} | UniFolio`);
     } else {
       document.title = 'UniFolio';
     }
@@ -34,12 +52,15 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
 
   if (!asset) return null;
 
+  const parsedDate = typeof asset.createdAt === 'number' && asset.createdAt < 100000 
+    ? Math.round((asset.createdAt - 25569) * 86400 * 1000) 
+    : asset.createdAt;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitStatus('idle');
 
-    // Sử dụng Access Key do Web3Forms cung cấp (Khóa này an toàn để để công khai trên frontend)
     const accessKey = "a5b2c357-ae00-48e5-9f59-2945167199be";
     if (!accessKey) {
       alert("Hệ thống chưa được cấu hình API Key gửi Email. Vui lòng liên hệ Admin.");
@@ -65,11 +86,9 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
         })
       });
 
-      const result = await response.json();
       if (response.status === 200) {
         setSubmitStatus('success');
       } else {
-        console.log(result);
         setSubmitStatus('error');
       }
     } catch (error) {
@@ -81,60 +100,146 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth sx={{ '& .MuiDialog-paper': { borderRadius: 4, overflow: 'hidden' } }}>
-      <Box sx={{ position: 'relative', height: 250 }}>
-        <ImageWithFallback src={asset.imageUrl} alt={asset.name} fallbackText={asset.name} iconKeyword="3d" height="100%" />
-        <IconButton onClick={onClose} sx={{ position: 'absolute', top: 16, right: 16, bgcolor: 'rgba(0,0,0,0.5)', color: '#fff', '&:hover': { bgcolor: 'rgba(0,0,0,0.8)' } }}>
-          <CloseIcon />
-        </IconButton>
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="md" 
+      fullWidth 
+      fullScreen={isMobile}
+      sx={{
+        backdropFilter: 'blur(20px)',
+        '& .MuiBackdrop-root': { bgcolor: 'rgba(0,0,0,0.6)' },
+        '& .MuiDialog-paper': {
+          borderRadius: { xs: 0, md: 6 },
+          m: { xs: 0, md: 2 },
+          overflow: 'hidden',
+          bgcolor: 'background.paper',
+          backgroundImage: 'none',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+        }
+      }}
+    >
+      {/* Hero Banner Area */}
+      <Box sx={{ position: 'relative', width: '100%', height: { xs: 200, md: 320 }, bgcolor: '#000' }}>
+        {asset.imageUrl ? (
+          <Box component="img" src={asset.imageUrl} alt={asset.name} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        ) : (
+          <AssetFallbackImage asset={asset} />
+        )}
+        
+        {/* Gradient Overlay for seamless transition */}
+        <Box sx={{ position: 'absolute', bottom: -1, left: 0, right: 0, height: '180px', background: `linear-gradient(to top, ${muiTheme.palette.background.paper} 0%, transparent 100%)` }} />
+
+        {/* Action Buttons Overlay */}
+        <Box sx={{ position: 'absolute', top: 24, right: 24, display: 'flex', gap: 2 }}>
+          <IconButton onClick={onClose} sx={{ bgcolor: 'rgba(0,0,0,0.4)', color: '#fff', '&:hover': { bgcolor: 'error.main' }, backdropFilter: 'blur(8px)' }}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
       </Box>
 
-      <Box sx={{ p: { xs: 3, md: 5 }, bgcolor: 'background.default' }}>
+      {/* Main Content Area */}
+      <DialogContent sx={{ p: { xs: 3, md: 5 }, pt: { xs: 0, md: 2 }, overflowX: 'hidden' }}>
         <Box sx={{ mb: 4 }}>
-          <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-            <Chip label={asset.assetTypeName || (asset.assetType === 'ACCOUNT' ? 'Acc Unity' : 'Google Drive')} size="small" sx={{ fontWeight: 800, bgcolor: asset.assetTypeBg || (asset.assetType === 'ACCOUNT' ? 'primary.main' : 'success.main'), color: asset.assetTypeText || '#fff' }} />
-            {asset.createdAt && <Chip icon={<CalendarMonthIcon fontSize="small" />} label={new Date(asset.createdAt).toLocaleDateString('vi-VN')} size="small" variant="outlined" sx={{ fontWeight: 600 }} />}
-            {asset.owner && <Chip label={`Tác giả: ${asset.owner}`} size="small" variant="outlined" sx={{ fontWeight: 600 }} />}
-            {asset.sourceName && <Chip label={`Nguồn: ${asset.sourceName}`} size="small" color="primary" variant="outlined" sx={{ fontWeight: 600 }} />}
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 2, position: 'relative', zIndex: 2 }}>
+            <Chip label={asset.assetTypeName || (asset.assetType === 'ACCOUNT' ? 'Acc Unity' : 'Khác')} sx={{ fontWeight: 800, bgcolor: asset.assetTypeBg || 'primary.main', color: asset.assetTypeText || '#fff' }} />
+            {asset.sourceName && <Chip label={asset.sourceName} variant="outlined" sx={{ fontWeight: 700, bgcolor: 'background.paper' }} />}
           </Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, mb: 1, color: 'text.primary' }}>{asset.name}</Typography>
-          <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.8, whiteSpace: 'pre-line' }}>{asset.description}</Typography>
-          {asset.originalLink && (
-            <Button variant="text" href={asset.originalLink} target="_blank" sx={{ mt: 2, fontWeight: 700, textTransform: 'none' }}>
-              Xem trước trên Unity Asset Store ↗
-            </Button>
+          
+          <Typography variant="h3" sx={{ 
+            fontWeight: 900, 
+            mb: 2, 
+            display: 'flex',
+            alignItems: 'center',
+            background: isLight ? 'linear-gradient(90deg, #1E293B, #2563EB)' : 'linear-gradient(90deg, #F8FAFC, #60A5FA)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.5rem' },
+            lineHeight: 1.3
+          }}>
+            {asset.name}
+          </Typography>
+
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, alignItems: 'center', color: 'text.secondary', mb: 4 }}>
+            {asset.owner && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.light', color: 'primary.dark', fontWeight: 800 }}>{asset.owner.charAt(0).toUpperCase()}</Avatar>
+                <Typography sx={{ fontWeight: 700 }}>Đăng bởi {asset.owner}</Typography>
+              </Box>
+            )}
+            {parsedDate && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <CalendarMonthIcon fontSize="small" />
+                <Typography sx={{ fontWeight: 600 }}>{new Date(parsedDate).toLocaleDateString('vi-VN')}</Typography>
+              </Box>
+            )}
+          </Box>
+
+          {(asset.driveLink || asset.originalLink) && (
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 5, p: 3, borderRadius: 4, bgcolor: isLight ? 'rgba(37,99,235,0.05)' : 'rgba(37,99,235,0.1)', border: '1px dashed', borderColor: 'primary.light' }}>
+              <Typography variant="subtitle1" sx={{ width: '100%', fontWeight: 800, color: 'text.primary', mb: 1 }}>Tải về tài nguyên</Typography>
+              {asset.driveLink && (
+                <Button variant="contained" href={asset.driveLink} target="_blank" startIcon={<FileDownloadIcon />} sx={{ fontWeight: 800, borderRadius: 100, px: 3, py: 1, textTransform: 'none', boxShadow: '0 8px 20px -6px rgba(37,99,235,0.6)' }}>
+                  Tải Drive Trực Tiếp
+                </Button>
+              )}
+              {asset.originalLink && (
+                <Button variant="outlined" href={asset.originalLink} target="_blank" startIcon={<OpenInNewIcon />} sx={{ fontWeight: 800, borderRadius: 100, px: 3, py: 1, textTransform: 'none', bgcolor: 'background.paper' }}>
+                  Xem Nguồn Gốc
+                </Button>
+              )}
+            </Box>
           )}
+
+          <Typography variant="h6" sx={{ fontWeight: 800, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <AutoAwesomeIcon color="primary" /> Chi Tiết
+          </Typography>
+          <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.8, whiteSpace: 'pre-line', fontSize: '1.05rem', mb: 5 }}>
+            {asset.description || 'Chưa có mô tả chi tiết cho tài nguyên này.'}
+          </Typography>
         </Box>
 
-        <Box sx={{ p: 4, borderRadius: 4, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 10px 30px -10px rgba(0,0,0,0.05)' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
-            <AutoAwesomeIcon sx={{ color: 'primary.main' }} />
-            <Typography variant="h6" sx={{ fontWeight: 800 }}>Mẫu Đăng Ký Sử Dụng</Typography>
+        {/* Form Đăng Ký Sử Dụng */}
+        <Box sx={{ p: { xs: 3, md: 4 }, borderRadius: 5, bgcolor: 'background.default', border: '1px solid', borderColor: 'divider', position: 'relative', overflow: 'hidden' }}>
+          <Box sx={{ position: 'absolute', top: -50, right: -50, width: 150, height: 150, background: 'radial-gradient(circle, rgba(37,99,235,0.15) 0%, transparent 70%)', borderRadius: '50%' }} />
+          
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1, position: 'relative', zIndex: 1 }}>
+            <PersonIcon sx={{ color: 'primary.main', fontSize: 28 }} />
+            <Typography variant="h6" sx={{ fontWeight: 900 }}>Mẫu Đăng Ký Truy Cập</Typography>
           </Box>
+          <Typography color="text.secondary" sx={{ mb: 4, fontWeight: 500 }}>Vui lòng điền form dưới đây nếu tài nguyên yêu cầu cấp quyền truy cập từ Admin.</Typography>
 
           {submitStatus === 'success' ? (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="h5" sx={{ fontWeight: 800, color: 'success.main', mb: 2 }}>Gửi yêu cầu thành công! 🎉</Typography>
-              <Typography color="text.secondary">Thông tin của bạn đã được gửi đến Admin. Vui lòng kiểm tra email thường xuyên, chúng tôi sẽ phản hồi sớm nhất có thể.</Typography>
-              <Button variant="outlined" onClick={onClose} sx={{ mt: 4, borderRadius: 100, fontWeight: 700, px: 4 }}>Đóng Cửa Sổ</Button>
+            <Box sx={{ textAlign: 'center', py: 4, animation: 'fadeIn 0.5s ease-out' }}>
+              <Typography variant="h5" sx={{ fontWeight: 900, color: 'success.main', mb: 2 }}>Gửi yêu cầu thành công! 🎉</Typography>
+              <Typography color="text.secondary">Yêu cầu của bạn đã được gửi. Chúng tôi sẽ phản hồi qua Email trong thời gian sớm nhất.</Typography>
+              <Button variant="contained" color="primary" onClick={onClose} sx={{ mt: 4, borderRadius: 100, fontWeight: 800, px: 5, py: 1.5, textTransform: 'none' }}>Đóng Cửa Sổ</Button>
             </Box>
           ) : (
-            <form onSubmit={handleSubmit}>
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 3, mb: 3 }}>
-                <TextField label="Họ và Tên" required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
-                <TextField label="Mã Sinh Viên" required value={formData.studentId} onChange={e => setFormData({ ...formData, studentId: e.target.value })} />
-                <TextField label="Trường" required value={formData.school} onChange={e => setFormData({ ...formData, school: e.target.value })} />
-                <TextField label="Email liên hệ" type="email" required value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
-              </Box>
-              <TextField fullWidth multiline rows={3} label="Lý do / Mục đích sử dụng" required value={formData.message} onChange={e => setFormData({ ...formData, message: e.target.value })} sx={{ mb: 4 }} helperText="Hãy ghi rõ mục đích để Admin dễ dàng xét duyệt nhé." />
+            <form onSubmit={handleSubmit} style={{ position: 'relative', zIndex: 1 }}>
+              <Grid container spacing={3} sx={{ mb: 3 }}>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField fullWidth label="Họ và Tên" required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'background.paper' } }} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField fullWidth label="Mã Sinh Viên" required value={formData.studentId} onChange={e => setFormData({ ...formData, studentId: e.target.value })} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'background.paper' } }} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField fullWidth label="Trường" required value={formData.school} onChange={e => setFormData({ ...formData, school: e.target.value })} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'background.paper' } }} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <TextField fullWidth label="Email liên hệ" type="email" required value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'background.paper' } }} />
+                </Grid>
+              </Grid>
+              <TextField fullWidth multiline rows={3} label="Lý do / Mục đích sử dụng cụ thể" required value={formData.message} onChange={e => setFormData({ ...formData, message: e.target.value })} helperText="Chi tiết mục đích sẽ giúp Admin duyệt nhanh hơn." sx={{ mb: 4, '& .MuiOutlinedInput-root': { borderRadius: 3, bgcolor: 'background.paper' } }} />
               
-              <Button type="submit" variant="contained" disabled={isSubmitting} startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : <SendIcon />} sx={{ width: '100%', py: 1.5, borderRadius: 2, fontWeight: 700, fontSize: '1rem', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', boxShadow: '0 8px 20px -6px rgba(37,99,235,0.5)' }}>
-                {isSubmitting ? 'Đang gửi...' : 'Gửi Yêu Cầu'}
+              <Button type="submit" variant="contained" disabled={isSubmitting} startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : <SendIcon />} sx={{ width: '100%', py: 1.5, borderRadius: 3, fontWeight: 800, fontSize: '1.05rem', textTransform: 'none', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', boxShadow: '0 8px 25px -8px rgba(37,99,235,0.6)', transition: 'all 0.3s ease', '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 12px 30px -10px rgba(37,99,235,0.8)' } }}>
+                {isSubmitting ? 'Đang xử lý...' : 'Gửi Yêu Cầu Xin Quyền'}
               </Button>
             </form>
           )}
         </Box>
-      </Box>
+      </DialogContent>
     </Dialog>
   );
 }
