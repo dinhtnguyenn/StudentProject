@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
+import * as XLSX from 'xlsx';
 import {
   Box, Typography, TextField, Button, Paper, Snackbar, Alert, Grid,
   CircularProgress, Divider, Collapse, IconButton, InputAdornment,
@@ -24,6 +25,8 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import DownloadIcon from '@mui/icons-material/Download';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 import StarIcon from '@mui/icons-material/Star';
 import FolderIcon from '@mui/icons-material/Folder';
 import ArticleIcon from '@mui/icons-material/Article';
@@ -595,6 +598,7 @@ export default function AdminForm() {
   const [unityAssetsList, setUnityAssetsList] = useState<any[]>([]);
   const [unityAssetsSha, setUnityAssetsSha] = useState('');
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [unityAssetFormData, setUnityAssetFormData] = useState<any>({
     id: '', name: '', description: '', imageUrl: '', assetType: 'GOOGLE_DRIVE', originalLink: '', driveLink: '', owner: ''
   });
@@ -1295,6 +1299,60 @@ export default function AdminForm() {
     setArticleTypesList(prev => moveItem(prev, index, direction));
   };
 
+  const handleExportUnityAssetsTemplate = () => {
+    const ws = XLSX.utils.json_to_sheet([
+      { id: '123-abc', name: 'Tên Tài Nguyên', description: 'Mô tả ngắn gọn', imageUrl: 'https://...', assetType: 'GOOGLE_DRIVE', originalLink: 'https://...', driveLink: 'https://...', owner: 'Tên Tác Giả' }
+    ]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Unity Assets');
+    XLSX.writeFile(wb, 'UnityAssets_Template.xlsx');
+  };
+
+  const handleImportUnityAssetsExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = new Uint8Array(event.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const importedData = XLSX.utils.sheet_to_json(firstSheet) as any[];
+
+        if (!importedData || importedData.length === 0) {
+          setStatus({ type: 'error', message: 'File Excel không có dữ liệu!' });
+          return;
+        }
+
+        const validAssets = importedData.map(row => ({
+          id: row.id || `asset-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          name: row.name || 'Untitled Asset',
+          description: row.description || '',
+          imageUrl: row.imageUrl || '',
+          assetType: row.assetType === 'ACCOUNT' ? 'ACCOUNT' : 'GOOGLE_DRIVE',
+          originalLink: row.originalLink || '',
+          driveLink: row.driveLink || '',
+          owner: row.owner || ''
+        }));
+
+        setUnityAssetsList(prev => {
+          const map = new Map();
+          prev.forEach(item => map.set(item.id, item));
+          validAssets.forEach(item => map.set(item.id, item));
+          return Array.from(map.values());
+        });
+
+        setStatus({ type: 'success', message: `Nhập thành công ${validAssets.length} tài nguyên. Vui lòng bấm 'Lưu Lên GitHub' để hoàn tất.` });
+      } catch (err) {
+        console.error(err);
+        setStatus({ type: 'error', message: 'Lỗi đọc file Excel. Vui lòng kiểm tra lại định dạng!' });
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   const autoMergeData = (remoteData: any[], localData: any[]) => {
     const map = new Map();
     remoteData.forEach(item => map.set(item.id, item));
@@ -1843,6 +1901,9 @@ export default function AdminForm() {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                   <Typography variant="h5" sx={{ fontWeight: 800 }}>Quản Lý Tài Nguyên</Typography>
                   <Box sx={{ display: 'flex', gap: 2 }}>
+                    <input type="file" accept=".xlsx, .xls" style={{ display: 'none' }} ref={fileInputRef} onChange={handleImportUnityAssetsExcel} />
+                    <Button variant="outlined" color="success" startIcon={<DownloadIcon />} onClick={handleExportUnityAssetsTemplate} sx={{ borderRadius: 100, textTransform: 'none', fontWeight: 600 }}>File Mẫu</Button>
+                    <Button variant="outlined" color="info" startIcon={<UploadFileIcon />} onClick={() => fileInputRef.current?.click()} sx={{ borderRadius: 100, textTransform: 'none', fontWeight: 600 }}>Nhập Excel</Button>
                     {selectedUnityAssets.length > 0 && (
                       <Button variant="contained" color="error" startIcon={<DeleteIcon />} onClick={() => setBulkDeleteUnityAssetsConfirm(true)} sx={{ borderRadius: 100, textTransform: 'none', fontWeight: 600 }}>Xoá {selectedUnityAssets.length} mục</Button>
                     )}
