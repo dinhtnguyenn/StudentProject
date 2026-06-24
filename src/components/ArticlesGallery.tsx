@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Box, Typography, Grid, Card, CardContent, Chip, CircularProgress, Alert, FormControl, InputLabel, Select, MenuItem, TextField, InputAdornment, useTheme } from '@mui/material';
+import { Box, Typography, Grid, Card, CardContent, Chip, CircularProgress, Alert, FormControl, InputLabel, Select, MenuItem, TextField, InputAdornment, useTheme, Button } from '@mui/material';
 import { motion, useInView } from 'framer-motion';
 import type { Article } from '../types/Article';
 import ImageWithFallback from './ImageWithFallback';
@@ -258,6 +258,23 @@ export default function ArticlesGallery() {
               />
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>Bộ lọc</Typography>
+                  {(search || currentType !== 'All' || currentMajor !== 'All') && (
+                    <Button 
+                      size="small" 
+                      color="error"
+                      onClick={() => { 
+                        setSearch(''); 
+                        setCurrentType('All'); 
+                        setCurrentMajor('All'); 
+                      }} 
+                      sx={{ textTransform: 'none', py: 0, fontSize: '0.75rem' }}
+                    >
+                      Xóa tất cả
+                    </Button>
+                  )}
+                </Box>
                 <FormControl size="small" fullWidth>
                   <InputLabel>Loại bài viết</InputLabel>
                   <Select

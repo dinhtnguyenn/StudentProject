@@ -426,6 +426,26 @@ export default function ProjectGallery() {
 
               {/* Filters Box */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>Bộ lọc</Typography>
+                  {(search || currentTab !== 'All' || currentSemester !== 'All' || currentMajor !== 'All' || selectedTags.length > 0 || showOnlyGoldenTicket) && (
+                    <Button 
+                      size="small" 
+                      color="error"
+                      onClick={() => { 
+                        setSearch(''); 
+                        setCurrentTab('All'); 
+                        setCurrentSemester('All'); 
+                        setCurrentMajor('All'); 
+                        setSelectedTags([]); 
+                        setShowOnlyGoldenTicket(false); 
+                      }} 
+                      sx={{ textTransform: 'none', py: 0, fontSize: '0.75rem' }}
+                    >
+                      Xóa tất cả
+                    </Button>
+                  )}
+                </Box>
                 <FormControl size="small" fullWidth>
                   <InputLabel>Loại dự án</InputLabel>
                   <Select
