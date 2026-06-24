@@ -136,6 +136,17 @@
       background-color: transparent !important;
       box-shadow: none !important;
     }
+    /* Tối ưu hóa GPU cho thiết bị di động (Giảm lag) */
+    @media (max-width: 768px) {
+      .seasonal-particle {
+        /* Tắt drop-shadow của các phần tử trôi nổi trên mobile */
+        filter: none !important;
+      }
+      .MuiPaper-root, footer, header {
+        /* Giảm nhẹ hoặc tắt backdrop-filter trên điện thoại yếu */
+        backdrop-filter: blur(8px) !important;
+      }
+    }
   </style>
   <!-- Bản vá (Monkey-patch) ngăn chặn React Crash khi Google Translate thay đổi DOM -->
   <script type="text/javascript">

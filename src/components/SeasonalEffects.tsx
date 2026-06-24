@@ -233,7 +233,7 @@ export default function SeasonalEffects() {
         zIndex: 0, // MUST BE BEHIND EVERYTHING
       }}>
         {particles.map((p) => (
-          <div key={p.id} style={p.style} />
+          <div key={p.id} className="seasonal-particle" style={p.style} />
         ))}
       </div>
     </>
