@@ -127,7 +127,8 @@ export default function CommandPalette() {
   // Handle global keyboard shortcut
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && (e.code === 'Space' || e.key === 'k')) {
+      const isK = e.key.toLowerCase() === 'k' || e.code === 'KeyK';
+      if ((e.ctrlKey || e.metaKey) && (e.code === 'Space' || isK)) {
         e.preventDefault();
         setOpen(prev => !prev);
       }
