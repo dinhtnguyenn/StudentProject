@@ -10,6 +10,7 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import PersonIcon from '@mui/icons-material/Person';
 import type { UnityAsset } from '../types/UnityAsset';
 import { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 
 const AssetFallbackImage = ({ asset }: { asset: any }) => {
   const isUnity = asset.sourceName?.toLowerCase().includes('unity');
@@ -39,16 +40,6 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
   const [formData, setFormData] = useState({ name: '', studentId: '', school: '', email: '', message: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
-
-  useEffect(() => {
-    if (open && asset) {
-      document.title = `Tài nguyên: ${asset.name} | UniFolio`;
-      const metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc) metaDesc.setAttribute('content', `Tài nguyên Unity: ${asset.name}. Cung cấp bởi ${asset.owner || 'UniFolio'}`);
-    } else {
-      document.title = 'UniFolio';
-    }
-  }, [open, asset]);
 
   if (!asset) return null;
 
@@ -100,13 +91,23 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
   };
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      maxWidth="md" 
-      fullWidth 
-      fullScreen={isMobile}
-      sx={{
+    <>
+      <Helmet>
+        <title>{`${asset.name} | UniFolio`}</title>
+        <meta name="description" content={`Tài nguyên Unity: ${asset.name}. Cung cấp bởi ${asset.owner || 'UniFolio'}`} />
+        <meta property="og:title" content={asset.name} />
+        <meta property="og:description" content={`Tài nguyên Unity: ${asset.name}. Cung cấp bởi ${asset.owner || 'UniFolio'}`} />
+        {asset.imageUrl && <meta property="og:image" content={asset.imageUrl} />}
+        <link rel="canonical" href={`${window.location.origin}/asset/${asset.id}`} />
+      </Helmet>
+
+      <Dialog 
+        open={open} 
+        onClose={onClose} 
+        maxWidth="md" 
+        fullWidth 
+        fullScreen={isMobile}
+        sx={{
         backdropFilter: 'blur(20px)',
         '& .MuiBackdrop-root': { bgcolor: 'rgba(0,0,0,0.6)' },
         '& .MuiDialog-paper': {
