@@ -601,6 +601,7 @@ export default function AdminForm() {
   const hasUnsavedChanges = isProjectsChanged || isCategoriesChanged || isArticlesChanged || isMajorsChanged || isArticleTypesChanged;
   const [isSavingAll, setIsSavingAll] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isTriggeringBuild, setIsTriggeringBuild] = useState(false);
 
   // Modal States
   const [showSortPreview, setShowSortPreview] = useState(false);
@@ -621,6 +622,7 @@ export default function AdminForm() {
   const getArticlesApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/articles.json`;
   const getMajorsApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/majors.json`;
   const getArticleTypesApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/articleTypes.json`;
+  const getTriggerApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/trigger.json`;
 
   const fetchFile = async (url: string) => {
     const getRes = await fetch(url, { headers: { 'Authorization': `token ${githubToken}`, 'Accept': 'application/vnd.github.v3+json' } });
@@ -1371,6 +1373,25 @@ export default function AdminForm() {
     }
   };
 
+  const handleManualBuild = async () => {
+    if (!isAuthenticated || !githubToken || !githubOwner || !githubRepo) {
+      setStatus({ type: 'error', message: 'Vui lòng đăng nhập để thực hiện.' });
+      return;
+    }
+    try {
+      setIsTriggeringBuild(true);
+      setStatus({ type: 'info', message: 'Đang gửi yêu cầu Build Sitemap...' });
+      const remote = await fetchFile(getTriggerApiUrl());
+      await commitFile(getTriggerApiUrl(), [{ timestamp: Date.now() }], remote.sha, 'Manual trigger sitemap build');
+      setStatus({ type: 'success', message: 'Đã gửi lệnh cập nhật Sitemap! Quá trình build sẽ mất khoảng 1-2 phút.' });
+    } catch (err: any) {
+      console.error(err);
+      setStatus({ type: 'error', message: 'Lỗi khi gửi yêu cầu Build: ' + err.message });
+    } finally {
+      setIsTriggeringBuild(false);
+    }
+  };
+
   if (isAuthenticating) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: 2 }}>
@@ -1522,6 +1543,9 @@ export default function AdminForm() {
             <Button variant="contained" color="warning" onClick={handleUpdateClick} disabled={isSavingAll || !!fetchError} startIcon={isSavingAll ? <CircularProgress size={16} color="inherit" /> : <CloudUploadIcon />} sx={{ borderRadius: 100, fontWeight: 700, px: 3, '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
               {isSavingAll ? 'Đang Gửi...' : 'Lưu Lên GitHub'}
             </Button>
+            <Button variant="contained" color="info" onClick={handleManualBuild} disabled={isTriggeringBuild || isSavingAll || !!fetchError} startIcon={isTriggeringBuild ? <CircularProgress size={16} color="inherit" /> : <AutoAwesomeIcon />} sx={{ borderRadius: 100, fontWeight: 700, px: 3, display: { xs: 'none', md: 'flex' } }}>
+              Build Sitemap
+            </Button>
           </Box>
         </Paper>
       </Collapse>
@@ -1539,9 +1563,14 @@ export default function AdminForm() {
               Hệ Thống <span style={{ color: muiTheme.palette.primary.main }}>Quản Lý</span>
             </Typography>
           </Box>
-          <IconButton onClick={handleLogout} sx={{ color: 'text.secondary', '&:hover': { color: 'error.main', bgcolor: 'error.light' } }} title="Đăng xuất">
-            <LogoutIcon />
-          </IconButton>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Button variant="outlined" color="info" onClick={handleManualBuild} disabled={isTriggeringBuild || isSavingAll || !!fetchError} startIcon={isTriggeringBuild ? <CircularProgress size={16} color="inherit" /> : <AutoAwesomeIcon />} sx={{ borderRadius: 100, fontWeight: 700, px: 2 }}>
+              Cập Nhật Sitemap
+            </Button>
+            <IconButton onClick={handleLogout} sx={{ color: 'text.secondary', '&:hover': { color: 'error.main', bgcolor: 'error.light' } }} title="Đăng xuất">
+              <LogoutIcon />
+            </IconButton>
+          </Box>
         </Box>
 
         <Paper elevation={0} sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, border: '1px solid', borderColor: 'divider', borderRadius: 6, minHeight: 650, overflow: 'hidden', boxShadow: '0 20px 50px -10px rgba(0,0,0,0.08)' }}>

@@ -234,7 +234,9 @@ function App() {
         <Container maxWidth="lg">
           <Routes>
             <Route path="/" element={<ProjectGallery />} />
+            <Route path="/project/:projectId" element={<ProjectGallery />} />
             <Route path="/articles" element={<ArticlesGallery />} />
+            <Route path="/article/:articleId" element={<ArticlesGallery />} />
             <Route path="/admin" element={<AdminForm />} />
           </Routes>
         </Container>

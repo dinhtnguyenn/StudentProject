@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Typography, TextField, Box, CircularProgress, InputAdornment, Grid, Chip, FormControl, Select, MenuItem, InputLabel, useTheme, Button, Divider } from '@mui/material';
+import { Typography, TextField, Box, CircularProgress, InputAdornment, Grid, Chip, FormControl, Select, MenuItem, InputLabel, useTheme, Button, Divider, Snackbar, Alert } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import HubIcon from '@mui/icons-material/Hub';
@@ -8,7 +8,7 @@ import TechNetworkGraph from './TechNetworkGraph';
 import type { Project } from '../types/Project';
 import type { Category } from '../types/Category';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import ProjectDetailModal from './ProjectDetailModal';
 import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
@@ -112,9 +112,18 @@ export default function ProjectGallery() {
 
   const [visibleCount, setVisibleCount] = useState(9);
   const [sharedProject, setSharedProject] = useState<Project | null>(null);
+  const [shareSuccess, setShareSuccess] = useState(false);
 
-  const location = useLocation();
+  const handleShare = () => {
+    if (sharedProject) {
+      const shareUrl = `${window.location.origin}/project/${sharedProject.id}`;
+      navigator.clipboard.writeText(shareUrl);
+      setShareSuccess(true);
+    }
+  };
+
   const navigate = useNavigate();
+  const { projectId } = useParams();
   const muiTheme = useTheme();
 
   const observer = useRef<IntersectionObserver | null>(null);
@@ -191,21 +200,17 @@ export default function ProjectGallery() {
   }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const projectId = params.get('project');
     if (projectId && projects.length > 0) {
       const p = projects.find(x => x.id === projectId);
       if (p) setSharedProject(p);
     } else {
       setSharedProject(null);
     }
-  }, [location.search, projects]);
+  }, [projectId, projects]);
 
   const closeSharedProject = () => {
     setSharedProject(null);
-    const params = new URLSearchParams(location.search);
-    params.delete('project');
-    navigate({ search: params.toString() }, { replace: true });
+    navigate('/', { replace: true });
   };
 
   useEffect(() => {
@@ -591,7 +596,7 @@ export default function ProjectGallery() {
                         transition={{ duration: 0.5, ease: "easeOut" }}
                         style={{ height: '100%' }}
                       >
-                        <ProjectCard project={project} allProjects={projects} categoryColors={categoryColors} />
+                        <ProjectCard project={project} categoryColors={categoryColors} />
                       </motion.div>
                     </Grid>
                   ))}
@@ -628,7 +633,7 @@ export default function ProjectGallery() {
                           }} />
 
                           <Box sx={{ width: { xs: '100%', md: '45%' }, px: { xs: 2, md: 4 } }}>
-                            <ProjectCard project={project} allProjects={projects} categoryColors={categoryColors} />
+                            <ProjectCard project={project} categoryColors={categoryColors} />
                           </Box>
 
                           <Box sx={{ display: { xs: 'none', md: 'block' }, width: '45%' }} />
@@ -657,8 +662,15 @@ export default function ProjectGallery() {
           allProjects={projects}
           open={true}
           onClose={closeSharedProject}
+          onShare={handleShare}
         />
       )}
+
+      <Snackbar open={shareSuccess} autoHideDuration={3000} onClose={() => setShareSuccess(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert onClose={() => setShareSuccess(false)} severity="success" sx={{ width: '100%' }}>
+          Đã copy link dự án!
+        </Alert>
+      </Snackbar>
 
       {/* Tech Network Graph Modal */}
       {isGraphOpen && (

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Box, Typography, Grid, Card, CardContent, Chip, CircularProgress, Alert, FormControl, InputLabel, Select, MenuItem, TextField, InputAdornment, useTheme, Button } from '@mui/material';
+import { Box, Typography, Grid, Card, CardContent, Chip, CircularProgress, Alert, FormControl, InputLabel, Select, MenuItem, TextField, InputAdornment, useTheme, Button, Snackbar } from '@mui/material';
 import { motion, useInView } from 'framer-motion';
 import type { Article } from '../types/Article';
 import ImageWithFallback from './ImageWithFallback';
@@ -8,6 +8,8 @@ import { getSeasonWatermark } from './SeasonalEffects';
 import SearchIcon from '@mui/icons-material/Search';
 import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
 import { Helmet } from 'react-helmet-async';
+import { useParams, useNavigate } from 'react-router-dom';
+import ArticleDetailModal from './ArticleDetailModal';
 
 const AnimatedCounter = ({ value, label }: { value: number, label: string }) => {
   const [count, setCount] = useState(0);
@@ -62,6 +64,19 @@ export default function ArticlesGallery() {
 
   const [isFiltering, setIsFiltering] = useState(false);
   const [visibleCount, setVisibleCount] = useState(9);
+  const [sharedArticle, setSharedArticle] = useState<Article | null>(null);
+  const [shareSuccess, setShareSuccess] = useState(false);
+
+  const navigate = useNavigate();
+  const { articleId } = useParams();
+
+  const handleShare = () => {
+    if (sharedArticle) {
+      const shareUrl = `${window.location.origin}/article/${sharedArticle.id}`;
+      navigator.clipboard.writeText(shareUrl);
+      setShareSuccess(true);
+    }
+  };
 
   const observer = useRef<IntersectionObserver | null>(null);
   const lastElementRef = (node: HTMLDivElement | null) => {
@@ -145,6 +160,20 @@ export default function ArticlesGallery() {
         setLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    if (articleId && articles.length > 0) {
+      const a = articles.find(x => x.id === articleId);
+      if (a) setSharedArticle(a);
+    } else {
+      setSharedArticle(null);
+    }
+  }, [articleId, articles]);
+
+  const closeSharedArticle = () => {
+    setSharedArticle(null);
+    navigate('/articles', { replace: true });
+  };
 
   if (loading) {
     return (
@@ -378,10 +407,7 @@ export default function ArticlesGallery() {
                             transform: 'scale(1.05)',
                           }
                         }}
-                        component="a"
-                        href={article.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        onClick={() => navigate(`/article/${article.id}`)}
                       >
                         <Box sx={{ overflow: 'hidden' }}>
                           <ImageWithFallback
@@ -450,7 +476,22 @@ export default function ArticlesGallery() {
             </>
           )}
         </Grid>
-      </Grid>
+    </Grid>
+
+      {sharedArticle && (
+        <ArticleDetailModal
+          article={sharedArticle}
+          open={true}
+          onClose={closeSharedArticle}
+          onShare={handleShare}
+        />
+      )}
+
+      <Snackbar open={shareSuccess} autoHideDuration={3000} onClose={() => setShareSuccess(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert onClose={() => setShareSuccess(false)} severity="success" sx={{ width: '100%' }}>
+          Đã copy link bài viết!
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

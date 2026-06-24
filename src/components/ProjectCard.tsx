@@ -13,14 +13,12 @@ import SchoolIcon from '@mui/icons-material/School';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import type { Project } from '../types/Project';
 import { motion } from 'framer-motion';
-import ProjectDetailModal from './ProjectDetailModal';
 import ImageWithFallback from './ImageWithFallback';
 import { getCurrentSeason } from '../lib/seasonalEngine';
 import { getSeasonWatermark } from './SeasonalEffects';
 
 interface Props {
   project: Project;
-  allProjects?: Project[];
   categoryColors?: Record<string, { bg: string; text: string }>;
 }
 
@@ -40,9 +38,11 @@ const getAvatarLetter = (name: string) => {
   return lastWord.charAt(0).toUpperCase();
 };
 
-export default function ProjectCard({ project, allProjects = [], categoryColors = {} }: Props) {
+import { useNavigate } from 'react-router-dom';
+
+export default function ProjectCard({ project, categoryColors = {} }: Props) {
+  const navigate = useNavigate();
   const [openVideo, setOpenVideo] = useState(false);
-  const [openDetail, setOpenDetail] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
   
   const muiTheme = useTheme();
@@ -55,9 +55,9 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
 
   const handleShare = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Generate URL like: http://domain.com/?project=123
-    const baseUrl = window.location.origin + window.location.pathname;
-    const shareUrl = `${baseUrl}?project=${project.id}`;
+    // Generate URL like: http://domain.com/project/123
+    const baseUrl = window.location.origin;
+    const shareUrl = `${baseUrl}/project/${project.id}`;
     navigator.clipboard.writeText(shareUrl);
     setShareSuccess(true);
   };
@@ -85,7 +85,7 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
             transform: 'scale(1.05)',
           },
         }}>
-          <Box onClick={() => setOpenDetail(true)} sx={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+          <Box onClick={() => navigate(`/project/${project.id}`)} sx={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
             {/* Image */}
             <Box sx={{ overflow: 'hidden', position: 'relative' }}>
             <ImageWithFallback
@@ -264,7 +264,7 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
             <Button
               size="small"
               startIcon={<InfoOutlinedIcon sx={{ fontSize: 18 }} />}
-              onClick={() => setOpenDetail(true)}
+              onClick={() => navigate(`/project/${project.id}`)}
               sx={{ color: 'text.secondary', fontSize: '0.8rem', '&:hover': { color: project.isGoldenTicket ? goldenColor : primaryColor, bgcolor: project.isGoldenTicket ? `${goldenColor}1A` : 'action.hover' } }}
             >
               Chi tiết
@@ -311,14 +311,6 @@ export default function ProjectCard({ project, allProjects = [], categoryColors 
           )}
         </DialogContent>
       </Dialog>
-
-      <ProjectDetailModal 
-        project={project}
-        allProjects={allProjects}
-        open={openDetail}
-        onClose={() => setOpenDetail(false)}
-        onShare={handleShare}
-      />
 
       <Snackbar open={shareSuccess} autoHideDuration={3000} onClose={() => setShareSuccess(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
         <Alert onClose={() => setShareSuccess(false)} severity="success" sx={{ width: '100%' }}>
