@@ -1,0 +1,15 @@
+name = "unifolio-backend"
+main = "src/index.js"
+compatibility_date = "2023-10-16"
+
+# Cậu cần tạo KV namespace trên Cloudflare và điền ID vào đây. 
+# Chạy lệnh: npx wrangler kv:namespace create "UNIFOLIO_USERS"
+[[kv_namespaces]]
+binding = "UNIFOLIO_USERS"
+id = "a728a615f8604493a81a66df01343556"
+
+# Các biến môi trường sẽ được set qua lệnh:
+# npx wrangler secret put GITHUB_TOKEN
+# npx wrangler secret put GITHUB_OWNER
+# npx wrangler secret put GITHUB_REPO
+# npx wrangler secret put ADMIN_PASSWORD
