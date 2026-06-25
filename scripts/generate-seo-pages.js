@@ -9,6 +9,21 @@ const DIST_DIR = path.join(__dirname, '../dist');
 const DATA_DIR = path.join(__dirname, '../public/data');
 const DOMAIN = 'https://www.unifolio.io.vn';
 
+function resolveImageUrl(url) {
+  if (!url?.trim()) return url;
+  if (url.startsWith('/') && !url.startsWith('//')) return url;
+  const match = url.match(/^https:\/\/raw\.githubusercontent\.com\/[^/]+\/[^/]+\/[^/]+\/public\/(.+)$/i);
+  if (match) return `/${match[1]}`;
+  return url;
+}
+
+function toAbsoluteImageUrl(url) {
+  const resolved = resolveImageUrl(url);
+  if (!resolved) return `${DOMAIN}/placeholder-image.svg`;
+  if (resolved.startsWith('/')) return `${DOMAIN}${resolved}`;
+  return resolved;
+}
+
 function generateSeoPages() {
   try {
     const indexPath = path.join(DIST_DIR, 'index.html');
@@ -62,7 +77,7 @@ function createSeoHtml(template, type, id, title, description, imageUrl) {
   // Clean inputs
   const safeTitle = (title || 'UniFolio').replace(/"/g, '&quot;');
   const safeDesc = (description || 'Nơi tôn vinh và lan tỏa những giá trị tri thức từ các dự án xuất sắc của sinh viên.').replace(/"/g, '&quot;');
-  const safeImage = imageUrl || `${DOMAIN}/logo.svg`;
+  const safeImage = toAbsoluteImageUrl(imageUrl);
   const pageUrl = `${DOMAIN}/${type}/${id}`;
 
   let html = template;

@@ -3,8 +3,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import SendIcon from '@mui/icons-material/Send';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import StorageIcon from '@mui/icons-material/Storage';
-import FolderZipIcon from '@mui/icons-material/FolderZip';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import PersonIcon from '@mui/icons-material/Person';
@@ -12,20 +10,8 @@ import WarningIcon from '@mui/icons-material/Warning';
 import type { UnityAsset } from '../types/UnityAsset';
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-
-const AssetFallbackImage = ({ asset }: { asset: any }) => {
-  const isUnity = asset.sourceName?.toLowerCase().includes('unity');
-  const isFab = asset.sourceName?.toLowerCase().includes('fab');
-  const gradient1 = asset.sourceBg || 'hsl(220, 80%, 92%)';
-  const gradient2 = asset.sourceText || 'hsl(220, 85%, 35%)';
-  return (
-    <Box sx={{ height: '100%', width: '100%', background: `linear-gradient(135deg, ${gradient1} 0%, ${gradient2} 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#fff', position: 'relative', overflow: 'hidden' }}>
-      {isUnity ? <AutoAwesomeIcon sx={{ fontSize: 100, mb: 1, opacity: 0.9 }} /> : isFab ? <StorageIcon sx={{ fontSize: 100, mb: 1, opacity: 0.9 }} /> : <FolderZipIcon sx={{ fontSize: 100, mb: 1, opacity: 0.9 }} />}
-      <Typography variant="h5" sx={{ fontWeight: 900, letterSpacing: 2, opacity: 0.9, textTransform: 'uppercase' }}>{asset.sourceName || 'ASSET STORE'}</Typography>
-      <Box sx={{ position: 'absolute', top: '-20%', right: '-10%', width: '150%', height: '150%', background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%)', transform: 'rotate(-45deg)' }} />
-    </Box>
-  );
-};
+import { toAbsoluteImageUrl } from '../lib/imageUrl';
+import ImageWithFallback from './ImageWithFallback';
 
 interface Props {
   asset: UnityAsset | null;
@@ -183,7 +169,7 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
         <meta name="description" content={`Tài nguyên Unity: ${asset.name}. Cung cấp bởi ${asset.owner || 'UniFolio'}`} />
         <meta property="og:title" content={asset.name} />
         <meta property="og:description" content={`Tài nguyên Unity: ${asset.name}. Cung cấp bởi ${asset.owner || 'UniFolio'}`} />
-        {asset.imageUrl && <meta property="og:image" content={asset.imageUrl} />}
+        {asset.imageUrl && <meta property="og:image" content={toAbsoluteImageUrl(asset.imageUrl, window.location.origin)} />}
         <link rel="canonical" href={`${window.location.origin}/asset/${asset.id}`} />
       </Helmet>
 
@@ -208,11 +194,13 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
       >
         {/* Hero Banner Area */}
         <Box sx={{ position: 'relative', width: '100%', height: { xs: 120, md: 200 }, bgcolor: '#000' }}>
-          {asset.imageUrl ? (
-            <Box component="img" src={asset.imageUrl} alt={asset.name} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          ) : (
-            <AssetFallbackImage asset={asset} />
-          )}
+          <ImageWithFallback
+            src={asset.imageUrl}
+            alt={asset.name}
+            height="100%"
+            priority
+            sx={{ width: '100%' }}
+          />
 
           {/* Gradient Overlay for seamless transition */}
           <Box sx={{ position: 'absolute', bottom: -1, left: 0, right: 0, height: '180px', background: `linear-gradient(to top, ${muiTheme.palette.background.paper} 0%, transparent 100%)` }} />

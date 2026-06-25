@@ -5,6 +5,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import { Helmet } from 'react-helmet-async';
 import type { Article } from '../types/Article';
 import ImageWithFallback from './ImageWithFallback';
+import { toAbsoluteImageUrl } from '../lib/imageUrl';
 
 interface Props {
   article: Article;
@@ -28,7 +29,7 @@ export default function ArticleDetailModal({ article, open, onClose, onShare }: 
         <meta name="description" content={`Bài viết: ${article.title} thuộc chuyên ngành ${article.major}`} />
         <meta property="og:title" content={article.title} />
         <meta property="og:description" content={`Bài viết: ${article.title} thuộc chuyên ngành ${article.major}`} />
-        <meta property="og:image" content={article.imageUrl} />
+        <meta property="og:image" content={toAbsoluteImageUrl(article.imageUrl, window.location.origin)} />
         <link rel="canonical" href={`${window.location.origin}/article/${article.id}`} />
       </Helmet>
 
@@ -36,9 +37,8 @@ export default function ArticleDetailModal({ article, open, onClose, onShare }: 
         <ImageWithFallback
           src={article.imageUrl}
           alt={article.title}
-          fallbackText={article.type}
-          iconKeyword={article.major}
           height="100%"
+          priority
         />
         <IconButton 
           onClick={onClose}

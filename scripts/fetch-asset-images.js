@@ -207,8 +207,161 @@ function getAssetUploadFilename(asset, imageUrl, extension) {
   return `asset-${safeId}.${extension}`;
 }
 
-function getRawGithubUrl(filePath) {
-  return `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${filePath}`;
+function getPublicAssetUrl(filePath) {
+  return `/${filePath.replace(/^public\//, '')}`;
+}
+
+function resolveStoredImageUrl(imageUrl) {
+  if (!imageUrl?.trim()) return null;
+  if (imageUrl.startsWith('/') && !imageUrl.startsWith('//')) return imageUrl;
+  const match = imageUrl.match(/^https:\/\/raw\.githubusercontent\.com\/[^/]+\/[^/]+\/[^/]+\/public\/(.+)$/i);
+  if (match) return `/${match[1]}`;
+  return imageUrl;
+}
+
+async function checkLocalImageExists(relativePath) {
+  const localPath = path.join(PUBLIC_DIR, relativePath.replace(/^\//, ''));
+  try {
+    const stat = await fs.stat(localPath);
+    return stat.isFile() && stat.size > 0;
+  } catch {
+    return false;
+  }
+}
+
+async function checkRemoteImageExists(url) {
+  try {
+    const headRes = await fetch(url, {
+      method: 'HEAD',
+      headers: { 'User-Agent': userAgent },
+      redirect: 'follow',
+    });
+    if (headRes.ok) return true;
+
+    if ([403, 405].includes(headRes.status)) {
+      const getRes = await fetch(url, {
+        headers: { 'User-Agent': userAgent, Range: 'bytes=0-512' },
+        redirect: 'follow',
+      });
+      return getRes.ok || getRes.status === 206;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+async function imageExists(imageUrl, debug = false) {
+  const resolved = resolveStoredImageUrl(imageUrl);
+  if (!resolved) return false;
+
+  if (resolved.startsWith('/')) {
+    if (await checkLocalImageExists(resolved)) {
+      if (debug) console.log(`  [DEBUG] Local file exists: public${resolved}`);
+      return true;
+    }
+
+    const githubPath = `public${resolved}`;
+    const sha = await getGitHubFileSha(githubPath);
+    if (sha) {
+      if (debug) console.log(`  [DEBUG] GitHub file exists: ${githubPath}`);
+      return true;
+    }
+
+    if (debug) console.log(`  [DEBUG] Image missing: ${resolved}`);
+    return false;
+  }
+
+  const remoteExists = await checkRemoteImageExists(resolved);
+  if (debug) console.log(`  [DEBUG] Remote image ${remoteExists ? 'exists' : 'missing'}: ${resolved}`);
+  return remoteExists;
+}
+
+async function fetchImageFromSource(asset, isDebug) {
+  const isFabLink = asset.originalLink.includes('fab.com');
+  let imageUrl = null;
+
+  if (isFabLink) {
+    imageUrl = await fetchFabImageUrl(asset.originalLink, isDebug);
+    if (isDebug) console.log(`  [DEBUG] Puppeteer extracted Fab image: ${imageUrl}`);
+    return imageUrl;
+  }
+
+  const html = await fetchHtml(asset.originalLink);
+  if (isDebug) {
+    console.log(`  [DEBUG] HTML length: ${html.length} bytes`);
+    const ogMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*>/);
+    if (ogMatch) console.log(`  [DEBUG] og:image found: yes`);
+  }
+  return extractImageFromHtml(html);
+}
+
+async function downloadImageBuffer(normalizedImageUrl, isDebug) {
+  const res = await fetch(normalizedImageUrl, {
+    headers: { 'User-Agent': userAgent },
+    redirect: 'follow',
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+  const arrayBuffer = await res.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  const extensionFromUrl = extractExtensionFromUrl(normalizedImageUrl);
+  let extension = extensionFromUrl || getExtensionFromContentType(res.headers.get('content-type')) || 'jpg';
+
+  if (isDebug) console.log(`  [DEBUG] Downloaded image: ${buffer.length} bytes, ext: ${extension}`);
+  return { buffer, extension };
+}
+
+async function processAssetImage(asset, isDebug) {
+  const isFabLink = asset.originalLink.includes('fab.com');
+  let imageUrl = null;
+
+  try {
+    imageUrl = await fetchImageFromSource(asset, isDebug);
+  } catch (fabError) {
+    if (isFabLink) {
+      if (isDebug) console.log(`  [DEBUG] Puppeteer error: ${fabError.message}`);
+      console.warn(`  ✗ Fab error: ${fabError.message}`);
+      console.warn(`  💡 Tip: Check if the Fab link is still active. Some listings may have been removed.`);
+    }
+    throw fabError;
+  }
+
+  if (!imageUrl) {
+    throw new Error('No image meta found');
+  }
+
+  const normalizedImageUrl = normalizeUrl(imageUrl);
+  const { buffer, extension } = await downloadImageBuffer(normalizedImageUrl, isDebug);
+
+  const uploadFilename = getAssetUploadFilename(asset, normalizedImageUrl, extension);
+  const uploadPath = `${ASSET_UPLOAD_FOLDER}/${uploadFilename}`;
+  const publicAssetUrl = getPublicAssetUrl(uploadPath);
+  const localAssetPath = path.join(PUBLIC_DIR, 'assets', uploadFilename);
+
+  const tempFilePath = path.join(TEMP_IMAGE_DIR, uploadFilename);
+  await fs.writeFile(tempFilePath, buffer);
+  await fs.mkdir(path.dirname(localAssetPath), { recursive: true });
+  await fs.writeFile(localAssetPath, buffer);
+  if (isDebug) console.log(`  [DEBUG] Saved temp + local file: ${localAssetPath}`);
+
+  try {
+    const sha = await getGitHubFileSha(uploadPath);
+    await uploadFileToGitHub(
+      uploadPath,
+      buffer,
+      `Upload asset preview image ${uploadFilename} [skip ci]`,
+      sha || undefined
+    );
+    console.log(`  ✓ Uploaded: ${uploadPath}`);
+    await deleteTempFile(tempFilePath);
+    if (isDebug) console.log(`  [DEBUG] Deleted temp file: ${tempFilePath}`);
+  } catch (uploadError) {
+    await deleteTempFile(tempFilePath);
+    throw uploadError;
+  }
+
+  return publicAssetUrl;
 }
 
 function delay(ms) {
@@ -270,117 +423,43 @@ async function main() {
   let updatedCount = 0;
   let uploadCount = 0;
   let skippedCount = 0;
+  let refetchedCount = 0;
 
   for (const asset of assets) {
     if (enabledAssetIds.size && !enabledAssetIds.has(asset.id)) continue;
     if (!asset.originalLink) {
       console.warn(`Skip ${asset.id}: no originalLink`);
+      skippedCount += 1;
       continue;
     }
 
     const hasImage = typeof asset.imageUrl === 'string' && asset.imageUrl.trim().length > 0;
     if (hasImage && !forceUpdate) {
-      console.log(`Skip ${asset.id}: already has imageUrl`);
-      continue;
+      const exists = await imageExists(asset.imageUrl, isDebug);
+      if (exists) {
+        console.log(`Skip ${asset.id}: image exists (${asset.imageUrl})`);
+        skippedCount += 1;
+        continue;
+      }
+      console.log(`Re-fetch ${asset.id}: image missing (${asset.imageUrl})`);
+      refetchedCount += 1;
     }
 
     processedCount += 1;
     console.log(`Processing ${asset.id} (${asset.originalLink.substring(0, 50)}...)`);
 
-    const isFabLink = asset.originalLink.includes('fab.com');
-    let imageUrl = null;
-
     try {
-      // Try to fetch image URL from meta tags
-      if (isFabLink) {
-        // Use Puppeteer for Fab.com (requires JavaScript rendering)
-        try {
-          imageUrl = await fetchFabImageUrl(asset.originalLink, isDebug);
-          if (isDebug) console.log(`  [DEBUG] Puppeteer extracted Fab image: ${imageUrl}`);
-        } catch (fabError) {
-          if (isDebug) console.log(`  [DEBUG] Puppeteer error: ${fabError.message}`);
-          console.warn(`  ✗ Fab error: ${fabError.message}`);
-          console.warn(`  💡 Tip: Check if the Fab link is still active. Some listings may have been removed.`);
-          skippedCount += 1;
-          continue;
-        }
-      } else {
-        // Use regular fetch for Unity (static HTML)
-        const html = await fetchHtml(asset.originalLink);
-        if (isDebug) {
-          console.log(`  [DEBUG] HTML length: ${html.length} bytes`);
-          const ogMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*>/);
-          if (ogMatch) console.log(`  [DEBUG] og:image found: yes`);
-        }
-        imageUrl = extractImageFromHtml(html);
-      }
-
-      if (!imageUrl) {
-        console.warn(`  ✗ No image meta found`);
-        skippedCount += 1;
-        continue;
-      }
-
-      const normalizedImageUrl = normalizeUrl(imageUrl);
-      const extensionFromUrl = extractExtensionFromUrl(normalizedImageUrl);
-      let extension = extensionFromUrl;
-      let buffer = null;
-
-      try {
-        const res = await fetch(normalizedImageUrl, {
-          headers: { 'User-Agent': userAgent },
-          redirect: 'follow',
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const arrayBuffer = await res.arrayBuffer();
-        buffer = Buffer.from(arrayBuffer);
-        if (!extension) {
-          extension = getExtensionFromContentType(res.headers.get('content-type')) || 'jpg';
-        }
-        if (isDebug) console.log(`  [DEBUG] Downloaded image: ${buffer.length} bytes, ext: ${extension}`);
-      } catch (error) {
-        console.warn(`  ✗ Failed to download image: ${error.message}`);
-        skippedCount += 1;
-        continue;
-      }
-
-      extension = extension || 'jpg';
-      const uploadFilename = getAssetUploadFilename(asset, normalizedImageUrl, extension);
-      const uploadPath = `${ASSET_UPLOAD_FOLDER}/${uploadFilename}`;
-      const rawGithubUrl = getRawGithubUrl(uploadPath);
-
-      // Save temp file locally
-      const tempFilePath = path.join(TEMP_IMAGE_DIR, uploadFilename);
-      await fs.writeFile(tempFilePath, buffer);
-      if (isDebug) console.log(`  [DEBUG] Saved temp file: ${tempFilePath}`);
-
-      try {
-        const sha = await getGitHubFileSha(uploadPath);
-        await uploadFileToGitHub(
-          uploadPath,
-          buffer,
-          `Upload asset preview image ${uploadFilename} [skip ci]`,
-          sha || undefined
-        );
-        console.log(`  ✓ Uploaded: ${uploadPath}`);
-        uploadCount += 1;
-
-        // Delete temp file after successful upload
-        await deleteTempFile(tempFilePath);
-        if (isDebug) console.log(`  [DEBUG] Deleted temp file: ${tempFilePath}`);
-      } catch (uploadError) {
-        // Clean up temp file even if upload fails
-        await deleteTempFile(tempFilePath);
-        throw uploadError;
-      }
-
-      asset.imageUrl = rawGithubUrl;
+      const publicAssetUrl = await processAssetImage(asset, isDebug);
+      uploadCount += 1;
+      asset.imageUrl = publicAssetUrl;
       updated = true;
       updatedCount += 1;
     } catch (error) {
-      console.error(`  ✗ Error: ${error.message}`);
+      console.warn(`  ✗ ${error.message}`);
       skippedCount += 1;
     }
+
+    await delay(500);
   }
 
   if (updated) {
@@ -397,7 +476,7 @@ async function main() {
   }
 
   console.log(
-    `\n📊 Summary: processed=${processedCount}, updated=${updatedCount}, uploaded=${uploadCount}, skipped=${skippedCount}`
+    `\n📊 Summary: processed=${processedCount}, updated=${updatedCount}, refetched=${refetchedCount}, uploaded=${uploadCount}, skipped=${skippedCount}`
   );
 
   // Cleanup temp directory

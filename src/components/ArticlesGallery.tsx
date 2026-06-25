@@ -413,8 +413,6 @@ export default function ArticlesGallery() {
                             className="card-image"
                             src={article.imageUrl}
                             alt={article.title}
-                            fallbackText={article.type}
-                            iconKeyword={article.major}
                             height="auto"
                             sx={{ aspectRatio: '16/9', transition: 'transform 0.5s ease' }}
                           />

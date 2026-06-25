@@ -11,6 +11,7 @@ import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { useNavigate, useParams } from 'react-router-dom';
 import ProjectDetailModal from './ProjectDetailModal';
 import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
+import ImageWithFallback from './ImageWithFallback';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import ViewStreamIcon from '@mui/icons-material/ViewStream';
 import { IconButton } from '@mui/material';
@@ -67,7 +68,7 @@ const MiniGoldenCard = ({ project, allProjects, majorColor }: { project: Project
         '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 8px 24px rgba(0,0,0,0.08)', borderColor: '#F59E0B' }
       }}>
         <Box sx={{ width: 90, height: 64, borderRadius: 2, overflow: 'hidden', flexShrink: 0, border: '1px solid', borderColor: 'divider' }}>
-          <img src={project.thumbnail} alt={project.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <ImageWithFallback src={project.thumbnail} alt={project.name} height="100%" sx={{ width: '100%', height: '100%' }} />
         </Box>
         <Box sx={{ flexGrow: 1, minWidth: 0, textAlign: 'left' }}>
           <Typography variant="subtitle2" sx={{

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/generate-sitemap.js && tsc -b && vite build && cp dist/index.html dist/404.html && node scripts/generate-seo-pages.js",
+    "predev": "node scripts/generate-sw.js",
+    "build": "node scripts/generate-sitemap.js && node scripts/generate-sw.js && tsc -b && vite build && cp dist/index.html dist/404.html && node scripts/generate-seo-pages.js && node scripts/generate-sw.js",
     "fetch-asset-images": "node scripts/fetch-asset-images.js",
     "lint": "eslint .",
     "preview": "vite preview"

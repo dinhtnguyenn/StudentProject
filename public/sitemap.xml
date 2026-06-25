@@ -1037,11 +1037,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.unifolio.io.vn/asset/asset-1782294726991-jlaqyey7i</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://www.unifolio.io.vn/asset/asset-1782294726991-duyz845zb</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -1062,6 +1057,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.unifolio.io.vn/asset/asset-1782294726991-jlaqyey7i</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.unifolio.io.vn/asset/asset-1782294726991-utyl0di8o</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -1078,11 +1078,6 @@
   </url>
   <url>
     <loc>https://www.unifolio.io.vn/asset/asset-1782294726991-a7kp98r56</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.unifolio.io.vn/asset/asset-1782294726991-k9liqypwu</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -1118,6 +1113,11 @@
   </url>
   <url>
     <loc>https://www.unifolio.io.vn/asset/asset-1782294726991-5snuf7o3x</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.unifolio.io.vn/asset/asset-1782294726991-k9liqypwu</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>

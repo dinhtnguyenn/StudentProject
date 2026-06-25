@@ -6,6 +6,12 @@ import { ThemeContextProvider } from './ThemeContext.tsx'
 import { HelmetProvider } from 'react-helmet-async'
 import './index.css'
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register(`/sw.js?v=${__SW_VERSION__}`).catch(() => {});
+  });
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <HelmetProvider>

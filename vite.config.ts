@@ -1,10 +1,22 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import obfuscatorPlugin from 'vite-plugin-javascript-obfuscator'
+import fs from 'fs'
+
+function getSwVersion() {
+  try {
+    return fs.readFileSync('.sw-version', 'utf8').trim()
+  } catch {
+    return 'dev'
+  }
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => ({
   base: '/',
+  define: {
+    __SW_VERSION__: JSON.stringify(getSwVersion()),
+  },
   plugins: [
     react(),
     command === 'build' ? obfuscatorPlugin({

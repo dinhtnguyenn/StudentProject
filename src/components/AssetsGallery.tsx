@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  Box, Typography, Grid, Card, CardContent, CardMedia, Chip, IconButton,
+  Box, Typography, Grid, Card, CardContent, Chip, IconButton,
   Skeleton, TextField, InputAdornment, Tooltip, Avatar, Button, Select,
   MenuItem, FormControl, InputLabel, useTheme, Snackbar, Alert,
   Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress
@@ -9,16 +9,15 @@ import SearchIcon from '@mui/icons-material/Search';
 import ShareIcon from '@mui/icons-material/Share';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import CloseIcon from '@mui/icons-material/Close';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import GavelIcon from '@mui/icons-material/Gavel';
 import StorageIcon from '@mui/icons-material/Storage';
-import FolderZipIcon from '@mui/icons-material/FolderZip';
 import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
 import { motion, useInView } from 'framer-motion';
 import type { UnityAsset } from '../types/UnityAsset';
 import AssetDetailModal from './AssetDetailModal';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import ImageWithFallback from './ImageWithFallback';
 
 // ─── Animated Counter (same style as ProjectGallery / ArticlesGallery) ────────
 const AnimatedCounter = ({ value, label }: { value: number; label: string }) => {
@@ -51,21 +50,6 @@ const AnimatedCounter = ({ value, label }: { value: number; label: string }) => 
       <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: { xs: 0, sm: 1 }, fontSize: { xs: '0.65rem', sm: '0.875rem' } }}>
         {label}
       </Typography>
-    </Box>
-  );
-};
-
-// ─── Fallback image for assets without thumbnail ───────────────────────────────
-const AssetFallbackImage = ({ asset }: { asset: any }) => {
-  const isUnity = asset.sourceName?.toLowerCase().includes('unity');
-  const isFab = asset.sourceName?.toLowerCase().includes('fab');
-  const gradient1 = asset.sourceBg || 'hsl(220, 80%, 92%)';
-  const gradient2 = asset.sourceText || 'hsl(220, 85%, 35%)';
-  return (
-    <Box sx={{ height: '100%', width: '100%', background: `linear-gradient(135deg, ${gradient1} 0%, ${gradient2} 100%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: '#fff', position: 'relative', overflow: 'hidden' }}>
-      {isUnity ? <AutoAwesomeIcon sx={{ fontSize: 80, mb: 1, opacity: 0.9 }} /> : isFab ? <StorageIcon sx={{ fontSize: 80, mb: 1, opacity: 0.9 }} /> : <FolderZipIcon sx={{ fontSize: 80, mb: 1, opacity: 0.9 }} />}
-      <Typography variant="h6" sx={{ fontWeight: 900, letterSpacing: 2, opacity: 0.9, textTransform: 'uppercase' }}>{asset.sourceName || 'ASSET STORE'}</Typography>
-      <Box sx={{ position: 'absolute', top: '-20%', right: '-10%', width: '150%', height: '150%', background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%)', transform: 'rotate(-45deg)' }} />
     </Box>
   );
 };
@@ -514,11 +498,13 @@ export default function AssetsGallery() {
                       }}
                     >
                       <Box sx={{ position: 'relative', height: 200, overflow: 'hidden' }}>
-                        {asset.imageUrl ? (
-                          <CardMedia className="asset-img" component="img" image={asset.imageUrl} alt={asset.name} sx={{ height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }} />
-                        ) : (
-                          <Box className="asset-img" sx={{ height: '100%', transition: 'transform 0.5s ease' }}><AssetFallbackImage asset={asset} /></Box>
-                        )}
+                        <ImageWithFallback
+                          className="asset-img"
+                          src={asset.imageUrl}
+                          alt={asset.name}
+                          height="100%"
+                          sx={{ transition: 'transform 0.5s ease' }}
+                        />
                         <Box sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, transparent 50%, rgba(0,0,0,0.9) 100%)', pointerEvents: 'none' }} />
                         <Box sx={{ position: 'absolute', bottom: 12, left: 16, right: 16 }}>
                           <Typography variant="h6" sx={{ color: '#fff', fontWeight: 800, fontSize: '1.1rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', textShadow: '0 2px 10px rgba(0,0,0,0.8)', lineHeight: 1.3 }}>

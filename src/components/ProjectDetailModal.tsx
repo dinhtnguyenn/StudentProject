@@ -68,8 +68,8 @@ export default function ProjectDetailModal({ project, allProjects = [], open, on
         <ImageWithFallback
           src={activeProject.thumbnail}
           alt={activeProject.name}
-          fallbackText={activeProject.major}
           height="100%"
+          priority
           sx={{
             position: 'absolute',
             top: 0, left: 0, right: 0, bottom: 0,

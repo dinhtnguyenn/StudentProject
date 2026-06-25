@@ -50,6 +50,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSo
 import { CSS } from '@dnd-kit/utilities';
 
 import type { Category } from '../types/Category';
+import { getAssetImagePath, getUploadedImagePath } from '../lib/imageUrl';
 
 // --- Types & Helpers ---
 const extractYoutubeId = (url: string): string | null => {
@@ -996,19 +997,19 @@ export default function AdminForm() {
 
       if (!uploadRes.ok) throw new Error('Không thể upload ảnh lên Github');
       
-      const rawUrl = `https://raw.githubusercontent.com/${githubOwner}/${githubRepo}/main/${filePath}`;
+      const publicUrl = getUploadedImagePath(folder, filename);
       
       if (targetId) {
         if (isArticle) {
-          setArticlesList(prev => prev.map(a => a.id === targetId ? { ...a, imageUrl: rawUrl } : a));
+          setArticlesList(prev => prev.map(a => a.id === targetId ? { ...a, imageUrl: publicUrl } : a));
         } else {
-          setProjectsList(prev => prev.map(p => p.id === targetId ? { ...p, thumbnail: rawUrl } : p));
+          setProjectsList(prev => prev.map(p => p.id === targetId ? { ...p, thumbnail: publicUrl } : p));
         }
       } else {
         if (isArticle) {
-          setArticleFormData(prev => ({ ...prev, imageUrl: rawUrl }));
+          setArticleFormData(prev => ({ ...prev, imageUrl: publicUrl }));
         } else {
-          setFormData(prev => ({ ...prev, thumbnail: rawUrl }));
+          setFormData(prev => ({ ...prev, thumbnail: publicUrl }));
         }
       }
       
@@ -1258,7 +1259,7 @@ export default function AdminForm() {
           body: JSON.stringify({ message: `Upload image for asset ${fileName} [skip ci]`, content: base64Content, branch: 'main' })
         });
         if (!res.ok) throw new Error('Không thể upload ảnh');
-        setUnityAssetsList(prev => prev.map(a => a.id === assetId ? { ...a, imageUrl: `https://raw.githubusercontent.com/${githubOwner}/${githubRepo}/main/public/assets/${fileName}` } : a));
+        setUnityAssetsList(prev => prev.map(a => a.id === assetId ? { ...a, imageUrl: getAssetImagePath(fileName) } : a));
         setStatus({ type: 'success', message: 'Upload ảnh thành công!' });
       };
       reader.readAsDataURL(file);
@@ -2493,7 +2494,7 @@ export default function AdminForm() {
                                   });
                                   if (!res.ok) throw new Error('Upload ảnh thất bại');
                                   
-                                  setUnityAssetFormData({ ...unityAssetFormData, imageUrl: `https://raw.githubusercontent.com/${githubOwner}/${githubRepo}/main/public/assets/${fileName}` });
+                                  setUnityAssetFormData({ ...unityAssetFormData, imageUrl: getAssetImagePath(fileName) });
                                   setStatus({ type: 'success', message: 'Tải ảnh thành công' });
                                 };
                                 reader.readAsDataURL(file);
