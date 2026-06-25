@@ -3,24 +3,28 @@
     "id": "1781836769312",
     "name": "Game",
     "bg": "hsl(93, 80%, 92%)",
-    "text": "hsl(93, 85%, 35%)"
+    "text": "hsl(93, 85%, 35%)",
+    "userCreate": "admin"
   },
   {
     "id": "1781836774661",
     "name": "Mobile",
     "bg": "hsl(321, 80%, 92%)",
-    "text": "hsl(321, 85%, 35%)"
+    "text": "hsl(321, 85%, 35%)",
+    "userCreate": "admin"
   },
   {
     "id": "1781836779798",
     "name": "AI",
     "bg": "hsl(301, 80%, 92%)",
-    "text": "hsl(301, 85%, 35%)"
+    "text": "hsl(301, 85%, 35%)",
+    "userCreate": "admin"
   },
   {
     "id": "1781836786123",
     "name": "Web",
     "bg": "hsl(354, 80%, 92%)",
-    "text": "hsl(354, 85%, 35%)"
+    "text": "hsl(354, 85%, 35%)",
+    "userCreate": "admin"
   }
 ]
