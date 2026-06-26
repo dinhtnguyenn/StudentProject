@@ -2428,8 +2428,8 @@ export default function AdminForm() {
                     <Grid container spacing={3}>
                       <Grid size={{ xs: 12, md: 6 }}>
                         <Autocomplete
-                          options={[...projectsList, ...unityAssetsList]}
-                          getOptionLabel={(option) => `[${option.isGoldenTicket !== undefined ? 'Dự án' : 'Tài nguyên'}] ${option.name}`}
+                          options={unityAssetsList.filter(a => a.driveLink)}
+                          getOptionLabel={(option) => option.name}
                           onChange={(_, val) => setCodeFormData({...codeFormData, resourceId: val ? val.id : ''})}
                           renderInput={(params) => <TextField {...params} label="Chọn tài nguyên" required />}
                         />
