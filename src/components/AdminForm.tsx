@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import * as XLSX from 'xlsx';
 import {
-  Box, Typography, TextField, Button, Paper, Snackbar, Alert, Grid,
+  Box,
+  Pagination, Typography, TextField, Button, Paper, Snackbar, Alert, Grid,
   CircularProgress, Divider, Collapse, IconButton, InputAdornment,
   List, ListItem, ListItemText, Avatar, ListSubheader, ListItemButton,
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
@@ -51,6 +52,7 @@ import { CSS } from '@dnd-kit/utilities';
 
 import type { Category } from '../types/Category';
 import { getAssetImagePath, getUploadedImagePath } from '../lib/imageUrl';
+import UserManagement from './UserManagement';
 
 // --- Types & Helpers ---
 const extractYoutubeId = (url: string): string | null => {
@@ -140,7 +142,7 @@ function generateCategoryColors() {
 }
 
 // --- Sortable Item Component ---
-function SortableProjectItem({ project, onDelete, onToggle, isSelected, categoriesList, majorsList, allTags, onUpdateTechTags, onInlineEdit, onImageUpload, isUploadingImage }: any) {
+function SortableProjectItem({ project, canEdit, canDelete, onDelete, onToggle, isSelected, categoriesList, majorsList, allTags, onUpdateTechTags, onInlineEdit, onImageUpload, isUploadingImage }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: project.id });
   const theme = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -170,22 +172,23 @@ function SortableProjectItem({ project, onDelete, onToggle, isSelected, categori
       >
         {/* Header Row */}
         <Box sx={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
-          <Box {...attributes} {...listeners} sx={{ cursor: 'grab', mr: 1, mt: 1, display: 'flex', alignItems: 'center', color: 'text.disabled' }}>
+          <Box {...(canEdit ? attributes : {})} {...(canEdit ? listeners : {})} sx={{ cursor: canEdit ? 'grab' : 'not-allowed', mr: 1, mt: 1, display: 'flex', alignItems: 'center', color: 'text.disabled' }}>
             <DragIndicatorIcon fontSize="small" />
           </Box>
-          <Checkbox size="small" checked={isSelected} onChange={() => onToggle(project.id)} sx={{ mr: 1, mt: 0.5 }} />
+          {canDelete && <Checkbox size="small" checked={isSelected} onChange={() => onToggle(project.id)} sx={{ mr: 1, mt: 0.5 }} />}
+          {!canDelete && <Box sx={{ width: 42 }} />}
 
           <Avatar src={project.thumbnail} variant="rounded" sx={{ width: 44, height: 44, mr: 2, mt: 0.5, border: '1px solid', borderColor: 'divider', borderRadius: 2 }} />
 
           <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <InputBase
+              <InputBase disabled={!canEdit} 
                 value={project.name}
                 placeholder="Tên dự án..."
                 onChange={(e) => onInlineEdit(project.id, 'name', e.target.value)}
                 sx={{ flexGrow: 1, fontWeight: 700, color: 'text.primary', fontSize: '1.05rem', '& input': { p: 0 } }}
               />
-              <IconButton
+              <IconButton disabled={!canEdit}
                 size="small"
                 onClick={() => onInlineEdit(project.id, 'isGoldenTicket', !project.isGoldenTicket)}
                 sx={{ p: 0.5 }}
@@ -197,7 +200,7 @@ function SortableProjectItem({ project, onDelete, onToggle, isSelected, categori
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
               {/* Semester */}
-              <InputBase
+              <InputBase disabled={!canEdit} 
                 value={project.semester}
                 placeholder="Kỳ (VD: FA24)"
                 onChange={(e) => onInlineEdit(project.id, 'semester', e.target.value)}
@@ -205,7 +208,7 @@ function SortableProjectItem({ project, onDelete, onToggle, isSelected, categori
               />
 
               {/* Major */}
-              <Select
+              <Select disabled={!canEdit} 
                 variant="standard"
                 disableUnderline
                 displayEmpty
@@ -218,7 +221,7 @@ function SortableProjectItem({ project, onDelete, onToggle, isSelected, categori
               </Select>
 
               {/* Category */}
-              <Select
+              <Select disabled={!canEdit} 
                 variant="standard"
                 disableUnderline
                 displayEmpty
@@ -240,9 +243,11 @@ function SortableProjectItem({ project, onDelete, onToggle, isSelected, categori
             >
               {isExpanded ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />}
             </IconButton>
+            {canDelete && (
             <IconButton size="small" onClick={() => onDelete(project.id)} sx={{ color: 'text.disabled', transition: 'all 0.2s', '&:hover': { color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)' } }}>
               <DeleteIcon fontSize="small" />
             </IconButton>
+            )}
           </Box>
         </Box>
 
@@ -254,18 +259,18 @@ function SortableProjectItem({ project, onDelete, onToggle, isSelected, categori
             <Grid size={{ xs: 12, md: 6 }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <TextField
+                  <TextField disabled={!canEdit} 
                     fullWidth size="small" label="Link Thumbnail (Ảnh)"
                     value={project.thumbnail}
                     onChange={(e) => onInlineEdit(project.id, 'thumbnail', e.target.value)}
                   />
-                  <IconButton component="label" disabled={isUploadingImage} sx={{ bgcolor: 'action.hover' }} title="Tải ảnh từ máy">
+                  <IconButton disabled={!canEdit || isUploadingImage} component="label" sx={{ bgcolor: 'action.hover' }} title="Tải ảnh từ máy">
                     {isUploadingImage ? <CircularProgress size={20} /> : <CloudUploadIcon fontSize="small" />}
                     <input type="file" hidden accept="image/*" onChange={(e) => onImageUpload(e, false, project.id)} />
                   </IconButton>
                 </Box>
                 <Box sx={{ display: 'flex', gap: 1 }}>
-                  <TextField
+                  <TextField disabled={!canEdit} 
                     fullWidth size="small" label="Link YouTube"
                     value={project.youtubeUrl || ''}
                     onChange={(e) => onInlineEdit(project.id, 'youtubeUrl', e.target.value)}
@@ -276,7 +281,7 @@ function SortableProjectItem({ project, onDelete, onToggle, isSelected, categori
                     </IconButton>
                   )}
                 </Box>
-                <Autocomplete
+                <Autocomplete disabled={!canEdit} 
                   multiple freeSolo size="small"
                   options={allTags}
                   value={Array.isArray(project.techTags) ? project.techTags : (typeof project.techTags === 'string' && project.techTags ? (project.techTags as string).split(',').map(t => t.trim()) : [])}
@@ -288,7 +293,7 @@ function SortableProjectItem({ project, onDelete, onToggle, isSelected, categori
 
             {/* Right Column */}
             <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
+              <TextField disabled={!canEdit} 
                 fullWidth size="small" multiline rows={6}
                 label="Thành viên nhóm (Mỗi người 1 dòng)"
                 value={Array.isArray(project.teamMembers) ? project.teamMembers.join('\n') : project.teamMembers}
@@ -320,8 +325,9 @@ function SortableProjectItem({ project, onDelete, onToggle, isSelected, categori
   );
 }
 
+// --- Sortable Article Item
 // --- Sortable Article Item Component ---
-function SortableArticleItem({ article, onDelete, onInlineEdit, articleTypesList, majorsList, onImageUpload, isUploadingImage }: any) {
+function SortableArticleItem({ article, canEdit, canDelete, onDelete, onInlineEdit, articleTypesList, majorsList, onImageUpload, isUploadingImage }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: article.id });
   const theme = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -350,7 +356,7 @@ function SortableArticleItem({ article, onDelete, onInlineEdit, articleTypesList
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
-          <Box {...attributes} {...listeners} sx={{ cursor: 'grab', mr: 1, mt: 1, display: 'flex', alignItems: 'center', color: 'text.disabled' }}>
+          <Box {...(canEdit ? attributes : {})} {...(canEdit ? listeners : {})} sx={{ cursor: canEdit ? 'grab' : 'not-allowed', mr: 1, mt: 1, display: 'flex', alignItems: 'center', color: 'text.disabled' }}>
             <DragIndicatorIcon fontSize="small" />
           </Box>
 
@@ -358,7 +364,7 @@ function SortableArticleItem({ article, onDelete, onInlineEdit, articleTypesList
 
           <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <InputBase
+              <InputBase disabled={!canEdit} 
                 value={article.title}
                 placeholder="Tên bài viết..."
                 onChange={(e) => onInlineEdit(article.id, 'title', e.target.value)}
@@ -367,13 +373,13 @@ function SortableArticleItem({ article, onDelete, onInlineEdit, articleTypesList
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
-              <InputBase
+              <InputBase disabled={!canEdit} 
                 placeholder="Năm..."
                 value={article.year || ''}
                 onChange={(e) => onInlineEdit(article.id, 'year', e.target.value)}
                 sx={{ width: 60, fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& input': { p: 0, textAlign: 'center' } }}
               />
-              <Select
+              <Select disabled={!canEdit} 
                 variant="standard"
                 disableUnderline
                 displayEmpty
@@ -384,7 +390,7 @@ function SortableArticleItem({ article, onDelete, onInlineEdit, articleTypesList
                 <MenuItem value="" disabled>Chọn ngành</MenuItem>
                 {majorsList?.map((m: any) => <MenuItem key={m.id} value={m.id}>{m.name}</MenuItem>)}
               </Select>
-              <Select
+              <Select disabled={!canEdit} 
                 variant="standard"
                 disableUnderline
                 displayEmpty
@@ -406,9 +412,11 @@ function SortableArticleItem({ article, onDelete, onInlineEdit, articleTypesList
             >
               {isExpanded ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />}
             </IconButton>
+            {canDelete && (
             <IconButton size="small" onClick={() => onDelete(article.id)} sx={{ color: 'text.disabled', transition: 'all 0.2s', '&:hover': { color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)' } }}>
               <DeleteIcon fontSize="small" />
             </IconButton>
+            )}
           </Box>
         </Box>
         <Collapse in={isExpanded} timeout="auto" unmountOnExit>
@@ -416,8 +424,8 @@ function SortableArticleItem({ article, onDelete, onInlineEdit, articleTypesList
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, md: 6 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <TextField fullWidth size="small" label="Link Ảnh" value={article.imageUrl || ''} onChange={(e) => onInlineEdit(article.id, 'imageUrl', e.target.value)} />
-                <IconButton component="label" disabled={isUploadingImage} sx={{ bgcolor: 'action.hover' }} title="Tải ảnh từ máy">
+                <TextField disabled={!canEdit}  fullWidth size="small" label="Link Ảnh" value={article.imageUrl || ''} onChange={(e) => onInlineEdit(article.id, 'imageUrl', e.target.value)} />
+                <IconButton disabled={!canEdit || isUploadingImage} component="label" sx={{ bgcolor: 'action.hover' }} title="Tải ảnh từ máy">
                   {isUploadingImage ? <CircularProgress size={20} /> : <CloudUploadIcon fontSize="small" />}
                   <input type="file" hidden accept="image/*" onChange={(e) => onImageUpload(e, true, article.id)} />
                 </IconButton>
@@ -425,7 +433,7 @@ function SortableArticleItem({ article, onDelete, onInlineEdit, articleTypesList
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
               <Box sx={{ display: 'flex', gap: 1 }}>
-                <TextField fullWidth size="small" label="Link Bài Viết" value={article.link || ''} onChange={(e) => onInlineEdit(article.id, 'link', e.target.value)} />
+                <TextField disabled={!canEdit}  fullWidth size="small" label="Link Bài Viết" value={article.link || ''} onChange={(e) => onInlineEdit(article.id, 'link', e.target.value)} />
                 {article.link && (
                   <IconButton size="small" onClick={() => window.open(article.link, '_blank')} sx={{ color: 'info.main', bgcolor: 'rgba(59, 130, 246, 0.1)' }}>
                     <OpenInNewIcon />
@@ -440,8 +448,9 @@ function SortableArticleItem({ article, onDelete, onInlineEdit, articleTypesList
   );
 }
 
+// --- Sortable Unity Asset Item
 // --- Sortable Unity Asset Item Component ---
-function SortableUnityAssetItem({ asset, onDelete, onInlineEdit, assetTypesList, assetSourcesList, onImageUpload, isUploadingImage, isSelected, onToggle }: any) {
+function SortableUnityAssetItem({ asset, canEdit, canDelete, onDelete, onInlineEdit, assetTypesList, assetSourcesList, onImageUpload, isUploadingImage, isSelected, onToggle }: any) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: asset.id });
   const theme = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -452,20 +461,21 @@ function SortableUnityAssetItem({ asset, onDelete, onInlineEdit, assetTypesList,
     <Box ref={setNodeRef} style={style} sx={{ mb: 1.5 }}>
       <Paper elevation={0} sx={{ p: 1.5, borderRadius: 3, border: '1px solid', borderColor: isSelected ? 'primary.main' : 'divider', bgcolor: isDragging ? 'action.hover' : 'background.paper', transition: 'all 0.2s', '&:hover': { borderColor: 'primary.light' } }}>
         <Box sx={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
-          <Box {...attributes} {...listeners} sx={{ cursor: 'grab', mr: 1, mt: 1, display: 'flex', alignItems: 'center', color: 'text.disabled' }}><DragIndicatorIcon fontSize="small" /></Box>
-          <Checkbox size="small" checked={isSelected} onChange={() => onToggle(asset.id)} sx={{ mr: 1, mt: 0.5 }} />
+          <Box {...(canEdit ? attributes : {})} {...(canEdit ? listeners : {})} sx={{ cursor: canEdit ? 'grab' : 'not-allowed', mr: 1, mt: 1, display: 'flex', alignItems: 'center', color: canEdit ? 'text.disabled' : 'text.disabled', opacity: canEdit ? 1 : 0.3 }}><DragIndicatorIcon fontSize="small" /></Box>
+          {canDelete && <Checkbox size="small" checked={isSelected} onChange={() => onToggle(asset.id)} sx={{ mr: 1, mt: 0.5 }} />}
+          {!canDelete && <Box sx={{ width: 42 }} />}
           <Avatar src={asset.imageUrl} variant="rounded" sx={{ width: 64, height: 44, mr: 2, mt: 0.5, border: '1px solid', borderColor: 'divider', borderRadius: 2 }} />
           <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <InputBase value={asset.name} placeholder="Tên tài nguyên..." onChange={(e) => onInlineEdit(asset.id, 'name', e.target.value)} sx={{ flexGrow: 1, fontWeight: 700, color: 'text.primary', fontSize: '1.05rem', '& input': { p: 0 } }} />
+              <InputBase disabled={!canEdit} value={asset.name} placeholder="Tên tài nguyên..." onChange={(e) => onInlineEdit(asset.id, 'name', e.target.value)} sx={{ flexGrow: 1, fontWeight: 700, color: 'text.primary', fontSize: '1.05rem', '& input': { p: 0 }, WebkitTextFillColor: canEdit ? 'inherit' : 'text.primary' }} />
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5, flexWrap: 'wrap', width: '100%' }}>
-              <InputBase placeholder="Tác giả..." value={asset.owner || ''} onChange={(e) => onInlineEdit(asset.id, 'owner', e.target.value)} sx={{ width: 100, fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& input': { p: 0, textAlign: 'center' } }} />
-              <Select variant="standard" disableUnderline displayEmpty value={asset.assetType || ''} onChange={(e) => onInlineEdit(asset.id, 'assetType', e.target.value as string)} sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& .MuiSelect-select': { p: 0, pb: 0, minHeight: 'auto' } }}>
+              <InputBase disabled={!canEdit} placeholder="Tác giả..." value={asset.owner || ''} onChange={(e) => onInlineEdit(asset.id, 'owner', e.target.value)} sx={{ width: 100, fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& input': { p: 0, textAlign: 'center' }, WebkitTextFillColor: canEdit ? 'inherit' : 'text.secondary' }} />
+              <Select disabled={!canEdit} variant="standard" disableUnderline displayEmpty value={asset.assetType || ''} onChange={(e) => onInlineEdit(asset.id, 'assetType', e.target.value as string)} sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& .MuiSelect-select': { p: 0, pb: 0, minHeight: 'auto' }, WebkitTextFillColor: canEdit ? 'inherit' : 'text.secondary' }}>
                 <MenuItem value="" disabled>Chọn loại</MenuItem>
                 {assetTypesList?.map((t: any) => <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>)}
               </Select>
-              <Select variant="standard" disableUnderline displayEmpty value={asset.sourceId || ''} onChange={(e) => onInlineEdit(asset.id, 'sourceId', e.target.value as string)} sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& .MuiSelect-select': { p: 0, pb: 0, minHeight: 'auto' } }}>
+              <Select disabled={!canEdit} variant="standard" disableUnderline displayEmpty value={asset.sourceId || ''} onChange={(e) => onInlineEdit(asset.id, 'sourceId', e.target.value as string)} sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)', px: 1.5, py: 0.3, borderRadius: 5, '& .MuiSelect-select': { p: 0, pb: 0, minHeight: 'auto' }, WebkitTextFillColor: canEdit ? 'inherit' : 'text.secondary' }}>
                 <MenuItem value="" disabled>Chọn nguồn</MenuItem>
                 {assetSourcesList?.map((s: any) => <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>)}
               </Select>
@@ -480,9 +490,9 @@ function SortableUnityAssetItem({ asset, onDelete, onInlineEdit, assetTypesList,
             <IconButton size="small" onClick={() => setIsExpanded(!isExpanded)} sx={{ bgcolor: isExpanded ? 'rgba(59, 130, 246, 0.1)' : 'transparent', color: isExpanded ? 'primary.main' : 'text.secondary', transition: 'all 0.2s', '&:hover': { bgcolor: 'rgba(59, 130, 246, 0.1)', color: 'primary.main' } }}>
               {isExpanded ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />}
             </IconButton>
-            <IconButton size="small" onClick={() => onDelete(asset.id)} sx={{ color: 'text.disabled', transition: 'all 0.2s', '&:hover': { color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)' } }}>
+            {canDelete && <IconButton size="small" onClick={() => onDelete(asset.id)} sx={{ color: 'text.disabled', transition: 'all 0.2s', '&:hover': { color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)' } }}>
               <DeleteIcon fontSize="small" />
-            </IconButton>
+            </IconButton>}
           </Box>
         </Box>
         <Collapse in={isExpanded} timeout="auto" unmountOnExit>
@@ -491,17 +501,17 @@ function SortableUnityAssetItem({ asset, onDelete, onInlineEdit, assetTypesList,
             <Grid size={{ xs: 12, md: 6 }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <TextField fullWidth size="small" label="Link Ảnh" value={asset.imageUrl || ''} onChange={(e) => onInlineEdit(asset.id, 'imageUrl', e.target.value)} />
-                  <IconButton component="label" disabled={isUploadingImage} sx={{ bgcolor: 'action.hover' }} title="Tải ảnh từ máy">
+                  <TextField fullWidth size="small" label="Link Ảnh" disabled={!canEdit} value={asset.imageUrl || ''} onChange={(e) => onInlineEdit(asset.id, 'imageUrl', e.target.value)} />
+                  <IconButton disabled={!canEdit || isUploadingImage} component="label" sx={{ bgcolor: 'action.hover', display: canEdit ? 'inline-flex' : 'none' }} title="Tải ảnh từ máy">
                     {isUploadingImage ? <CircularProgress size={20} /> : <CloudUploadIcon fontSize="small" />}
                     <input type="file" hidden accept="image/*" onChange={(e) => onImageUpload(e, asset.id)} />
                   </IconButton>
                 </Box>
-                <TextField 
+                <TextField disabled={!canEdit}  
                   fullWidth 
                   size="small" 
                   label="Ngày Tạo" 
-                  type="date" 
+                  type="date"
                   slotProps={{ inputLabel: { shrink: true } }}
                   value={asset.createdAt ? new Date(typeof asset.createdAt === 'number' && asset.createdAt < 100000 ? Math.round((asset.createdAt - 25569) * 86400 * 1000) : asset.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]} 
                   onChange={e => onInlineEdit(asset.id, 'createdAt', e.target.value ? new Date(e.target.value).getTime() : Date.now())} 
@@ -511,17 +521,17 @@ function SortableUnityAssetItem({ asset, onDelete, onInlineEdit, assetTypesList,
             <Grid size={{ xs: 12, md: 6 }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box sx={{ display: 'flex', gap: 1 }}>
-                  <TextField fullWidth size="small" label="Link Nguồn" value={asset.originalLink || ''} onChange={(e) => onInlineEdit(asset.id, 'originalLink', e.target.value)} />
+                  <TextField disabled={!canEdit}  fullWidth size="small" label="Link Nguồn" value={asset.originalLink || ''} onChange={(e) => onInlineEdit(asset.id, 'originalLink', e.target.value)} />
                   {asset.originalLink && <IconButton size="small" onClick={() => window.open(asset.originalLink, '_blank')} sx={{ color: 'info.main', bgcolor: 'rgba(59, 130, 246, 0.1)' }}><OpenInNewIcon /></IconButton>}
                 </Box>
                 <Box sx={{ display: 'flex', gap: 1 }}>
-                  <TextField fullWidth size="small" label="Link Drive" value={asset.driveLink || ''} onChange={(e) => onInlineEdit(asset.id, 'driveLink', e.target.value)} />
+                  <TextField disabled={!canEdit}  fullWidth size="small" label="Link Drive" value={asset.driveLink || ''} onChange={(e) => onInlineEdit(asset.id, 'driveLink', e.target.value)} />
                   {asset.driveLink && <IconButton size="small" onClick={() => window.open(asset.driveLink, '_blank')} sx={{ color: 'success.main', bgcolor: 'rgba(16, 185, 129, 0.1)' }}><OpenInNewIcon /></IconButton>}
                 </Box>
               </Box>
             </Grid>
             <Grid size={{ xs: 12 }}>
-              <TextField fullWidth size="small" multiline rows={3} label="Mô tả chi tiết" value={asset.description || ''} onChange={(e) => onInlineEdit(asset.id, 'description', e.target.value)} />
+              <TextField disabled={!canEdit}  fullWidth size="small" multiline rows={3} label="Mô tả chi tiết" value={asset.description || ''} onChange={(e) => onInlineEdit(asset.id, 'description', e.target.value)} />
             </Grid>
           </Grid>
         </Collapse>
@@ -558,51 +568,67 @@ export default function AdminForm() {
   const [adminError, setAdminError] = useState('');
 
   // Settings / Auth State
-  const [githubToken, setGithubToken] = useState('');
-  const [githubOwner, setGithubOwner] = useState('');
-  const [githubRepo, setGithubRepo] = useState('');
+  const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'https://unifolio-backend.nguyendinhteki.workers.dev';
+  const [currentUser, setCurrentUser] = useState<any>(() => {
+    const saved = sessionStorage.getItem('unifolio_user');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const [projectsPage, setProjectsPage] = useState(1);
+  const [projectsSearch, setProjectsSearch] = useState('');
+  const [articlesPage, setArticlesPage] = useState(1);
+  const [articlesSearch, setArticlesSearch] = useState('');
+  const [unityAssetsPage, setUnityAssetsPage] = useState(1);
+  const [unityAssetsSearch, setUnityAssetsSearch] = useState('');
+  const itemsPerPage = 20;
+
+  // Fake constants to prevent breaking existing GitHub API URL builders
+  const githubOwner = 'dinhtnguyenn';
+  const githubRepo = 'StudentProject';
+  const githubToken = '';
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(true);
+
+  const hasPerm = (module: string, action: 'view' | 'add' | 'edit' | 'delete', itemOwner?: string): boolean => {
+    if (!currentUser) return false;
+    if (currentUser.role === 'SUPERADMIN') return true;
+    const perms = currentUser.permissions?.[module];
+    if (!perms) return false;
+    const p = perms[action];
+    if (action === 'view' || action === 'add') return !!p;
+    if (p === 'ALL') return true;
+    // OWN: if itemOwner is provided, compare; if not provided (e.g. checking tab access), allow if has OWN perm
+    if (p === 'OWN') {
+      if (itemOwner === undefined) return true; // trust caller context
+      return itemOwner === currentUser.username;
+    }
+    return false;
+  };
 
   // AI State & API Keys
   const [geminiApiKey, setGeminiApiKey] = useState('');
   const [youtubeApiKey, setYoutubeApiKey] = useState(() => localStorage.getItem('youtube_api_key') || '');
   const [isAiLoading, setIsAiLoading] = useState<{ tags: boolean, summary: boolean }>({ tags: false, summary: false });
 
-  const verifyToken = async (token: string, owner: string, repo: string) => {
-    try {
-      const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-        headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
-      });
-      if (!res.ok) throw new Error('Thông tin truy cập không đúng');
-      const data = await res.json();
-      if (!data.permissions?.push) throw new Error('Thông tin không có quyền truy cập hệ thống');
-      return true;
-    } catch (err: any) {
-      throw new Error(err.message || 'Lỗi kết nối');
-    }
-  };
-
   useEffect(() => {
-    const initAuth = async () => {
-      const token = sessionStorage.getItem('gh_token') || '';
-      const owner = sessionStorage.getItem('gh_owner') || '';
-      const repo = sessionStorage.getItem('gh_repo') || '';
+    const initAuth = () => {
+      const user = sessionStorage.getItem('unifolio_user');
+      const pass = sessionStorage.getItem('unifolio_pass');
       const geminiKey = sessionStorage.getItem('gemini_api_key') || '';
-      setGithubToken(token);
-      setGithubOwner(owner);
-      setGithubRepo(repo);
       setGeminiApiKey(geminiKey);
-
-      if (token && owner && repo) {
-        try {
-          await verifyToken(token, owner, repo);
-          setIsAuthenticated(true);
-        } catch (err) {
-          console.error(err);
-        }
+      if (user && pass) {
+        setIsAuthenticated(true);
+        setCurrentUser(JSON.parse(user));
+        setLoginPassword(pass);
       }
       setIsAuthenticating(false);
     };
@@ -611,33 +637,35 @@ export default function AdminForm() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!githubToken || !githubOwner || !githubRepo) {
-      setStatus({ type: 'error', message: 'Vui lòng điền đủ thông tin' });
-      return;
-    }
     setIsAuthenticating(true);
     try {
-      await verifyToken(githubToken.trim(), githubOwner.trim(), githubRepo.trim());
-      sessionStorage.setItem('gh_token', githubToken.trim());
-      sessionStorage.setItem('gh_owner', githubOwner.trim());
-      sessionStorage.setItem('gh_repo', githubRepo.trim());
+      const res = await fetch(`${WORKER_URL}/api/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: loginUsername, password: loginPassword })
+      });
+      if (!res.ok) throw new Error('Sai tài khoản hoặc mật khẩu');
+      const user = await res.json();
+      setCurrentUser(user);
+      sessionStorage.setItem('unifolio_user', JSON.stringify(user));
+      sessionStorage.setItem('unifolio_pass', loginPassword);
       setIsAuthenticated(true);
       setStatus({ type: 'success', message: 'Đăng nhập thành công!' });
     } catch (err: any) {
-      setStatus({ type: 'error', message: err.message });
+      setLoginError(err.message);
+      setStatus({ type: 'error', message: err.message || loginError });
     } finally {
       setIsAuthenticating(false);
     }
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem('gh_token');
-    sessionStorage.removeItem('gh_owner');
-    sessionStorage.removeItem('gh_repo');
+    sessionStorage.removeItem('unifolio_user');
+    sessionStorage.removeItem('unifolio_pass');
     sessionStorage.removeItem('gemini_api_key');
-    setGithubToken('');
-    setGithubOwner('');
-    setGithubRepo('');
+    setCurrentUser(null);
+    setLoginPassword('');
+    setLoginUsername('');
     setIsAuthenticated(false);
     setStatus({ type: 'info', message: 'Đã đăng xuất khỏi hệ thống.' });
   };
@@ -646,6 +674,25 @@ export default function AdminForm() {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [fetching, setFetching] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
+  const handleChangePassword = async () => {
+    if (newPassword.length < 6) { setStatus({ type: 'error', message: 'Mật khẩu phải từ 6 ký tự trở lên' }); return; }
+    if (newPassword !== confirmNewPassword) { setStatus({ type: 'error', message: 'Mật khẩu xác nhận không khớp' }); return; }
+    setChangingPassword(true);
+    try {
+      const res = await fetch(`${WORKER_URL}/api/change-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Basic ${btoa(currentUser.username + ':' + sessionStorage.getItem('unifolio_pass'))}` },
+        body: JSON.stringify({ newPassword })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Có lỗi xảy ra');
+      setStatus({ type: 'success', message: 'Đổi mật khẩu thành công!' });
+      setChangePasswordOpen(false);
+      setTimeout(() => handleLogout(), 2000);
+    } catch (err: any) { setStatus({ type: 'error', message: err.message }); }
+    finally { setChangingPassword(false); }
+  };
 
   // Form State
   const [formData, setFormData] = useState({
@@ -750,7 +797,12 @@ export default function AdminForm() {
   const getTriggerApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/trigger.json`;
 
   const fetchFile = async (url: string) => {
-    const getRes = await fetch(url, { headers: { 'Authorization': `token ${githubToken}`, 'Accept': 'application/vnd.github.v3+json' } });
+    let path = url;
+    if (url.includes('api.github.com')) {
+      const match = url.match(/contents\/(.*)$/);
+      if (match) path = match[1];
+    }
+    const getRes = await fetch(`${WORKER_URL}/api/content?path=${encodeURIComponent(path)}`);
     if (!getRes.ok) {
       if (getRes.status === 404) return { data: [], sha: '' };
       const err = await getRes.json();
@@ -762,11 +814,16 @@ export default function AdminForm() {
   };
 
   const commitFile = async (url: string, newContentArray: any[], sha: string, message: string) => {
+    let path = url;
+    if (url.includes('api.github.com')) {
+      const match = url.match(/contents\/(.*)$/);
+      if (match) path = match[1];
+    }
     const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(newContentArray, null, 2))));
-    const putRes = await fetch(url, {
-      method: 'PUT',
-      headers: { 'Authorization': `token ${githubToken}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, content: newContent, sha: sha || undefined, branch: 'main' })
+    const putRes = await fetch(`${WORKER_URL}/api/content`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: currentUser?.username, password: loginPassword, path, content: newContent, sha: sha || undefined, message, branch: 'main' })
     });
     if (!putRes.ok) {
       if (putRes.status === 409) {
@@ -781,7 +838,7 @@ export default function AdminForm() {
 
   // Initial Fetch
   useEffect(() => {
-    if (isAuthenticated && githubToken && githubOwner && githubRepo) {
+    if (isAuthenticated) {
       setLoadingCategories(true);
       fetchFile(getCategoriesApiUrl())
         .then(res => { setCategoriesList(res.data); setOriginalCategories(res.data); setCategoriesSha(res.sha); })
@@ -1141,7 +1198,7 @@ export default function AdminForm() {
       teamMembers: formData.teamMembers.split('\n').map(m => m.trim()).filter(m => m),
       techTags: formData.techTags,
     };
-    if (!isEdit) projectToSave.isNewItem = true;
+    if (!isEdit) { projectToSave.isNewItem = true; projectToSave.userCreate = currentUser?.username; }
     else if ((formData as any).isNewItem) projectToSave.isNewItem = true;
 
     setProjectsList(prev => isEdit ? prev.map(p => p.id === formData.id ? projectToSave : p) : [projectToSave, ...prev]);
@@ -1162,10 +1219,11 @@ export default function AdminForm() {
       return;
     }
     const isEdit = !!articleFormData.id;
-    const articleToSave = {
+    const articleToSave: any = {
       ...articleFormData,
       id: isEdit ? articleFormData.id : Date.now().toString(),
     };
+    if (!isEdit) articleToSave.userCreate = currentUser?.username;
     setArticlesList(prev => isEdit ? prev.map(a => a.id === articleFormData.id ? articleToSave : a) : [articleToSave, ...prev]);
     setStatus({ type: 'success', message: `Đã lưu nháp bài viết ${isEdit ? '(Cập nhật)' : '(Mới)'}!` });
     resetArticleForm();
@@ -1276,7 +1334,7 @@ export default function AdminForm() {
   const handleAddCategory = () => {
     if (!newCategoryName.trim()) return;
     const colors = generateCategoryColors();
-    const newCat: Category = { id: Date.now().toString(), name: newCategoryName.trim(), ...colors };
+    const newCat: any = { id: Date.now().toString(), name: newCategoryName.trim(), userCreate: currentUser?.username, ...colors };
     setCategoriesList(prev => [...prev, newCat]);
     setNewCategoryName('');
     setStatus({ type: 'success', message: 'Đã lưu nháp loại dự án mới!' });
@@ -1327,7 +1385,7 @@ export default function AdminForm() {
   const handleAddMajor = () => {
     if (!newMajorName.trim()) return;
     const colors = generateCategoryColors();
-    const newMajor: Category = { id: Date.now().toString(), name: newMajorName.trim(), ...colors };
+    const newMajor: any = { id: Date.now().toString(), name: newMajorName.trim(), userCreate: currentUser?.username, ...colors };
     setMajorsList(prev => [...prev, newMajor]);
     setNewMajorName('');
     setStatus({ type: 'success', message: 'Đã lưu nháp chuyên ngành mới!' });
@@ -1370,7 +1428,7 @@ export default function AdminForm() {
   const handleAddAssetSource = () => {
     if (!newAssetSourceName.trim()) return;
     const colors = generateCategoryColors();
-    const newSource: Category = { id: Date.now().toString(), name: newAssetSourceName.trim(), ...colors };
+    const newSource: any = { id: Date.now().toString(), name: newAssetSourceName.trim(), userCreate: currentUser?.username, ...colors };
     setAssetSourcesList(prev => [...prev, newSource]);
     setNewAssetSourceName('');
     setStatus({ type: 'success', message: 'Đã lưu nháp Nguồn Asset mới!' });
@@ -1407,7 +1465,7 @@ export default function AdminForm() {
   const handleAddAssetType = () => {
     if (!newAssetTypeName.trim()) return;
     const colors = generateCategoryColors();
-    const newType: Category = { id: Date.now().toString(), name: newAssetTypeName.trim(), ...colors };
+    const newType: any = { id: Date.now().toString(), name: newAssetTypeName.trim(), userCreate: currentUser?.username, ...colors };
     setAssetTypesList(prev => [...prev, newType]);
     setNewAssetTypeName('');
     setStatus({ type: 'success', message: 'Đã lưu nháp Loại Asset mới!' });
@@ -1477,7 +1535,7 @@ export default function AdminForm() {
   const handleAddArticleType = () => {
     if (!newArticleTypeName.trim()) return;
     const colors = generateCategoryColors();
-    const newCat: Category = { id: Date.now().toString(), name: newArticleTypeName.trim(), ...colors };
+    const newCat: any = { id: Date.now().toString(), name: newArticleTypeName.trim(), userCreate: currentUser?.username, ...colors };
     setArticleTypesList(prev => [...prev, newCat]);
     setNewArticleTypeName('');
     setStatus({ type: 'success', message: 'Đã lưu nháp loại bài viết mới!' });
@@ -1967,15 +2025,12 @@ export default function AdminForm() {
             <form onSubmit={handleLogin}>
               <Grid container spacing={3}>
                 <Grid size={{ xs: 12 }}>
-                  <TextField fullWidth label="Thông tin tài khoản" value={githubOwner} onChange={e => setGithubOwner(e.target.value)} required />
-                </Grid>
-                <Grid size={{ xs: 12 }}>
-                  <TextField fullWidth label="Thông tin Repo" value={githubRepo} onChange={e => setGithubRepo(e.target.value)} required />
+                  <TextField fullWidth label="Tên đăng nhập" value={loginUsername} onChange={e => setLoginUsername(e.target.value)} required />
                 </Grid>
                 <Grid size={{ xs: 12 }}>
                   <TextField
-                    fullWidth label="Token truy cập" type={showPassword ? 'text' : 'password'} required
-                    value={githubToken} onChange={e => setGithubToken(e.target.value)}
+                    fullWidth label="Mật khẩu" type={showPassword ? 'text' : 'password'} required
+                    value={loginPassword} onChange={e => setLoginPassword(e.target.value)}
                     slotProps={{ input: { endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">{showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}</IconButton></InputAdornment>) } }}
                   />
                 </Grid>
@@ -2039,6 +2094,14 @@ export default function AdminForm() {
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'background.paper', px: 2, py: 1, borderRadius: 100, border: '1px solid', borderColor: 'divider' }}>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>Xin chào, <span style={{ color: '#2563EB', fontWeight: 800 }}>{currentUser?.username}</span></Typography>
+            </Box>
+            {currentUser?.role === 'MOD' && (
+              <Button variant="outlined" color="primary" onClick={() => { setChangePasswordOpen(true); setNewPassword(''); setConfirmNewPassword(''); }} sx={{ borderRadius: 100, fontWeight: 700, px: 2 }}>
+                Đổi Mật Khẩu
+              </Button>
+            )}
             <Button variant="outlined" color="info" onClick={handleManualBuild} disabled={isTriggeringBuild || isSavingAll || !!fetchError} startIcon={isTriggeringBuild ? <CircularProgress size={16} color="inherit" /> : <AutoAwesomeIcon />} sx={{ borderRadius: 100, fontWeight: 700, px: 2 }}>
               Cập Nhật Sitemap
             </Button>
@@ -2061,47 +2124,53 @@ export default function AdminForm() {
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 7 ? 700 : 500, fontSize: '0.9rem' }}>Dashboard</Typography>} />
               </ListItemButton>
 
+              {hasPerm('projects', 'view') && <>
               <ListSubheader sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'primary.main', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
                 <FolderIcon fontSize="small" /> NHÓM DỰ ÁN
               </ListSubheader>
               <ListItemButton selected={tabIndex === 1} onClick={() => setTabIndex(1)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 1 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Dự Án</Typography>} />
               </ListItemButton>
-              <ListItemButton selected={tabIndex === 0} onClick={() => setTabIndex(0)}>
+              {hasPerm('projects', 'add') && <ListItemButton selected={tabIndex === 0} onClick={() => setTabIndex(0)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 0 ? 700 : 500, fontSize: '0.9rem' }}>{formData.id ? "Sửa Dự Án" : "Thêm Dự Án"}</Typography>} />
-              </ListItemButton>
+              </ListItemButton>}
               <ListItemButton selected={tabIndex === 2} onClick={() => setTabIndex(2)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 2 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Loại Dự Án</Typography>} />
               </ListItemButton>
+              </>}
 
+              {hasPerm('articles', 'view') && <>
               <ListSubheader sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'secondary.main', fontSize: '0.75rem', letterSpacing: '0.05em', mt: 1 }}>
                 <ArticleIcon fontSize="small" /> NHÓM BÀI VIẾT
               </ListSubheader>
               <ListItemButton selected={tabIndex === 4} onClick={() => setTabIndex(4)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 4 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Bài Viết</Typography>} />
               </ListItemButton>
-              <ListItemButton selected={tabIndex === 3} onClick={() => setTabIndex(3)}>
+              {hasPerm('articles', 'add') && <ListItemButton selected={tabIndex === 3} onClick={() => setTabIndex(3)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 3 ? 700 : 500, fontSize: '0.9rem' }}>{articleFormData.id ? "Sửa Bài Viết" : "Thêm Bài Viết"}</Typography>} />
-              </ListItemButton>
+              </ListItemButton>}
               <ListItemButton selected={tabIndex === 6} onClick={() => setTabIndex(6)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 6 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Loại Bài Viết</Typography>} />
               </ListItemButton>
+              </>}
 
+              {hasPerm('assets', 'view') && <>
               <ListSubheader sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'success.main', fontSize: '0.75rem', letterSpacing: '0.05em', mt: 1 }}>
                 <AutoAwesomeIcon fontSize="small" /> TÀI NGUYÊN (ASSETS)
               </ListSubheader>
               <ListItemButton selected={tabIndex === 9} onClick={() => setTabIndex(9)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 9 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Tài Nguyên</Typography>} />
               </ListItemButton>
-              <ListItemButton selected={tabIndex === 10} onClick={() => setTabIndex(10)}>
+              {hasPerm('assets', 'add') && <ListItemButton selected={tabIndex === 10} onClick={() => setTabIndex(10)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 10 ? 700 : 500, fontSize: '0.9rem' }}>{unityAssetFormData.id ? "Sửa Tài Nguyên" : "Thêm Tài Nguyên"}</Typography>} />
-              </ListItemButton>
+              </ListItemButton>}
               <ListItemButton selected={tabIndex === 11} onClick={() => setTabIndex(11)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 11 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Nguồn Tài Nguyên</Typography>} />
               </ListItemButton>
               <ListItemButton selected={tabIndex === 12} onClick={() => setTabIndex(12)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 12 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Hình Thức Sở Hữu</Typography>} />
               </ListItemButton>
+              </>}
 
               <ListSubheader sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'info.main', fontSize: '0.75rem', letterSpacing: '0.05em', mt: 1 }}>
                 <SettingsIcon fontSize="small" /> QUẢN LÝ CHUNG
@@ -2109,6 +2178,12 @@ export default function AdminForm() {
               <ListItemButton selected={tabIndex === 5} onClick={() => setTabIndex(5)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 5 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Chuyên Ngành</Typography>} />
               </ListItemButton>
+              {currentUser?.role === 'SUPERADMIN' && (
+                <ListItemButton selected={tabIndex === 13} onClick={() => setTabIndex(13)} sx={{ mt: 1, bgcolor: tabIndex === 13 ? 'rgba(239, 68, 68, 0.15)' : 'transparent', borderRadius: 3, '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.1)' } }}>
+                  <ListItemIcon sx={{ minWidth: 32 }}><LockIcon fontSize="small" sx={{ color: tabIndex === 13 ? '#ef4444' : 'inherit' }} /></ListItemIcon>
+                  <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 13 ? 700 : 500, fontSize: '0.9rem', color: tabIndex === 13 ? '#ef4444' : 'inherit' }}>Tài Khoản (MOD)</Typography>} />
+                </ListItemButton>
+              )}
               <ListItemButton selected={tabIndex === 8} onClick={() => setTabIndex(8)} sx={{ mt: 1, bgcolor: tabIndex === 8 ? 'primary.main' : 'rgba(168, 85, 247, 0.05)', borderRadius: 3, '&:hover': { bgcolor: tabIndex === 8 ? 'primary.dark' : 'rgba(168, 85, 247, 0.15)' } }}>
                 <ListItemIcon sx={{ minWidth: 32 }}><AutoAwesomeIcon fontSize="small" sx={{ color: tabIndex === 8 ? '#fff' : '#A855F7' }} /></ListItemIcon>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 8 ? 800 : 700, fontSize: '0.9rem', color: tabIndex === 8 ? '#fff' : '#A855F7' }}>Cài Đặt AI</Typography>} />
@@ -2315,6 +2390,13 @@ export default function AdminForm() {
               </Box>
             )}
 
+            {/* Tab 13: MOD Account */}
+            {tabIndex === 13 && (
+              <Box sx={{ animation: 'fadeIn 0.3s' }}>
+                <UserManagement workerUrl={WORKER_URL} currentUser={currentUser} />
+              </Box>
+            )}
+
             {/* Tab 8: AI Settings */}
             {tabIndex === 8 && (
               <Box sx={{ maxWidth: 800, mx: 'auto', py: 2 }}>
@@ -2358,7 +2440,7 @@ export default function AdminForm() {
             )}
 
             {/* Tab 9: Unity Assets List */}
-            {tabIndex === 9 && (
+            {tabIndex === 9 && hasPerm('assets', 'view') && (
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                   <Typography variant="h5" sx={{ fontWeight: 800 }}>Quản Lý Tài Nguyên</Typography>
@@ -2366,10 +2448,10 @@ export default function AdminForm() {
                     <input type="file" accept=".xlsx, .xls" style={{ display: 'none' }} ref={fileInputRef} onChange={handleImportUnityAssetsExcel} />
                     <Button variant="outlined" color="success" startIcon={<DownloadIcon />} onClick={handleExportUnityAssetsTemplate} sx={{ borderRadius: 100, textTransform: 'none', fontWeight: 600 }}>File Mẫu</Button>
                     <Button variant="outlined" color="info" startIcon={<UploadFileIcon />} onClick={() => fileInputRef.current?.click()} sx={{ borderRadius: 100, textTransform: 'none', fontWeight: 600 }}>Nhập Excel</Button>
-                    {selectedUnityAssets.length > 0 && (
+                    {selectedUnityAssets.length > 0 && hasPerm('assets', 'delete') && (
                       <Button variant="contained" color="error" startIcon={<DeleteIcon />} onClick={() => setBulkDeleteUnityAssetsConfirm(true)} sx={{ borderRadius: 100, textTransform: 'none', fontWeight: 600 }}>Xoá {selectedUnityAssets.length} mục</Button>
                     )}
-                    <Button variant="contained" startIcon={<AddIcon />} onClick={() => { setUnityAssetFormData({ id: '', name: '', description: '', imageUrl: '', assetType: 'GOOGLE_DRIVE', originalLink: '', driveLink: '', owner: '' }); setTabIndex(10); }} sx={{ borderRadius: 100, textTransform: 'none', fontWeight: 600 }}>Thêm Tài Nguyên</Button>
+                    {hasPerm('assets', 'add') && <Button variant="contained" startIcon={<AddIcon />} onClick={() => { setUnityAssetFormData({ id: '', name: '', description: '', imageUrl: '', assetType: 'GOOGLE_DRIVE', originalLink: '', driveLink: '', owner: '' }); setTabIndex(10); }} sx={{ borderRadius: 100, textTransform: 'none', fontWeight: 600 }}>Thêm Tài Nguyên</Button>}
                   </Box>
                 </Box>
                 <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
@@ -2377,6 +2459,9 @@ export default function AdminForm() {
                     <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có tài nguyên nào.</Typography></Box>
                   ) : (
                     <>
+                      <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+                        <TextField fullWidth size="small" placeholder="Tìm kiếm tài nguyên..." value={unityAssetsSearch} onChange={(e) => { setUnityAssetsSearch(e.target.value); setUnityAssetsPage(1); }} slotProps={{ input: { startAdornment: <InputAdornment position="start"><AutoAwesomeIcon fontSize="small" /></InputAdornment> } }} />
+                      </Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
                         <FormControlLabel
                           control={<Checkbox checked={selectedUnityAssets.length > 0 && selectedUnityAssets.length === unityAssetsList.length} indeterminate={selectedUnityAssets.length > 0 && selectedUnityAssets.length < unityAssetsList.length} onChange={(e) => setSelectedUnityAssets(e.target.checked ? unityAssetsList.map(a => a.id) : [])} />}
@@ -2385,11 +2470,18 @@ export default function AdminForm() {
                         />
                       </Box>
                       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleUnityAssetDragEnd}>
-                        <SortableContext items={unityAssetsList.slice(0, visibleUnityAssetsCount).map(a => a.id)} strategy={verticalListSortingStrategy}>
+                        <SortableContext items={unityAssetsList.map(a => a.id)} strategy={verticalListSortingStrategy}>
                           <List sx={{ p: 0 }}>
-                            {unityAssetsList.slice(0, visibleUnityAssetsCount).map((asset) => (
+                            {(()=>{
+                              const filtered = unityAssetsList.filter(a => a.name.toLowerCase().includes(unityAssetsSearch.toLowerCase()));
+                              const paginated = filtered.slice((unityAssetsPage - 1) * itemsPerPage, unityAssetsPage * itemsPerPage);
+                              return paginated;
+                            })().map((asset) => (
                               <Box key={asset.id} sx={{ px: 2, pt: 1.5, pb: 0 }}>
                                 <SortableUnityAssetItem
+                                  key={asset.id}
+                                  canEdit={hasPerm('assets', 'edit', asset.userCreate)}
+                                  canDelete={hasPerm('assets', 'delete', asset.userCreate)}
                                   asset={asset}
                                   assetTypesList={assetTypesList}
                                   assetSourcesList={assetSourcesList}
@@ -2405,7 +2497,9 @@ export default function AdminForm() {
                           </List>
                         </SortableContext>
                       </DndContext>
-                      
+                      <Box sx={{ display: 'flex', justifyContent: 'center', p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                        <Pagination count={Math.ceil(unityAssetsList.filter(a => a.name.toLowerCase().includes(unityAssetsSearch.toLowerCase())).length / itemsPerPage)} page={unityAssetsPage} onChange={(_, v) => setUnityAssetsPage(v)} color="primary" />
+                      </Box>
                       {visibleUnityAssetsCount < unityAssetsList.length && (
                         <Box sx={{ textAlign: 'center', mt: 3, pb: 3 }}>
                           <Button variant="outlined" onClick={() => setVisibleUnityAssetsCount(prev => prev + 20)} sx={{ borderRadius: 100, px: 4, fontWeight: 700 }}>
@@ -2420,7 +2514,7 @@ export default function AdminForm() {
             )}
 
             {/* Tab 10: Unity Asset Form */}
-            {tabIndex === 10 && (
+            {tabIndex === 10 && hasPerm('assets', unityAssetFormData.id ? 'edit' : 'add') && (
               <Box>
                 <Typography variant="h5" sx={{ fontWeight: 800, mb: 3 }}>{unityAssetFormData.id ? 'Chỉnh Sửa Tài Nguyên' : 'Thêm Tài Nguyên Mới'}</Typography>
                 <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider', borderRadius: 4 }}>
@@ -2512,7 +2606,8 @@ export default function AdminForm() {
                       <Button variant="contained" fullWidth onClick={() => {
                         if (!unityAssetFormData.name) { setStatus({ type: 'error', message: 'Vui lòng nhập tên tài nguyên!' }); return; }
                         const newId = unityAssetFormData.id || Date.now().toString();
-                        const newAsset = { ...unityAssetFormData, id: newId, createdAt: unityAssetFormData.createdAt || Date.now() };
+                        const newAsset: any = { ...unityAssetFormData, id: newId, createdAt: unityAssetFormData.createdAt || Date.now() };
+                        if (!unityAssetFormData.id) newAsset.userCreate = currentUser?.username;
                         let newList = [...unityAssetsList];
                         if (unityAssetFormData.id) {
                           newList = newList.map(a => a.id === newId ? newAsset : a);
@@ -2536,21 +2631,21 @@ export default function AdminForm() {
             )}
 
             {/* Tab 11: Asset Sources List */}
-            {tabIndex === 11 && (
+            {tabIndex === 11 && hasPerm('assets', 'view') && (
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                   <Typography variant="h5" sx={{ fontWeight: 800 }}>Quản Lý Nguồn Tài Nguyên</Typography>
-                  {selectedAssetSources.length > 0 && (
+                  {selectedAssetSources.length > 0 && hasPerm('assets', 'delete') && (
                     <Button variant="contained" color="error" startIcon={<DeleteIcon />} onClick={() => setBulkDeleteAssetSourcesConfirm(true)} sx={{ borderRadius: 100, textTransform: 'none', fontWeight: 600 }}>Xoá {selectedAssetSources.length} mục</Button>
                   )}
                 </Box>
-                <Paper elevation={0} sx={{ p: 3, mb: 4, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.default' }}>
+                {hasPerm('assets', 'add') && <Paper elevation={0} sx={{ p: 3, mb: 4, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.default' }}>
                   <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 700, color: 'text.secondary' }}>Thêm Nguồn Tài Nguyên Mới</Typography>
                   <Box sx={{ display: 'flex', gap: 2 }}>
                     <TextField fullWidth size="small" placeholder="VD: Unity Asset Store, Github, Tự Viết..." value={newAssetSourceName} onChange={e => setNewAssetSourceName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddAssetSource()} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} />
                     <Button variant="contained" startIcon={<AddIcon />} onClick={handleAddAssetSource} disabled={!newAssetSourceName.trim()} sx={{ minWidth: 120, borderRadius: 2, fontWeight: 700 }}>Thêm</Button>
                   </Box>
-                </Paper>
+                </Paper>}
                 <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4 }}>
                   <Table>
                     <TableHead sx={{ bgcolor: 'background.default' }}>
@@ -2572,11 +2667,13 @@ export default function AdminForm() {
                             </Box>
                           </TableCell>
                           <TableCell align="center">
-                            <IconButton size="small" disabled={index === 0} onClick={() => handleMoveAssetSource(index, 'up')} sx={{ bgcolor: 'action.hover', mr: 0.5 }}><ArrowUpwardIcon fontSize="small" /></IconButton>
-                            <IconButton size="small" disabled={index === assetSourcesList.length - 1} onClick={() => handleMoveAssetSource(index, 'down')} sx={{ bgcolor: 'action.hover' }}><ArrowDownwardIcon fontSize="small" /></IconButton>
+                            {hasPerm('assets', 'edit', source.userCreate) && <>
+                              <IconButton size="small" disabled={index === 0} onClick={() => handleMoveAssetSource(index, 'up')} sx={{ bgcolor: 'action.hover', mr: 0.5 }}><ArrowUpwardIcon fontSize="small" /></IconButton>
+                              <IconButton size="small" disabled={index === assetSourcesList.length - 1} onClick={() => handleMoveAssetSource(index, 'down')} sx={{ bgcolor: 'action.hover' }}><ArrowDownwardIcon fontSize="small" /></IconButton>
+                            </>}
                           </TableCell>
                           <TableCell align="right">
-                            <IconButton onClick={() => setAssetSourceToDelete(source.id)} color="error"><DeleteIcon /></IconButton>
+                            {hasPerm('assets', 'delete', source.userCreate) && <IconButton onClick={() => setAssetSourceToDelete(source.id)} color="error"><DeleteIcon /></IconButton>}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -2590,21 +2687,21 @@ export default function AdminForm() {
             )}
 
             {/* Tab 12: Asset Types List */}
-            {tabIndex === 12 && (
+            {tabIndex === 12 && hasPerm('assets', 'view') && (
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                   <Typography variant="h5" sx={{ fontWeight: 800 }}>Quản Lý Loại Tài Nguyên</Typography>
-                  {selectedAssetTypes.length > 0 && (
+                  {selectedAssetTypes.length > 0 && hasPerm('assets', 'delete') && (
                     <Button variant="contained" color="error" startIcon={<DeleteIcon />} onClick={() => setBulkDeleteAssetTypesConfirm(true)} sx={{ borderRadius: 100, textTransform: 'none', fontWeight: 600 }}>Xoá {selectedAssetTypes.length} mục</Button>
                   )}
                 </Box>
-                <Paper elevation={0} sx={{ p: 3, mb: 4, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.default' }}>
+                {hasPerm('assets', 'add') && <Paper elevation={0} sx={{ p: 3, mb: 4, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.default' }}>
                   <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 700, color: 'text.secondary' }}>Thêm Loại Tài Nguyên Mới</Typography>
                   <Box sx={{ display: 'flex', gap: 2 }}>
                     <TextField fullWidth size="small" placeholder="VD: Unity Account, Google Drive, OneDrive..." value={newAssetTypeName} onChange={e => setNewAssetTypeName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddAssetType()} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} />
                     <Button variant="contained" startIcon={<AddIcon />} onClick={handleAddAssetType} disabled={!newAssetTypeName.trim()} sx={{ minWidth: 120, borderRadius: 2, fontWeight: 700 }}>Thêm</Button>
                   </Box>
-                </Paper>
+                </Paper>}
                 <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4 }}>
                   <Table>
                     <TableHead sx={{ bgcolor: 'background.default' }}>
@@ -2623,12 +2720,14 @@ export default function AdminForm() {
                             <Chip label={type.name} sx={{ bgcolor: type.bg, color: type.text, fontWeight: 700 }} />
                           </TableCell>
                           <TableCell align="center">
-                            <IconButton size="small" disabled={index === 0} onClick={() => handleMoveAssetType(index, 'up')} sx={{ bgcolor: 'action.hover', mr: 0.5 }}><ArrowUpwardIcon fontSize="small" /></IconButton>
-                            <IconButton size="small" disabled={index === assetTypesList.length - 1} onClick={() => handleMoveAssetType(index, 'down')} sx={{ bgcolor: 'action.hover' }}><ArrowDownwardIcon fontSize="small" /></IconButton>
+                            {hasPerm('assets', 'edit', type.userCreate) && <>
+                              <IconButton size="small" disabled={index === 0} onClick={() => handleMoveAssetType(index, 'up')} sx={{ bgcolor: 'action.hover', mr: 0.5 }}><ArrowUpwardIcon fontSize="small" /></IconButton>
+                              <IconButton size="small" disabled={index === assetTypesList.length - 1} onClick={() => handleMoveAssetType(index, 'down')} sx={{ bgcolor: 'action.hover' }}><ArrowDownwardIcon fontSize="small" /></IconButton>
+                            </>}
                           </TableCell>
                           <TableCell align="right">
-                            <IconButton onClick={() => setEditCategoryItem({ ...type, type: 'assetType' })} color="primary" sx={{ mr: 1 }}><EditIcon /></IconButton>
-                            <IconButton onClick={() => setAssetTypeToDelete(type.id)} color="error"><DeleteIcon /></IconButton>
+                            {hasPerm('assets', 'edit', type.userCreate) && <IconButton onClick={() => setEditCategoryItem({ ...type, type: 'assetType' })} color="primary" sx={{ mr: 1 }}><EditIcon /></IconButton>}
+                            {hasPerm('assets', 'delete', type.userCreate) && <IconButton onClick={() => setAssetTypeToDelete(type.id)} color="error"><DeleteIcon /></IconButton>}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -2642,7 +2741,7 @@ export default function AdminForm() {
             )}
 
             {/* Tab 0: Add / Edit Form */}
-            {tabIndex === 0 && (
+            {tabIndex === 0 && hasPerm('projects', formData.id ? 'edit' : 'add') && (
               <Box>
                 {!formData.id && (
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 3 }}>
@@ -2804,7 +2903,7 @@ export default function AdminForm() {
             )}
 
             {/* Tab 1: Manage Projects List */}
-            {tabIndex === 1 && (
+            {tabIndex === 1 && hasPerm('projects', 'view') && (
               <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
                 {loadingList ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}><CircularProgress sx={{ color: 'primary.main' }} /></Box>
@@ -2812,6 +2911,9 @@ export default function AdminForm() {
                   <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có dự án nào.</Typography></Box>
                 ) : (
                   <>
+                    <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+                      <TextField fullWidth size="small" placeholder="Tìm kiếm dự án..." value={projectsSearch} onChange={(e) => { setProjectsSearch(e.target.value); setProjectsPage(1); }} slotProps={{ input: { startAdornment: <InputAdornment position="start"><AutoAwesomeIcon fontSize="small" /></InputAdornment> } }} />
+                    </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <FormControlLabel
@@ -2821,20 +2923,26 @@ export default function AdminForm() {
                         />
                       </Box>
                       {selectedProjects.length > 0 && (
-                        <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteProjectsConfirm(true)} startIcon={<DeleteIcon />} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
+                        {hasPerm('projects', 'delete') && <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteProjectsConfirm(true)} startIcon={<DeleteIcon />} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
                           Xoá {selectedProjects.length} mục
-                        </Button>
+                        </Button>}
                       )}
                     </Box>
 
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                       <SortableContext items={projectsList.map(p => p.id)} strategy={verticalListSortingStrategy}>
                         <List sx={{ p: 0 }}>
-                          {projectsList.map((project, idx) => {
+                          {(()=>{
+                            const filtered = projectsList.filter(p => p.name.toLowerCase().includes(projectsSearch.toLowerCase()));
+                            const paginated = filtered.slice((projectsPage - 1) * itemsPerPage, projectsPage * itemsPerPage);
+                            return paginated;
+                          })().map((project, idx) => {
                             const allTags = Array.from(new Set(projectsList.flatMap(p => Array.isArray(p.techTags) ? p.techTags : (typeof p.techTags === 'string' && p.techTags ? (p.techTags as string).split(',').map(t => t.trim()) : []))));
                             return (
                               <SortableProjectItem
                                 key={project.id}
+                                canEdit={hasPerm('projects', 'edit', project.userCreate)}
+                                canDelete={hasPerm('projects', 'delete', project.userCreate)}
                                 id={project.id}
                                 project={project}
                                 idx={idx}
@@ -2857,7 +2965,8 @@ export default function AdminForm() {
                                     techTags: Array.isArray(p.techTags) ? p.techTags : [],
                                     isGoldenTicket: !!p.isGoldenTicket,
                                     major: p.major || '',
-                                  });
+                                    userCreate: p.userCreate,
+                                  } as any);
                                   setTabIndex(0);
                                 }}
                                 onDelete={(id: string) => { setProjectToDelete(id); setDeleteConfirmOpen(true); }}
@@ -2868,22 +2977,25 @@ export default function AdminForm() {
                         </List>
                       </SortableContext>
                     </DndContext>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                      <Pagination count={Math.ceil(projectsList.filter(p => p.name.toLowerCase().includes(projectsSearch.toLowerCase())).length / itemsPerPage)} page={projectsPage} onChange={(_, v) => setProjectsPage(v)} color="primary" />
+                    </Box>
                   </>
                 )}
               </Paper>
             )}
 
             {/* Tab 2: Manage Categories */}
-            {tabIndex === 2 && (
+            {tabIndex === 2 && hasPerm('projects', 'view') && (
               <Box>
-                <Paper elevation={0} sx={{ p: 3, mb: 3, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper' }}>
+                {hasPerm('categories', 'add') && <Paper elevation={0} sx={{ p: 3, mb: 3, border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper' }}>
                   <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
                     <TextField fullWidth size="small" label="Tên loại dự án mới" value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddCategory())} />
                     <Button variant="contained" onClick={handleAddCategory} disabled={!newCategoryName.trim()} startIcon={<AddIcon />} sx={{ minWidth: 150, borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(16, 185, 129, 0.39)', background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
                       Thêm Nháp
                     </Button>
                   </Box>
-                </Paper>
+                </Paper>}
 
                 <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
                   {loadingCategories ? (
@@ -2898,7 +3010,7 @@ export default function AdminForm() {
                           label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Chọn tất cả</Typography>}
                           sx={{ ml: 0.5 }}
                         />
-                        {selectedCategories.length > 0 && (
+                        {selectedCategories.length > 0 && hasPerm('categories', 'delete') && (
                           <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteCategoriesConfirm(true)} startIcon={<DeleteIcon />} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
                             Xoá {selectedCategories.length} mục
                           </Button>
@@ -2916,10 +3028,12 @@ export default function AdminForm() {
                                 disableTypography
                               />
                               <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
-                                <IconButton size="small" onClick={() => handleMoveCategory(idx, 'up')} disabled={idx === 0} sx={{ color: 'action.active' }}><ArrowUpwardIcon fontSize="small" /></IconButton>
-                                <IconButton size="small" onClick={() => handleMoveCategory(idx, 'down')} disabled={idx === categoriesList.length - 1} sx={{ color: 'action.active' }}><ArrowDownwardIcon fontSize="small" /></IconButton>
-                                <IconButton size="small" onClick={() => setEditCategoryItem({ ...cat, type: 'category' })} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
-                                <IconButton size="small" onClick={() => { setCategoryToDelete(cat.id); setDeleteConfirmOpen(true); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
+                                {hasPerm('categories', 'edit', cat.userCreate) && <>
+                                  <IconButton size="small" onClick={() => handleMoveCategory(idx, 'up')} disabled={idx === 0} sx={{ color: 'action.active' }}><ArrowUpwardIcon fontSize="small" /></IconButton>
+                                  <IconButton size="small" onClick={() => handleMoveCategory(idx, 'down')} disabled={idx === categoriesList.length - 1} sx={{ color: 'action.active' }}><ArrowDownwardIcon fontSize="small" /></IconButton>
+                                  <IconButton size="small" onClick={() => setEditCategoryItem({ ...cat, type: 'category' })} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
+                                </>}
+                                {hasPerm('categories', 'delete', cat.userCreate) && <IconButton size="small" onClick={() => { setCategoryToDelete(cat.id); setDeleteConfirmOpen(true); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>}
                               </Box>
                             </ListItem>
                           </Box>
@@ -2932,7 +3046,7 @@ export default function AdminForm() {
             )}
 
             {/* Tab 3: Add / Edit Article Form */}
-            {tabIndex === 3 && (
+            {tabIndex === 3 && hasPerm('articles', articleFormData.id ? 'edit' : 'add') && (
               <Box>
                 {!articleFormData.id && (
                   <Paper elevation={0} sx={{ p: 3, mb: 3, border: `2px dashed ${muiTheme.palette.primary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
@@ -3006,19 +3120,29 @@ export default function AdminForm() {
             )}
 
             {/* Tab 4: Manage Articles */}
-            {tabIndex === 4 && (
+            {tabIndex === 4 && hasPerm('articles', 'view') && (
               <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
                 {loadingArticles ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', p: 8 }}><CircularProgress /></Box>
                 ) : articlesList.length === 0 ? (
                   <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có bài viết nào.</Typography></Box>
                 ) : (
-                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleArticleDragEnd}>
-                    <SortableContext items={articlesList.map(a => a.id)} strategy={verticalListSortingStrategy}>
-                      <List sx={{ p: 0 }}>
-                        {articlesList.map((article, idx) => (
+                  <>
+                    <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+                      <TextField fullWidth size="small" placeholder="Tìm kiếm bài viết..." value={articlesSearch} onChange={(e) => { setArticlesSearch(e.target.value); setArticlesPage(1); }} slotProps={{ input: { startAdornment: <InputAdornment position="start"><AutoAwesomeIcon fontSize="small" /></InputAdornment> } }} />
+                    </Box>
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleArticleDragEnd}>
+                      <SortableContext items={articlesList.map(a => a.id)} strategy={verticalListSortingStrategy}>
+                        <List sx={{ p: 0 }}>
+                          {(()=>{
+                            const filtered = articlesList.filter(a => a.title.toLowerCase().includes(articlesSearch.toLowerCase()));
+                            const paginated = filtered.slice((articlesPage - 1) * itemsPerPage, articlesPage * itemsPerPage);
+                            return paginated;
+                        })().map((article, idx) => (
                           <SortableArticleItem
                             key={article.id}
+                            canEdit={hasPerm('articles', 'edit', article.userCreate)}
+                            canDelete={hasPerm('articles', 'delete', article.userCreate)}
                             article={article}
                             idx={idx}
                             articleTypesList={articleTypesList}
@@ -3033,6 +3157,10 @@ export default function AdminForm() {
                       </List>
                     </SortableContext>
                   </DndContext>
+                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                    <Pagination count={Math.ceil(articlesList.filter(a => a.title.toLowerCase().includes(articlesSearch.toLowerCase())).length / itemsPerPage)} page={articlesPage} onChange={(_, v) => setArticlesPage(v)} color="primary" />
+                  </Box>
+                  </>
                 )}
               </Paper>
             )}
@@ -3040,7 +3168,7 @@ export default function AdminForm() {
             {/* Tab 5: QL Chuyên Ngành */}
             {tabIndex === 5 && (
               <Box>
-                <Paper elevation={0} sx={{ p: 3, mb: 3, border: `2px dashed ${muiTheme.palette.primary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
+                {hasPerm('categories', 'add') && <Paper elevation={0} sx={{ p: 3, mb: 3, border: `2px dashed ${muiTheme.palette.primary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
                   <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'text.secondary' }}>Thêm Chuyên Ngành Mới</Typography>
                   <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
                     <TextField fullWidth size="small" label="Tên chuyên ngành mới" value={newMajorName} onChange={e => setNewMajorName(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddMajor())} />
@@ -3048,7 +3176,7 @@ export default function AdminForm() {
                       Thêm Nháp
                     </Button>
                   </Box>
-                </Paper>
+                </Paper>}
 
                 <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
                   {loadingMajors ? (
@@ -3063,7 +3191,7 @@ export default function AdminForm() {
                           label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Chọn tất cả</Typography>}
                           sx={{ ml: 0.5 }}
                         />
-                        {selectedMajors.length > 0 && (
+                        {selectedMajors.length > 0 && hasPerm('categories', 'delete') && (
                           <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteMajorsConfirm(true)} startIcon={<DeleteIcon />} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
                             Xoá {selectedMajors.length} mục
                           </Button>
@@ -3081,10 +3209,12 @@ export default function AdminForm() {
                                 disableTypography
                               />
                               <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
-                                <IconButton size="small" onClick={() => handleMoveMajor(idx, 'up')} disabled={idx === 0} sx={{ color: 'action.active' }}><ArrowUpwardIcon fontSize="small" /></IconButton>
-                                <IconButton size="small" onClick={() => handleMoveMajor(idx, 'down')} disabled={idx === majorsList.length - 1} sx={{ color: 'action.active' }}><ArrowDownwardIcon fontSize="small" /></IconButton>
-                                <IconButton size="small" onClick={() => setEditCategoryItem({ ...cat, type: 'major' })} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
-                                <IconButton size="small" onClick={() => { setMajorToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
+                                {hasPerm('categories', 'edit', cat.userCreate) && <>
+                                  <IconButton size="small" onClick={() => handleMoveMajor(idx, 'up')} disabled={idx === 0} sx={{ color: 'action.active' }}><ArrowUpwardIcon fontSize="small" /></IconButton>
+                                  <IconButton size="small" onClick={() => handleMoveMajor(idx, 'down')} disabled={idx === majorsList.length - 1} sx={{ color: 'action.active' }}><ArrowDownwardIcon fontSize="small" /></IconButton>
+                                  <IconButton size="small" onClick={() => setEditCategoryItem({ ...cat, type: 'major' })} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
+                                </>}
+                                {hasPerm('categories', 'delete', cat.userCreate) && <IconButton size="small" onClick={() => { setMajorToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>}
                               </Box>
                             </ListItem>
                           </Box>
@@ -3097,9 +3227,9 @@ export default function AdminForm() {
             )}
 
             {/* Tab 6: QL Loại Bài Viết */}
-            {tabIndex === 6 && (
+            {tabIndex === 6 && hasPerm('articles', 'view') && (
               <Box>
-                <Paper elevation={0} sx={{ p: 3, mb: 3, border: `2px dashed ${muiTheme.palette.primary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
+              {hasPerm('categories', 'add') && <Paper elevation={0} sx={{ p: 3, mb: 3, border: `2px dashed ${muiTheme.palette.primary.light}`, borderRadius: 4, bgcolor: 'background.default' }}>
                   <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'text.secondary' }}>Thêm Loại Bài Viết Mới</Typography>
                   <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
                     <TextField fullWidth size="small" label="Tên loại bài viết mới" value={newArticleTypeName} onChange={e => setNewArticleTypeName(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddArticleType())} />
@@ -3107,7 +3237,7 @@ export default function AdminForm() {
                       Thêm Nháp
                     </Button>
                   </Box>
-                </Paper>
+                </Paper>}
 
                 <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, bgcolor: 'background.paper', overflow: 'hidden' }}>
                   {loadingArticleTypes ? (
@@ -3122,7 +3252,7 @@ export default function AdminForm() {
                           label={<Typography variant="body2" sx={{ fontWeight: 600 }}>Chọn tất cả</Typography>}
                           sx={{ ml: 0.5 }}
                         />
-                        {selectedArticleTypes.length > 0 && (
+                        {selectedArticleTypes.length > 0 && hasPerm('categories', 'delete') && (
                           <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteArticleTypesConfirm(true)} startIcon={<DeleteIcon />} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
                             Xoá {selectedArticleTypes.length} mục
                           </Button>
@@ -3140,10 +3270,12 @@ export default function AdminForm() {
                                 disableTypography
                               />
                               <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
+                                {hasPerm('categories', 'edit', cat.userCreate) && <>
                                 <IconButton size="small" onClick={() => handleMoveArticleType(idx, 'up')} disabled={idx === 0} sx={{ color: 'action.active' }}><ArrowUpwardIcon fontSize="small" /></IconButton>
                                 <IconButton size="small" onClick={() => handleMoveArticleType(idx, 'down')} disabled={idx === articleTypesList.length - 1} sx={{ color: 'action.active' }}><ArrowDownwardIcon fontSize="small" /></IconButton>
                                 <IconButton size="small" onClick={() => setEditCategoryItem({ ...cat, type: 'articleType' })} sx={{ color: 'primary.main', bgcolor: 'action.hover' }}><EditIcon fontSize="small" /></IconButton>
-                                <IconButton size="small" onClick={() => { setArticleTypeToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>
+                                </>}
+                                {hasPerm('categories', 'delete', cat.userCreate) && <IconButton size="small" onClick={() => { setArticleTypeToDelete(cat.id); }} sx={{ color: 'error.main', bgcolor: 'rgba(239, 68, 68, 0.1)', transition: 'all 0.2s', '&:hover': { bgcolor: 'error.main', color: '#fff', transform: 'scale(1.1)' } }}><DeleteIcon fontSize="small" /></IconButton>}
                               </Box>
                             </ListItem>
                           </Box>
@@ -3378,6 +3510,19 @@ export default function AdminForm() {
             saveAllChangesToGithub(sortedProjectsPreview);
           }} variant="contained" color="warning" startIcon={isSavingAll ? <CircularProgress size={16} color="inherit" /> : <CloudUploadIcon />} disabled={isSavingAll} sx={{ fontWeight: 700, borderRadius: 2 }}>
             Xác nhận & Cập nhật
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={changePasswordOpen} onClose={() => setChangePasswordOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ fontWeight: 800 }}>Đổi Mật Khẩu</DialogTitle>
+        <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
+          <TextField label="Mật khẩu mới" type="password" fullWidth value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+          <TextField label="Xác nhận mật khẩu mới" type="password" fullWidth value={confirmNewPassword} onChange={e => setConfirmNewPassword(e.target.value)} />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setChangePasswordOpen(false)} color="inherit" sx={{ fontWeight: 600 }}>Huỷ</Button>
+          <Button onClick={handleChangePassword} variant="contained" disabled={changingPassword} sx={{ fontWeight: 700, borderRadius: 2 }}>
+            {changingPassword ? <CircularProgress size={24} color="inherit" /> : 'Xác Nhận Đổi'}
           </Button>
         </DialogActions>
       </Dialog>
