@@ -1,4 +1,4 @@
-import { Dialog, Box, Typography, IconButton, Button, TextField, CircularProgress, Chip, Grid, Avatar, useTheme, useMediaQuery, DialogContent, FormControlLabel, Checkbox, DialogActions, DialogTitle } from '@mui/material';
+import { Dialog, Box, Typography, IconButton, Button, TextField, CircularProgress, Chip, Grid, Avatar, useTheme, useMediaQuery, DialogContent, FormControlLabel, Checkbox, DialogActions, DialogTitle, Alert } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import SendIcon from '@mui/icons-material/Send';
@@ -88,6 +88,14 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
   const [disclaimerType, setDisclaimerType] = useState<'submit' | 'drive'>('submit');
   const [driveLink, setDriveLink] = useState<string>('');
 
+  const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'https://unifolio-backend.nguyendinhteki.workers.dev';
+  const [verificationOpen, setVerificationOpen] = useState(false);
+  const [verifyEmail, setVerifyEmail] = useState('');
+  const [verifyCode, setVerifyCode] = useState('');
+  const [verifying, setVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState('');
+
+
   if (!asset) return null;
 
   const parsedDate = typeof asset.createdAt === 'number' && asset.createdAt < 100000
@@ -107,7 +115,28 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
     if (disclaimerType === 'submit') {
       await submitForm();
     } else if (disclaimerType === 'drive' && driveLink) {
+      setVerificationOpen(true);
+    }
+  };
+
+  const handleVerifyAccess = async () => {
+    setVerifying(true);
+    setVerifyError('');
+    try {
+      const res = await fetch(`${WORKER_URL}/api/drive-access/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resourceId: asset.id, email: verifyEmail, code: verifyCode })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Lỗi xác thực');
+      
+      setVerificationOpen(false);
       window.open(driveLink, '_blank');
+    } catch (e: any) {
+      setVerifyError(e.message);
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -325,6 +354,26 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
             )}
           </Box>
         </DialogContent>
+      </Dialog>
+
+
+      {/* Verification Dialog */}
+      <Dialog open={verificationOpen} onClose={() => setVerificationOpen(false)} maxWidth="xs" fullWidth sx={{ '& .MuiDialog-paper': { borderRadius: 4 } }}>
+        <DialogTitle sx={{ fontWeight: 800, textAlign: 'center', pb: 1 }}>Truy cập Google Drive</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mb: 3 }}>
+            Tài liệu này được bảo mật. Vui lòng nhập Email đã đăng ký và Mã bảo vệ do Ban quản trị cấp để truy cập.
+          </Typography>
+          {verifyError && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{verifyError}</Alert>}
+          <TextField fullWidth label="Email của bạn" type="email" value={verifyEmail} onChange={e => setVerifyEmail(e.target.value)} sx={{ mb: 2 }} />
+          <TextField fullWidth label="Mã bảo vệ" value={verifyCode} onChange={e => setVerifyCode(e.target.value)} />
+        </DialogContent>
+        <DialogActions sx={{ p: 3, pt: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Button fullWidth variant="contained" onClick={handleVerifyAccess} disabled={verifying || !verifyEmail || !verifyCode} sx={{ borderRadius: 100, py: 1.5, fontWeight: 700 }}>
+            {verifying ? 'Đang kiểm tra...' : 'Xác thực & Mở Link'}
+          </Button>
+          <Button fullWidth onClick={() => setVerificationOpen(false)} sx={{ borderRadius: 100, color: 'text.secondary', fontWeight: 600 }}>Hủy bỏ</Button>
+        </DialogActions>
       </Dialog>
 
       {/* Disclaimer Dialog */}

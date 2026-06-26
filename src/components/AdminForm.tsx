@@ -15,6 +15,7 @@ import EditNoteIcon from '@mui/icons-material/EditNote';
 import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LockIcon from '@mui/icons-material/Lock';
+import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -714,6 +715,11 @@ export default function AdminForm() {
 
   const [originalCategories, setOriginalCategories] = useState<Category[]>([]);
   const [categoriesList, setCategoriesList] = useState<Category[]>([]);
+
+  const [driveAccessCodes, setDriveAccessCodes] = useState<any[]>([]);
+  const [loadingCodes, setLoadingCodes] = useState(false);
+  const [codeFormData, setCodeFormData] = useState({ resourceId: '', email: '', durationDays: 1 });
+
   const [categoriesSha, setCategoriesSha] = useState('');
   const [loadingCategories, setLoadingCategories] = useState(false);
 
@@ -1893,6 +1899,75 @@ export default function AdminForm() {
     }
   };
 
+  
+  const fetchDriveCodes = async () => {
+    setLoadingCodes(true);
+    try {
+      const res = await fetch(`${WORKER_URL}/api/drive-access`, {
+        headers: { 'Authorization': `Basic ${btoa(currentUser.username + ':' + sessionStorage.getItem('unifolio_pass'))}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setDriveAccessCodes(data);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingCodes(false);
+    }
+  };
+
+  useEffect(() => {
+    if (tabIndex === 14 && currentUser) {
+      fetchDriveCodes();
+    }
+  }, [tabIndex]);
+
+  const handleGenerateCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!codeFormData.resourceId || !codeFormData.email) return;
+    
+    // Find resource name for better display
+    let rName = 'N/A';
+    const allAssets = [...projectsList, ...unityAssetsList];
+    const targetAsset = allAssets.find(a => a.id === codeFormData.resourceId);
+    if (targetAsset) rName = targetAsset.name;
+
+    try {
+      const res = await fetch(`${WORKER_URL}/api/drive-access/generate`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${btoa(currentUser.username + ':' + sessionStorage.getItem('unifolio_pass'))}` 
+        },
+        body: JSON.stringify({ ...codeFormData, resourceName: rName })
+      });
+      if (!res.ok) throw new Error('Lỗi tạo mã');
+      const data = await res.json();
+      setDriveAccessCodes(data);
+      setStatus({ type: 'success', message: 'Tạo mã thành công!' });
+      setCodeFormData({ resourceId: '', email: '', durationDays: 1 });
+    } catch (e: any) {
+      setStatus({ type: 'error', message: e.message });
+    }
+  };
+
+  const handleDeleteCode = async (id: string) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa/thu hồi mã này?')) return;
+    try {
+      const res = await fetch(`${WORKER_URL}/api/drive-access/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Basic ${btoa(currentUser.username + ':' + sessionStorage.getItem('unifolio_pass'))}` }
+      });
+      if (!res.ok) throw new Error('Lỗi xóa mã');
+      const data = await res.json();
+      setDriveAccessCodes(data);
+      setStatus({ type: 'success', message: 'Đã thu hồi mã thành công!' });
+    } catch (e: any) {
+      setStatus({ type: 'error', message: e.message });
+    }
+  };
+
   const handleManualBuild = async () => {
     if (!currentUser) {
       setStatus({ type: 'error', message: 'Vui lòng đăng nhập để thực hiện.' });
@@ -2112,6 +2187,11 @@ export default function AdminForm() {
               <ListSubheader sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'info.main', fontSize: '0.75rem', letterSpacing: '0.05em', mt: 1 }}>
                 <SettingsIcon fontSize="small" /> QUẢN LÝ CHUNG
               </ListSubheader>
+              <ListItemButton selected={tabIndex === 14} onClick={() => setTabIndex(14)} sx={{ mt: 1, bgcolor: tabIndex === 14 ? 'primary.main' : 'rgba(168, 85, 247, 0.05)', borderRadius: 3, '&:hover': { bgcolor: tabIndex === 14 ? 'primary.dark' : 'rgba(168, 85, 247, 0.15)' } }}>
+                <ListItemIcon sx={{ minWidth: 32 }}><VpnKeyIcon fontSize="small" sx={{ color: tabIndex === 14 ? '#fff' : '#A855F7' }} /></ListItemIcon>
+                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 14 ? 700 : 500, fontSize: '0.9rem', color: tabIndex === 14 ? '#fff' : 'inherit' }}>Mã Bảo Vệ Drive</Typography>} />
+              </ListItemButton>
+
               <ListItemButton selected={tabIndex === 5} onClick={() => setTabIndex(5)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 5 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Chuyên Ngành</Typography>} />
               </ListItemButton>
@@ -2331,6 +2411,90 @@ export default function AdminForm() {
             {tabIndex === 13 && (
               <Box sx={{ animation: 'fadeIn 0.3s' }}>
                 <UserManagement workerUrl={WORKER_URL} currentUser={currentUser} />
+              </Box>
+            )}
+
+            {/* Tab 14: Mã Bảo Vệ Drive */}
+            {tabIndex === 14 && (
+              <Box>
+                <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Typography variant="h5" sx={{ fontWeight: 800 }}>Quản Lý Mã Bảo Vệ Drive</Typography>
+                  <Button variant="contained" onClick={fetchDriveCodes} disabled={loadingCodes} startIcon={loadingCodes ? <CircularProgress size={20} /> : <AutoAwesomeIcon />}>Làm Mới</Button>
+                </Box>
+                
+                <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 4, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+                  <Typography variant="h6" sx={{ mb: 3, fontWeight: 700 }}>Cấp mã mới</Typography>
+                  <form onSubmit={handleGenerateCode}>
+                    <Grid container spacing={3}>
+                      <Grid size={{ xs: 12, md: 6 }}>
+                        <Autocomplete
+                          options={[...projectsList, ...unityAssetsList]}
+                          getOptionLabel={(option) => `[${option.isGoldenTicket !== undefined ? 'Dự án' : 'Tài nguyên'}] ${option.name}`}
+                          onChange={(_, val) => setCodeFormData({...codeFormData, resourceId: val ? val.id : ''})}
+                          renderInput={(params) => <TextField {...params} label="Chọn tài nguyên" required />}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 3 }}>
+                        <TextField fullWidth label="Email người nhận" type="email" value={codeFormData.email} onChange={e => setCodeFormData({...codeFormData, email: e.target.value})} required />
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 3 }}>
+                        <FormControl fullWidth>
+                          <InputLabel>Thời hạn</InputLabel>
+                          <Select value={codeFormData.durationDays} label="Thời hạn" onChange={e => setCodeFormData({...codeFormData, durationDays: Number(e.target.value)})}>
+                            <MenuItem value={1}>24 giờ (1 ngày)</MenuItem>
+                            <MenuItem value={2}>48 giờ (2 ngày)</MenuItem>
+                            <MenuItem value={3}>3 ngày</MenuItem>
+                            <MenuItem value={7}>7 ngày</MenuItem>
+                            <MenuItem value={30}>30 ngày</MenuItem>
+                            <MenuItem value={0}>Vĩnh viễn (0)</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid size={{ xs: 12 }}>
+                        <Button type="submit" variant="contained" color="primary" sx={{ px: 4, py: 1.5, borderRadius: 2, fontWeight: 700 }}>Tạo Mã Bảo Vệ</Button>
+                      </Grid>
+                    </Grid>
+                  </form>
+                </Paper>
+
+                <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4 }}>
+                  <Table>
+                    <TableHead sx={{ bgcolor: 'action.hover' }}>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 700 }}>Tài Nguyên</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>Email</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>Mã Bảo Vệ</TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>Hết Hạn</TableCell>
+                        <TableCell sx={{ fontWeight: 700, width: 80 }} align="center">Xóa</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {loadingCodes ? (
+                         <TableRow><TableCell colSpan={5} align="center" sx={{ py: 3 }}><CircularProgress /></TableCell></TableRow>
+                      ) : driveAccessCodes.length === 0 ? (
+                         <TableRow><TableCell colSpan={5} align="center" sx={{ py: 3, color: 'text.secondary' }}>Chưa có mã bảo vệ nào.</TableCell></TableRow>
+                      ) : (
+                        driveAccessCodes.map((codeItem) => (
+                          <TableRow key={codeItem.id}>
+                            <TableCell><Typography variant="body2" sx={{ fontWeight: 600 }}>{codeItem.resourceName}</Typography><Typography variant="caption" color="text.secondary">ID: {codeItem.resourceId}</Typography></TableCell>
+                            <TableCell>{codeItem.email}</TableCell>
+                            <TableCell><Chip label={codeItem.code} color="primary" variant="outlined" size="small" sx={{ fontWeight: 800, letterSpacing: 1 }} /></TableCell>
+                            <TableCell>
+                              {codeItem.expiresAt ? (
+                                <Typography variant="body2" color={Date.now() > codeItem.expiresAt ? 'error' : 'text.primary'}>
+                                  {new Date(codeItem.expiresAt).toLocaleString('vi-VN')} {Date.now() > codeItem.expiresAt && '(Đã hết hạn)'}
+                                </Typography>
+                              ) : <Typography variant="body2" color="success.main">Vĩnh viễn</Typography>}
+                            </TableCell>
+                            <TableCell align="center">
+                              <IconButton color="error" size="small" onClick={() => handleDeleteCode(codeItem.id)}><DeleteIcon fontSize="small" /></IconButton>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               </Box>
             )}
 

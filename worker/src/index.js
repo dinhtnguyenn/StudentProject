@@ -118,6 +118,71 @@ export default {
         }
       }
 
+      if (url.pathname.startsWith('/api/drive-access')) {
+        // verify endpoint is public
+        if (url.pathname === '/api/drive-access/verify' && request.method === 'POST') {
+          const { resourceId, email, code } = await request.json();
+          if (!resourceId || !email || !code) return new Response(JSON.stringify({ error: 'Thiếu thông tin' }), { status: 400, headers: corsHeaders });
+          
+          const codesStr = await env.UNIFOLIO_USERS.get('drive_access_codes') || '[]';
+          const codes = JSON.parse(codesStr);
+          const validCode = codes.find(c => c.resourceId === resourceId && c.email.toLowerCase() === email.toLowerCase() && c.code === code);
+          
+          if (!validCode) return new Response(JSON.stringify({ error: 'Sai email hoặc mã bảo vệ' }), { status: 403, headers: corsHeaders });
+          if (validCode.expiresAt && Date.now() > validCode.expiresAt) return new Response(JSON.stringify({ error: 'Mã bảo vệ đã hết hạn' }), { status: 403, headers: corsHeaders });
+          
+          return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+        }
+
+        // other endpoints require auth
+        const authHeader = request.headers.get('Authorization');
+        if (!authHeader) return new Response('Unauthorized', { status: 401, headers: corsHeaders });
+        const [username, password] = atob(authHeader.split(' ')[1]).split(':');
+        const user = await verifyAuth(env, username, password);
+        
+        // Ensure user is admin or has 'assets' edit permission (at least)
+        if (!user || (user.role !== 'SUPERADMIN' && !(user.permissions?.assets?.edit))) {
+          return new Response('Forbidden', { status: 403, headers: corsHeaders });
+        }
+
+        if (request.method === 'GET') {
+          const codesStr = await env.UNIFOLIO_USERS.get('drive_access_codes') || '[]';
+          return new Response(codesStr, { headers: corsHeaders });
+        }
+
+        if (request.method === 'POST') {
+          const body = await request.json();
+          const { resourceId, email, durationDays, code, resourceName } = body;
+          
+          const codesStr = await env.UNIFOLIO_USERS.get('drive_access_codes') || '[]';
+          let codes = JSON.parse(codesStr);
+          
+          const newCode = {
+            id: Date.now().toString(),
+            resourceId,
+            resourceName: resourceName || 'N/A',
+            email,
+            code: code || Math.random().toString(36).substring(2, 8).toUpperCase(),
+            createdAt: Date.now(),
+            expiresAt: durationDays > 0 ? Date.now() + durationDays * 86400000 : null
+          };
+          
+          codes.push(newCode);
+          await env.UNIFOLIO_USERS.put('drive_access_codes', JSON.stringify(codes));
+          
+          return new Response(JSON.stringify(codes), { headers: corsHeaders });
+        }
+
+        if (request.method === 'DELETE') {
+          const id = url.pathname.split('/').pop();
+          const codesStr = await env.UNIFOLIO_USERS.get('drive_access_codes') || '[]';
+          let codes = JSON.parse(codesStr);
+          codes = codes.filter(c => c.id !== id);
+          await env.UNIFOLIO_USERS.put('drive_access_codes', JSON.stringify(codes));
+          return new Response(JSON.stringify(codes), { headers: corsHeaders });
+        }
+      }
+
       if (url.pathname === '/api/content') {
         const pathParam = url.searchParams.get('path');
         
