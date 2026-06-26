@@ -2922,10 +2922,10 @@ export default function AdminForm() {
                           sx={{ ml: 0.5 }}
                         />
                       </Box>
-                      {selectedProjects.length > 0 && (
-                        {hasPerm('projects', 'delete') && <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteProjectsConfirm(true)} startIcon={<DeleteIcon />} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
+                      {selectedProjects.length > 0 && hasPerm('projects', 'delete') && (
+                        <Button variant="contained" color="error" size="small" onClick={() => setBulkDeleteProjectsConfirm(true)} startIcon={<DeleteIcon />} sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600, boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}>
                           Xoá {selectedProjects.length} mục
-                        </Button>}
+                        </Button>
                       )}
                     </Box>
 
