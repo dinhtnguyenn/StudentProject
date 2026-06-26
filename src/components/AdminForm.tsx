@@ -898,8 +898,8 @@ export default function AdminForm() {
   }, [hasUnsavedChanges]);
 
   // Form Handlers
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, [e.target.name]: e.target.value });
-  const handleQuillChange = (value: string) => setFormData({ ...formData, description: value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleQuillChange = (value: string) => setFormData(prev => ({ ...prev, description: value }));
   const fetchHtmlWithProxy = async (targetUrl: string) => {
     try {
       const res = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`);
