@@ -2,7 +2,6 @@ name = "unifolio-backend"
 main = "src/index.js"
 compatibility_date = "2023-10-16"
 
-# Cậu cần tạo KV namespace trên Cloudflare và điền ID vào đây. 
 # Chạy lệnh: npx wrangler kv:namespace create "UNIFOLIO_USERS"
 [[kv_namespaces]]
 binding = "UNIFOLIO_USERS"
