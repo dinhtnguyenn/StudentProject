@@ -366,7 +366,7 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
           </Typography>
           {verifyError && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{verifyError}</Alert>}
           <TextField fullWidth label="Email của bạn" type="email" value={verifyEmail} onChange={e => setVerifyEmail(e.target.value)} sx={{ mb: 2 }} />
-          <TextField fullWidth label="Mã bảo vệ" value={verifyCode} onChange={e => setVerifyCode(e.target.value)} />
+          <TextField fullWidth label="Mã bảo vệ" type="password" value={verifyCode} onChange={e => setVerifyCode(e.target.value)} />
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
           <Button fullWidth variant="contained" onClick={handleVerifyAccess} disabled={verifying || !verifyEmail || !verifyCode} sx={{ borderRadius: 100, py: 1.5, fontWeight: 700 }}>
