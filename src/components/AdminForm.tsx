@@ -916,41 +916,6 @@ export default function AdminForm() {
     }
   };
 
-  const fetchSingleVideoData = async (videoId: string) => {
-    if (!youtubeApiKey) throw new Error('Vui lòng cấu hình YouTube API Key trước khi sử dụng tính năng này.');
-    
-    const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${youtubeApiKey}`;
-    const res = await fetch(apiUrl);
-    const data = await res.json();
-
-    if (data.error) {
-      throw new Error(data.error.message || 'Lỗi từ YouTube API. Vui lòng kiểm tra lại API Key.');
-    }
-
-    if (!data.items || data.items.length === 0) {
-      throw new Error('Không tìm thấy video. Video có thể bị ẩn hoặc xóa.');
-    }
-
-    const snippet = data.items[0].snippet;
-    const title = snippet.title || '';
-    const description = snippet.description || '';
-    const publishDate = snippet.publishedAt || '';
-    
-    const thumbnails = snippet.thumbnails;
-    const thumbnail = thumbnails?.maxres?.url || thumbnails?.standard?.url || thumbnails?.high?.url || thumbnails?.medium?.url || thumbnails?.default?.url || `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-    
-    const teamMembers = parseTeamMembers(description);
-
-    return {
-      name: title || '',
-      thumbnail: thumbnail || '',
-      youtubeUrl: `https://www.youtube.com/watch?v=${videoId}`,
-      teamMembers: teamMembers.length > 0 ? teamMembers.join('\n') : '',
-      description: `<h3>DEBUG INFO</h3><p><b>Title:</b> ${title}</p><p><b>Thumbnail:</b> ${thumbnail}</p><p><b>PublishDate:</b> ${publishDate}</p><hr/>` + (description || ''),
-      semester: publishDate ? getSemesterFromDate(publishDate) : ''
-    };
-  };
-
   const handleFetchYoutube = async () => {
     if (!youtubeUrl.trim()) return;
     if (!youtubeApiKey) {
@@ -962,21 +927,39 @@ export default function AdminForm() {
       const videoId = extractYoutubeId(youtubeUrl.trim());
       if (!videoId) throw new Error('Link YouTube không hợp lệ');
 
-      const data = await fetchSingleVideoData(videoId);
-      setFormData(prev => {
-        const newData = {
-          ...prev,
-          name: data.name || '',
-          thumbnail: data.thumbnail || '',
-          youtubeUrl: data.youtubeUrl || '',
-          teamMembers: data.teamMembers || '',
-          description: data.description || '',
-          semester: data.semester || ''
-        };
-        console.log("Setting formData to:", newData);
-        return newData;
-      });
-      setStatus({ type: 'success', message: 'Đã lấy thông tin từ YouTube qua API! Tên video: ' + (data.name || 'RỖNG') });
+      const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${youtubeApiKey}`;
+      const res = await fetch(apiUrl);
+      const data = await res.json();
+
+      if (data.error) throw new Error(data.error.message || 'Lỗi từ YouTube API.');
+      if (!data.items || data.items.length === 0) throw new Error('Không tìm thấy video.');
+
+      const snippet = data.items[0].snippet;
+      const fetchedTitle = snippet.title || '';
+      const fetchedDescription = snippet.description || '';
+      const publishDate = snippet.publishedAt || '';
+      const thumbnails = snippet.thumbnails;
+      const fetchedThumbnail = thumbnails?.maxres?.url || thumbnails?.standard?.url || thumbnails?.high?.url || thumbnails?.medium?.url || thumbnails?.default?.url || `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+      const fetchedTeamMembers = parseTeamMembers(fetchedDescription);
+
+      const newName = fetchedTitle;
+      const newThumbnail = fetchedThumbnail;
+      const newYoutubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
+      const newTeamMembers = fetchedTeamMembers.length > 0 ? fetchedTeamMembers.join('\n') : '';
+      const newDescription = `<h3>DEBUG INFO V2</h3><p><b>fetchedTitle:</b> ${fetchedTitle}</p><p><b>newName:</b> ${newName}</p><hr/>` + fetchedDescription;
+      const newSemester = publishDate ? getSemesterFromDate(publishDate) : '';
+
+      setFormData(prev => ({
+        ...prev,
+        name: newName,
+        thumbnail: newThumbnail,
+        youtubeUrl: newYoutubeUrl,
+        teamMembers: newTeamMembers,
+        description: newDescription,
+        semester: newSemester
+      }));
+      
+      setStatus({ type: 'success', message: 'Đã lấy thông tin từ YouTube qua API!' });
     } catch (err: any) {
       setStatus({ type: 'error', message: err.message || 'Không thể lấy thông tin video.' });
     } finally {
@@ -2701,8 +2684,11 @@ export default function AdminForm() {
                       <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700, color: 'text.secondary' }}>Nhập một Video</Typography>
                       <Box sx={{ display: 'flex', gap: 1.5 }}>
                         <TextField fullWidth size="small" placeholder="Dán link YouTube để tự động điền..." value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleFetchYoutube())} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} />
-                        <Button variant="contained" onClick={handleFetchYoutube} disabled={fetching || !youtubeUrl.trim()} startIcon={fetching ? <CircularProgress size={18} color="inherit" /> : <AutoFixHighIcon />} sx={{ minWidth: 150, whiteSpace: 'nowrap', borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.39)', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
+                        <Button type="button" variant="contained" onClick={handleFetchYoutube} disabled={fetching || !youtubeUrl.trim()} startIcon={fetching ? <CircularProgress size={18} color="inherit" /> : <AutoFixHighIcon />} sx={{ minWidth: 150, whiteSpace: 'nowrap', borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.39)', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
                           {fetching ? 'Đang cào...' : 'Auto Fill YouTube'}
+                        </Button>
+                        <Button type="button" variant="outlined" color="secondary" onClick={() => setFormData(prev => ({ ...prev, name: 'TEST TITLE', thumbnail: 'TEST THUMB' }))}>
+                          Test Render
                         </Button>
                       </Box>
                     </Paper>
@@ -2747,7 +2733,7 @@ export default function AdminForm() {
                   <form onSubmit={handleSubmitProject}>
                     <Grid container spacing={2.5}>
                       <Grid size={{ xs: 12 }}>
-                        <TextField fullWidth label="Tên dự án" name="name" value={formData.name} onChange={handleChange} required />
+                        <TextField fullWidth label={`Tên dự án (Debug: ${formData.name.substring(0, 10)})`} name="name" value={formData.name} onChange={handleChange} required />
                       </Grid>
                       <Grid size={{ xs: 12, sm: 4 }}>
                         <FormControl fullWidth required>
