@@ -1027,8 +1027,8 @@ export default function AdminForm() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!githubToken || !githubOwner || !githubRepo) {
-      setStatus({ type: 'error', message: 'Vui lòng đăng nhập Github trước khi tải ảnh lên.' });
+    if (!currentUser) {
+      setStatus({ type: 'error', message: 'Vui lòng đăng nhập trước khi tải ảnh lên.' });
       return;
     }
 
@@ -1048,16 +1048,10 @@ export default function AdminForm() {
       const filename = `${folder}_${timestamp}${ext}`;
       const filePath = `public/images/${folder}/${filename}`;
 
-      const uploadRes = await fetch(`https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/${filePath}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `token ${githubToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          message: `Upload ${folder} image ${filename} [skip ci]`,
-          content: base64Data
-        })
+      const uploadRes = await fetch(`${import.meta.env.VITE_WORKER_URL || 'https://unifolio-backend.nguyendinhteki.workers.dev'}/api/content`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: currentUser?.username, password: loginPassword, path: filePath, message: `Upload ${folder} image ${filename} [skip ci]`, content: base64Data, branch: 'main' })
       });
 
       if (!uploadRes.ok) throw new Error('Không thể upload ảnh lên Github');
@@ -1196,7 +1190,7 @@ export default function AdminForm() {
   // Draft Actions (No direct commit)
   const handleSubmitProject = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!githubToken || !githubOwner || !githubRepo) {
+    if (!currentUser) {
       setStatus({ type: 'error', message: 'Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.' });
       setIsAuthenticated(false);
       return;
@@ -1225,7 +1219,7 @@ export default function AdminForm() {
 
   const handleSubmitArticle = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!githubToken || !githubOwner || !githubRepo) {
+    if (!currentUser) {
       setStatus({ type: 'error', message: 'Phiên đăng nhập không hợp lệ.' });
       return;
     }
@@ -1321,11 +1315,10 @@ export default function AdminForm() {
         const base64Content = (reader.result as string).split(',')[1];
         const ext = file.name.split('.').pop() || 'jpg';
         const fileName = `asset_${Date.now()}.${ext}`;
-        const uploadUrl = `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/assets/${fileName}`;
-        const res = await fetch(uploadUrl, {
-          method: 'PUT',
-          headers: { 'Authorization': `token ${githubToken}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: `Upload image for asset ${fileName} [skip ci]`, content: base64Content, branch: 'main' })
+        const res = await fetch(`${import.meta.env.VITE_WORKER_URL || 'https://unifolio-backend.nguyendinhteki.workers.dev'}/api/content`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: currentUser?.username, password: loginPassword, path: `public/assets/${fileName}`, message: `Upload image for asset ${fileName} [skip ci]`, content: base64Content, branch: 'main' })
         });
         if (!res.ok) throw new Error('Không thể upload ảnh');
         setUnityAssetsList(prev => prev.map(a => a.id === assetId ? { ...a, imageUrl: getAssetImagePath(fileName) } : a));
@@ -1776,8 +1769,8 @@ export default function AdminForm() {
       setStatus({ type: 'error', message: 'Hệ thống đang lỗi tải dữ liệu. Không thể lưu để bảo vệ dữ liệu cũ.' });
       return;
     }
-    if (!githubToken || !githubOwner || !githubRepo) {
-      setStatus({ type: 'error', message: 'Cấu hình GitHub chưa hợp lệ.' });
+    if (!currentUser) {
+      setStatus({ type: 'error', message: 'Cấu hình tài khoản chưa hợp lệ.' });
       return;
     }
     setIsSavingAll(true);
@@ -1918,7 +1911,7 @@ export default function AdminForm() {
   };
 
   const handleManualBuild = async () => {
-    if (!isAuthenticated || !githubToken || !githubOwner || !githubRepo) {
+    if (!currentUser) {
       setStatus({ type: 'error', message: 'Vui lòng đăng nhập để thực hiện.' });
       return;
     }
@@ -2540,12 +2533,10 @@ export default function AdminForm() {
                                   const base64Content = (reader.result as string).split(',')[1];
                                   const ext = file.name.split('.').pop();
                                   const fileName = `asset_${Date.now()}.${ext}`;
-                                  const uploadUrl = `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/assets/${fileName}`;
-                                  
-                                  const res = await fetch(uploadUrl, {
-                                    method: 'PUT',
-                                    headers: { 'Authorization': `token ${githubToken}`, 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ message: `Upload image for asset ${fileName} [skip ci]`, content: base64Content, branch: 'main' })
+                                  const res = await fetch(`${import.meta.env.VITE_WORKER_URL || 'https://unifolio-backend.nguyendinhteki.workers.dev'}/api/content`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ username: currentUser?.username, password: loginPassword, path: `public/assets/${fileName}`, message: `Upload image for asset ${fileName} [skip ci]`, content: base64Content, branch: 'main' })
                                   });
                                   if (!res.ok) throw new Error('Upload ảnh thất bại');
                                   
