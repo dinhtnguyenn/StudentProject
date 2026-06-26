@@ -1,5 +1,36 @@
 [
   {
+    "id": "1782491743825-0",
+    "name": "Game LAST DAYS",
+    "description": "<p></p>",
+    "thumbnail": "https://i.ytimg.com/vi/oxA81YDjn8s/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=oxA81YDjn8s",
+    "category": "1781846352023",
+    "teamMembers": [
+      "PS47010 - Đỗ Hoàng Duy Minh PS47095 - Nguyễn Ngọc Tâm PS46885 - Trần Đăng Khoa",
+      "PS46900 - Lý Thành Tâm",
+      "PS47043 - Nguyễn Nhan Đức"
+    ],
+    "semester": "SUMMER 2026",
+    "major": "1781836769312",
+    "techTags": []
+  },
+  {
+    "id": "1782491743876-1",
+    "name": "Game FRENZY",
+    "description": "<p></p>",
+    "thumbnail": "https://i.ytimg.com/vi/Gbyr3iWkjkg/maxresdefault.jpg",
+    "youtubeUrl": "https://www.youtube.com/watch?v=Gbyr3iWkjkg",
+    "category": "1781846352023",
+    "teamMembers": [
+      "TS00801 - Cao Phước Huy",
+      "PS46898 - Nguyễn Lâm Gia Bảo"
+    ],
+    "semester": "SUMMER 2026",
+    "major": "1781836769312",
+    "techTags": []
+  },
+  {
     "id": "1781844938517-2",
     "name": "Game Chiến trường huynh đệ / The Boys Battleground",
     "description": "",
