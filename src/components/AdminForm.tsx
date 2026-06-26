@@ -563,9 +563,6 @@ export default function AdminForm() {
   const [visibleUnityAssetsCount, setVisibleUnityAssetsCount] = useState(20);
   const muiTheme = useTheme();
 
-  const [isAdminUnlocked, setIsAdminUnlocked] = useState(() => sessionStorage.getItem('admin_unlocked') === 'true');
-  const [adminPassword, setAdminPassword] = useState('');
-  const [adminError, setAdminError] = useState('');
 
   // Settings / Auth State
   const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'https://unifolio-backend.nguyendinhteki.workers.dev';
@@ -919,56 +916,67 @@ export default function AdminForm() {
     }
   };
 
-  const fetchSingleVideoData = async (videoId: string, existingData?: any) => {
-    const oembedRes = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
-    let title = '';
-    if (oembedRes.ok) {
-      const oembedData = await oembedRes.json();
-      title = oembedData.title || '';
+  const fetchSingleVideoData = async (videoId: string) => {
+    if (!youtubeApiKey) throw new Error('Vui lòng cấu hình YouTube API Key trước khi sử dụng tính năng này.');
+    
+    const apiUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${youtubeApiKey}`;
+    const res = await fetch(apiUrl);
+    const data = await res.json();
+
+    if (data.error) {
+      throw new Error(data.error.message || 'Lỗi từ YouTube API. Vui lòng kiểm tra lại API Key.');
     }
 
-    const thumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-    const html = await fetchHtmlWithProxy(`https://www.youtube.com/watch?v=${videoId}`);
-
-    let description = '';
-    let teamMembers: string[] = [];
-    let publishDate = '';
-
-    const playerMatch = html.match(/var ytInitialPlayerResponse\s*=\s*(\{.+?\});/s) || html.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\});/s);
-    if (playerMatch) {
-      try {
-        const playerData = JSON.parse(playerMatch[1]);
-        description = playerData?.videoDetails?.shortDescription || '';
-        publishDate = playerData?.microformat?.playerMicroformatRenderer?.publishDate || '';
-      } catch { }
+    if (!data.items || data.items.length === 0) {
+      throw new Error('Không tìm thấy video. Video có thể bị ẩn hoặc xóa.');
     }
 
-    if (!description) {
-      const metaMatch = html.match(/<meta\s+name="description"\s+content="([^"]*?)"\s*\/?>/i);
-      if (metaMatch) description = metaMatch[1].replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-    }
-    if (description) teamMembers = parseTeamMembers(description);
+    const snippet = data.items[0].snippet;
+    const title = snippet.title || '';
+    const description = snippet.description || '';
+    const publishDate = snippet.publishedAt || '';
+    
+    const thumbnails = snippet.thumbnails;
+    const thumbnail = thumbnails?.maxres?.url || thumbnails?.standard?.url || thumbnails?.high?.url || thumbnails?.medium?.url || thumbnails?.default?.url || `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+    
+    const teamMembers = parseTeamMembers(description);
 
     return {
-      name: title || existingData?.name || '',
-      thumbnail: thumbnail || existingData?.thumbnail || '',
+      name: title || '',
+      thumbnail: thumbnail || '',
       youtubeUrl: `https://www.youtube.com/watch?v=${videoId}`,
-      teamMembers: teamMembers.length > 0 ? teamMembers.join('\n') : (existingData?.teamMembers || ''),
-      description: description || existingData?.description || '',
-      semester: publishDate ? getSemesterFromDate(publishDate) : (existingData?.semester || '')
+      teamMembers: teamMembers.length > 0 ? teamMembers.join('\n') : '',
+      description: `<h3>DEBUG INFO</h3><p><b>Title:</b> ${title}</p><p><b>Thumbnail:</b> ${thumbnail}</p><p><b>PublishDate:</b> ${publishDate}</p><hr/>` + (description || ''),
+      semester: publishDate ? getSemesterFromDate(publishDate) : ''
     };
   };
 
   const handleFetchYoutube = async () => {
     if (!youtubeUrl.trim()) return;
+    if (!youtubeApiKey) {
+      setStatus({ type: 'error', message: 'Vui lòng cấu hình YouTube API Key ở mục Cấu Hình trước.' });
+      return;
+    }
     setFetching(true);
     try {
       const videoId = extractYoutubeId(youtubeUrl.trim());
       if (!videoId) throw new Error('Link YouTube không hợp lệ');
 
-      const data = await fetchSingleVideoData(videoId, formData);
-      setFormData(prev => ({ ...prev, ...data }));
-      setStatus({ type: 'success', message: 'Đã lấy thông tin từ YouTube qua Proxy!' });
+      const data = await fetchSingleVideoData(videoId);
+      setFormData(prev => {
+        const newData = {
+          ...prev,
+          name: data.name || '',
+          thumbnail: data.thumbnail || '',
+          youtubeUrl: data.youtubeUrl || '',
+          teamMembers: data.teamMembers || '',
+          description: data.description || '',
+          semester: data.semester || ''
+        };
+        console.log("Setting formData to:", newData);
+        return newData;
+      });
+      setStatus({ type: 'success', message: 'Đã lấy thông tin từ YouTube qua API! Tên video: ' + (data.name || 'RỖNG') });
     } catch (err: any) {
       setStatus({ type: 'error', message: err.message || 'Không thể lấy thông tin video.' });
     } finally {
@@ -1138,18 +1146,21 @@ export default function AdminForm() {
             continue;
           }
 
+          const description = snippet.description || '';
+          const teamMembers = parseTeamMembers(description);
+
           const thumbnails = snippet.thumbnails;
           const thumbnail = thumbnails?.maxres?.url || thumbnails?.standard?.url || thumbnails?.high?.url || thumbnails?.medium?.url || thumbnails?.default?.url || '';
 
           if (!projectsList.some(p => (p.youtubeUrl && p.youtubeUrl.includes(videoId)) || p.id === videoId)) {
             newProjects.push({
               id: `${Date.now()}-${i}`,
-              name: title,
-              description: '',
+              name: title || '',
+              description: description,
               thumbnail: thumbnail,
               youtubeUrl: `https://www.youtube.com/watch?v=${videoId}`,
               category: '',
-              teamMembers: [],
+              teamMembers: teamMembers,
               semester: publishedAt ? getSemesterFromDate(publishedAt) : '',
               major: '',
               techTags: [] as string[],
@@ -1955,56 +1966,6 @@ export default function AdminForm() {
     }
   };
 
-  const hashPassword = async (password: string) => {
-    const msgBuffer = new TextEncoder().encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  };
-
-  const handleUnlockAdmin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const hash = await hashPassword(adminPassword);
-
-    if (hash === '46e4f685d950d3813695125d5cfb77889e6d3aa122ee2d9c1cf70a6d3f47461a') {
-      setIsAdminUnlocked(true);
-      sessionStorage.setItem('admin_unlocked', 'true');
-    } else {
-      setAdminError('Mật khẩu không chính xác!');
-    }
-  };
-
-  if (!isAdminUnlocked) {
-    return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 3 }}>
-        <Paper elevation={0} sx={{ p: 5, borderRadius: 6, width: '100%', maxWidth: 400, textAlign: 'center', border: '1px solid', borderColor: 'divider', boxShadow: '0 20px 40px rgba(0,0,0,0.08)' }}>
-          <Box sx={{ width: 64, height: 64, borderRadius: '50%', bgcolor: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 3 }}>
-            <LockIcon sx={{ color: 'white', fontSize: 32 }} />
-          </Box>
-          <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>Trang Quản trị</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
-            Vui lòng nhập mật khẩu để truy cập.
-          </Typography>
-          <form onSubmit={handleUnlockAdmin}>
-            <TextField
-              fullWidth
-              type={showPassword ? 'text' : 'password'}
-              label="Mật khẩu"
-              value={adminPassword}
-              onChange={e => { setAdminPassword(e.target.value); setAdminError(''); }}
-              error={!!adminError}
-              helperText={adminError}
-              sx={{ mb: 3 }}
-              slotProps={{ input: { endAdornment: (<InputAdornment position="end"><IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">{showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}</IconButton></InputAdornment>) } }}
-            />
-            <Button fullWidth variant="contained" type="submit" size="large" sx={{ borderRadius: 3, fontWeight: 700, py: 1.5 }}>
-              Mở Khóa
-            </Button>
-          </form>
-        </Paper>
-      </Box>
-    );
-  }
 
   if (!isAuthenticated) {
     return (
@@ -2750,7 +2711,7 @@ export default function AdminForm() {
                       <Box sx={{ display: 'flex', gap: 1.5 }}>
                         <TextField fullWidth size="small" placeholder="Dán link YouTube để tự động điền..." value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleFetchYoutube())} sx={{ '& .MuiOutlinedInput-root': { bgcolor: 'background.paper' } }} />
                         <Button variant="contained" onClick={handleFetchYoutube} disabled={fetching || !youtubeUrl.trim()} startIcon={fetching ? <CircularProgress size={18} color="inherit" /> : <AutoFixHighIcon />} sx={{ minWidth: 150, whiteSpace: 'nowrap', borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.39)', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
-                          {fetching ? 'Đang cào...' : 'Tự động điền'}
+                          {fetching ? 'Đang cào...' : 'Auto Fill YouTube'}
                         </Button>
                       </Box>
                     </Paper>
