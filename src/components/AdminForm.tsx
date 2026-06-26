@@ -946,7 +946,7 @@ export default function AdminForm() {
       const newThumbnail = fetchedThumbnail;
       const newYoutubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
       const newTeamMembers = fetchedTeamMembers.length > 0 ? fetchedTeamMembers.join('\n') : '';
-      const newDescription = `<h3>DEBUG INFO V2</h3><p><b>fetchedTitle:</b> ${fetchedTitle}</p><p><b>newName:</b> ${newName}</p><hr/>` + fetchedDescription;
+      const newDescription = fetchedDescription;
       const newSemester = publishDate ? getSemesterFromDate(publishDate) : '';
 
       setFormData(prev => ({
@@ -2687,9 +2687,6 @@ export default function AdminForm() {
                         <Button type="button" variant="contained" onClick={handleFetchYoutube} disabled={fetching || !youtubeUrl.trim()} startIcon={fetching ? <CircularProgress size={18} color="inherit" /> : <AutoFixHighIcon />} sx={{ minWidth: 150, whiteSpace: 'nowrap', borderRadius: 2, textTransform: 'none', fontWeight: 700, boxShadow: '0 4px 14px 0 rgba(37, 99, 235, 0.39)', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', '&.Mui-disabled': { background: muiTheme.palette.action.disabledBackground, color: muiTheme.palette.text.disabled, boxShadow: 'none' } }}>
                           {fetching ? 'Đang cào...' : 'Auto Fill YouTube'}
                         </Button>
-                        <Button type="button" variant="outlined" color="secondary" onClick={() => setFormData(prev => ({ ...prev, name: 'TEST TITLE', thumbnail: 'TEST THUMB' }))}>
-                          Test Render
-                        </Button>
                       </Box>
                     </Paper>
 
@@ -2733,12 +2730,12 @@ export default function AdminForm() {
                   <form onSubmit={handleSubmitProject}>
                     <Grid container spacing={2.5}>
                       <Grid size={{ xs: 12 }}>
-                        <TextField fullWidth label={`Tên dự án (Debug: ${formData.name.substring(0, 10)})`} name="name" value={formData.name} onChange={handleChange} required />
+                        <TextField fullWidth label="Tên dự án" name="name" value={formData.name} onChange={handleChange} required />
                       </Grid>
                       <Grid size={{ xs: 12, sm: 4 }}>
                         <FormControl fullWidth required>
                           <InputLabel>Loại dự án</InputLabel>
-                          <Select name="category" value={formData.category} label="Loại dự án" onChange={(e) => setFormData({ ...formData, category: e.target.value as string })}>
+                          <Select name="category" value={formData.category} label="Loại dự án" onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value as string }))}>
                             {categoriesList.map(cat => (
                               <MenuItem key={cat.id} value={cat.id}>{cat.name}</MenuItem>
                             ))}
