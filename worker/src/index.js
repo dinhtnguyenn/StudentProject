@@ -290,6 +290,19 @@ export default {
           const logStr = await env.UNIFOLIO_USERS.get('drive_access_log') || '[]';
           return new Response(logStr, { headers: corsHeaders });
         }
+        
+        // POST: decrypt assets array for Admin UI
+        if (url.pathname === '/api/admin/decrypt-assets' && request.method === 'POST') {
+          const items = await request.json();
+          const ENCRYPT_KEY = env.DRIVE_ENCRYPT_KEY || 'unifolio-default-key-2024';
+          const decrypted = items.map(item => {
+            if (item.driveLink && item.driveLink.startsWith('ENC:')) {
+              return { ...item, driveLink: xorDecrypt(item.driveLink.replace('ENC:', ''), ENCRYPT_KEY) };
+            }
+            return item;
+          });
+          return new Response(JSON.stringify(decrypted), { headers: corsHeaders });
+        }
 
         // POST: generate new code
         if (url.pathname === '/api/drive-access/generate' && request.method === 'POST') {
@@ -412,6 +425,12 @@ export default {
                       inItem.userCreate = exItem.userCreate;
                     }
                   }
+                }
+                
+                // --- Encrypt driveLink if saving unity-assets.json ---
+                if (path === 'public/data/unity-assets.json' && inItem.driveLink && !inItem.driveLink.startsWith('ENC:')) {
+                  const ENCRYPT_KEY = env.DRIVE_ENCRYPT_KEY || 'unifolio-default-key-2024';
+                  inItem.driveLink = 'ENC:' + xorEncrypt(inItem.driveLink, ENCRYPT_KEY);
                 }
               }
 

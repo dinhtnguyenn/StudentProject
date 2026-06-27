@@ -876,8 +876,30 @@ export default function AdminForm() {
         .finally(() => setLoadingArticleTypes(false));
 
       fetchFile(getUnityAssetsApiUrl())
-        .then(res => { 
-          const normalized = res.data.map((a: any) => ({ ...a, assetType: a.assetType ? String(a.assetType) : '', sourceId: a.sourceId ? String(a.sourceId) : '' }));
+        .then(async res => { 
+          let normalized = res.data.map((a: any) => ({ ...a, assetType: a.assetType ? String(a.assetType) : '', sourceId: a.sourceId ? String(a.sourceId) : '' }));
+          
+          // Decrypt driveLinks if needed
+          try {
+            const user = sessionStorage.getItem('unifolio_user');
+            const pass = sessionStorage.getItem('unifolio_pass');
+            if (user && pass) {
+              const decryptRes = await fetch(`${WORKER_URL}/api/admin/decrypt-assets`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Basic ${btoa(JSON.parse(user).username + ':' + pass)}`
+                },
+                body: JSON.stringify(normalized)
+              });
+              if (decryptRes.ok) {
+                normalized = await decryptRes.json();
+              }
+            }
+          } catch (e) {
+            console.error('Lỗi giải mã link Drive', e);
+          }
+
           setUnityAssetsList(normalized); 
           setOriginalUnityAssets(normalized); 
           setUnityAssetsSha(res.sha); 
