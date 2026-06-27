@@ -54,8 +54,13 @@ export default function UserManagement({ workerUrl, currentUser }: { workerUrl: 
   };
 
   const handleSaveUser = async () => {
-    if (!editUser.username || !editUser.password) {
-      alert('Vui lòng nhập tài khoản và mật khẩu');
+    const isNew = !users.find(u => u.username === editUser.username);
+    if (isNew && (!editUser.username || !editUser.password)) {
+      alert('Vui lòng nhập tài khoản và mật khẩu cho người dùng mới');
+      return;
+    }
+    if (!isNew && !editUser.username) {
+      alert('Tên đăng nhập không được để trống');
       return;
     }
     setIsSaving(true);

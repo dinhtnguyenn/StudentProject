@@ -172,29 +172,58 @@ export default {
         return new Response(JSON.stringify(safeUser), { status: 200, headers: corsHeaders });
       }
 
-      if (url.pathname === '/api/users') {
+      if (url.pathname.startsWith('/api/users')) {
         const authHeader = request.headers.get('Authorization');
         if (!authHeader) return new Response('Unauthorized', { status: 401, headers: corsHeaders });
-        const [username, password] = atob(authHeader.split(' ')[1]).split(':');
-        const user = await verifyAuth(env, username, password);
+        const [authUsername, authPassword] = atob(authHeader.split(' ')[1]).split(':');
+        const user = await verifyAuth(env, authUsername, authPassword);
         
         if (!user || user.role !== 'SUPERADMIN') {
           return new Response('Forbidden', { status: 403, headers: corsHeaders });
         }
 
-        if (request.method === 'GET') {
-          const usersStr = await env.UNIFOLIO_USERS.get('users') || '[]';
-          const users = JSON.parse(usersStr).map(u => {
+        const usersStr = await env.UNIFOLIO_USERS.get('users') || '[]';
+        let users = JSON.parse(usersStr);
+
+        if (url.pathname === '/api/users' && request.method === 'GET') {
+          const safeUsers = users.map(u => {
             const { password, ...rest } = u; 
             return rest;
           });
-          return new Response(JSON.stringify(users), { headers: corsHeaders });
+          return new Response(JSON.stringify(safeUsers), { headers: corsHeaders });
         }
         
-        if (request.method === 'POST') {
-          const newUsers = await request.json();
-          await env.UNIFOLIO_USERS.put('users', JSON.stringify(newUsers));
+        if (url.pathname === '/api/users' && request.method === 'POST') {
+          const newUser = await request.json();
+          if (users.find(u => u.username === newUser.username)) {
+             return new Response(JSON.stringify({ error: 'Tài khoản đã tồn tại' }), { status: 400, headers: corsHeaders });
+          }
+          users.push(newUser);
+          await env.UNIFOLIO_USERS.put('users', JSON.stringify(users));
           return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+        }
+
+        if (url.pathname.startsWith('/api/users/') && request.method === 'PUT') {
+           const targetUsername = decodeURIComponent(url.pathname.split('/').pop());
+           const updateData = await request.json();
+           const idx = users.findIndex(u => u.username === targetUsername);
+           if (idx === -1) return new Response(JSON.stringify({ error: 'Không tìm thấy tài khoản' }), { status: 404, headers: corsHeaders });
+           
+           if (!updateData.password) {
+             updateData.password = users[idx].password;
+           }
+           
+           users[idx] = { ...users[idx], ...updateData };
+           await env.UNIFOLIO_USERS.put('users', JSON.stringify(users));
+           return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+        }
+
+        if (url.pathname.startsWith('/api/users/') && request.method === 'DELETE') {
+           const targetUsername = decodeURIComponent(url.pathname.split('/').pop());
+           if (targetUsername === authUsername) return new Response(JSON.stringify({ error: 'Không thể xóa chính mình' }), { status: 400, headers: corsHeaders });
+           users = users.filter(u => u.username !== targetUsername);
+           await env.UNIFOLIO_USERS.put('users', JSON.stringify(users));
+           return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
         }
       }
 

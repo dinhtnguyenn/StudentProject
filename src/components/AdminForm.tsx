@@ -2575,7 +2575,7 @@ export default function AdminForm() {
                         <Grid container spacing={3}>
                           <Grid size={{ xs: 12, md: 6 }}>
                             <Autocomplete
-                              options={unityAssetsList.filter(a => a.driveLink)}
+                              options={unityAssetsList.filter(a => a.driveLink && (currentUser?.role === 'SUPERADMIN' || a.userCreate === currentUser?.username))}
                               getOptionLabel={(option) => option.name}
                               onChange={(_, val) => setCodeFormData({...codeFormData, resourceId: val ? val.id : '', driveLink: val?.driveLink || ''})}
                               renderInput={(params) => <TextField {...params} label="Chọn tài nguyên" required />}
@@ -2659,7 +2659,9 @@ export default function AdminForm() {
                                   </TableCell>
                                   {hasPerm('driveAccess', 'delete') && (
                                     <TableCell align="center">
-                                      <IconButton color="error" size="small" onClick={() => handleDeleteCode(codeItem.id)}><DeleteIcon fontSize="small" /></IconButton>
+                                      {hasPerm('driveAccess', 'delete', unityAssetsList.find(a => a.id === codeItem.resourceId)?.userCreate) && (
+                                        <IconButton color="error" size="small" onClick={() => handleDeleteCode(codeItem.id)}><DeleteIcon fontSize="small" /></IconButton>
+                                      )}
                                     </TableCell>
                                   )}
                                 </TableRow>
@@ -2753,7 +2755,9 @@ export default function AdminForm() {
                     ) : (reqTabValue === 0 ? driveAccessRequests.filter(r => r.status === 'pending') : driveAccessRequests.filter(r => r.status !== 'pending').sort((a, b) => (b.processedAt || 0) - (a.processedAt || 0))).length === 0 ? (
                       <TableRow><TableCell colSpan={5} align="center" sx={{ py: 4, color: 'text.secondary' }}>{reqTabValue === 0 ? 'Không có yêu cầu nào đang chờ duyệt.' : 'Chưa có lịch sử nào.'}</TableCell></TableRow>
                     ) : (
-                      (reqTabValue === 0 ? driveAccessRequests.filter(r => r.status === 'pending') : driveAccessRequests.filter(r => r.status !== 'pending').sort((a, b) => (b.processedAt || 0) - (a.processedAt || 0))).map(req => (
+                      (reqTabValue === 0 ? driveAccessRequests.filter(r => r.status === 'pending') : driveAccessRequests.filter(r => r.status !== 'pending').sort((a, b) => (b.processedAt || 0) - (a.processedAt || 0))).map(req => {
+                        const asset = unityAssetsList.find(a => a.id === req.resourceId);
+                        return (
                         <TableRow key={req.id} hover>
                           <TableCell>
                             <Typography sx={{ fontWeight: 700, fontSize: '0.9rem' }}>{req.name}</Typography>
@@ -2779,7 +2783,7 @@ export default function AdminForm() {
                           </TableCell>
                           <TableCell align="center">
                             {reqTabValue === 0 ? (
-                              hasPerm('driveAccess', 'edit') ? (
+                              hasPerm('driveAccess', 'edit', asset?.userCreate) ? (
                                 <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
                                   <Button size="small" variant="contained" color="success" onClick={() => setApproveFormData({ id: req.id, resourceId: req.resourceId, durationDays: 1, maxUses: 0, open: true })} sx={{ borderRadius: 10, textTransform: 'none', fontWeight: 700 }}>
                                     Duyệt
@@ -2796,7 +2800,8 @@ export default function AdminForm() {
                             )}
                           </TableCell>
                         </TableRow>
-                      ))
+                        );
+                      })
                     )}
                   </TableBody>
                 </Table>
