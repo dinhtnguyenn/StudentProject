@@ -75,6 +75,84 @@ async function verifyAuth(env, username, password) {
   return user || null;
 }
 
+// ─── XOR Encryption (simple, reversible, key from env) ───────────────────────
+function xorEncrypt(text, key) {
+  let result = '';
+  for (let i = 0; i < text.length; i++) {
+    result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+  }
+  return btoa(result);
+}
+
+function xorDecrypt(encoded, key) {
+  const raw = atob(encoded);
+  let result = '';
+  for (let i = 0; i < raw.length; i++) {
+    result += String.fromCharCode(raw.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+  }
+  return result;
+}
+
+// ─── Brute-force Rate Limiting ────────────────────────────────────────────────
+const MAX_FAILS = 5;
+const LOCKOUT_MS = 30 * 60 * 1000; // 30 minutes
+
+async function checkBruteForce(env, email, resourceId) {
+  const key = `brute:${email}:${resourceId}`;
+  const raw = await env.UNIFOLIO_USERS.get(key);
+  if (!raw) return { blocked: false, remaining: MAX_FAILS };
+  const state = JSON.parse(raw);
+  if (state.lockedUntil && Date.now() < state.lockedUntil) {
+    const mins = Math.ceil((state.lockedUntil - Date.now()) / 60000);
+    return { blocked: true, lockedUntil: state.lockedUntil, mins };
+  }
+  // Expired lockout, reset
+  if (state.lockedUntil && Date.now() >= state.lockedUntil) {
+    await env.UNIFOLIO_USERS.delete(key);
+    return { blocked: false, remaining: MAX_FAILS };
+  }
+  return { blocked: false, remaining: MAX_FAILS - (state.count || 0) };
+}
+
+async function recordFailedAttempt(env, email, resourceId, ipAddress) {
+  const key = `brute:${email}:${resourceId}`;
+  const raw = await env.UNIFOLIO_USERS.get(key);
+  let state = raw ? JSON.parse(raw) : { count: 0, attempts: [] };
+  state.count = (state.count || 0) + 1;
+  state.attempts = [...(state.attempts || []), { time: Date.now(), ip: ipAddress }].slice(-20);
+  if (state.count >= MAX_FAILS) {
+    state.lockedUntil = Date.now() + LOCKOUT_MS;
+  }
+  await env.UNIFOLIO_USERS.put(key, JSON.stringify(state), { expirationTtl: 3600 });
+  return state;
+}
+
+async function resetFailedAttempts(env, email, resourceId) {
+  const key = `brute:${email}:${resourceId}`;
+  await env.UNIFOLIO_USERS.delete(key);
+}
+
+// ─── Access Logging ───────────────────────────────────────────────────────────
+async function logAccess(env, { resourceId, email, code, success, reason, ipAddress, userAgent }) {
+  const logKey = 'drive_access_log';
+  const raw = await env.UNIFOLIO_USERS.get(logKey) || '[]';
+  const logs = JSON.parse(raw);
+  logs.unshift({
+    id: Date.now().toString(),
+    time: Date.now(),
+    resourceId,
+    email,
+    code: code ? code.substring(0, 2) + '****' : '?', // mask code in log
+    success,
+    reason: reason || null,
+    ip: ipAddress,
+    ua: userAgent ? userAgent.substring(0, 80) : null
+  });
+  // Keep last 500 logs
+  const trimmed = logs.slice(0, 500);
+  await env.UNIFOLIO_USERS.put(logKey, JSON.stringify(trimmed));
+}
+
 export default {
   async fetch(request, env, ctx) {
     if (request.method === 'OPTIONS') {
@@ -82,6 +160,8 @@ export default {
     }
 
     const url = new URL(request.url);
+    const ip = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
+    const ua = request.headers.get('User-Agent') || '';
 
     try {
       if (url.pathname === '/api/login' && request.method === 'POST') {
@@ -118,45 +198,108 @@ export default {
         }
       }
 
+      // ═══════════════════════════════════════════════════════════════════════
+      //  DRIVE ACCESS CONTROL
+      // ═══════════════════════════════════════════════════════════════════════
       if (url.pathname.startsWith('/api/drive-access')) {
-        // verify endpoint is public
+
+        // ── PUBLIC: verify ──────────────────────────────────────────────────
         if (url.pathname === '/api/drive-access/verify' && request.method === 'POST') {
           const { resourceId, email, code } = await request.json();
-          if (!resourceId || !email || !code) return new Response(JSON.stringify({ error: 'Thiếu thông tin' }), { status: 400, headers: corsHeaders });
-          
+          if (!resourceId || !email || !code) {
+            return new Response(JSON.stringify({ error: 'Thiếu thông tin' }), { status: 400, headers: corsHeaders });
+          }
+
+          // 1. Brute-force check
+          const bruteState = await checkBruteForce(env, email, resourceId);
+          if (bruteState.blocked) {
+            const msg = `Quá nhiều lần thử sai. Vui lòng thử lại sau ${bruteState.mins} phút.`;
+            await logAccess(env, { resourceId, email, code, success: false, reason: 'LOCKED', ipAddress: ip, userAgent: ua });
+            return new Response(JSON.stringify({ error: msg }), { status: 429, headers: corsHeaders });
+          }
+
+          // 2. Find the access code
+          const ENCRYPT_KEY = env.DRIVE_ENCRYPT_KEY || 'unifolio-default-key-2024';
           const codesStr = await env.UNIFOLIO_USERS.get('drive_access_codes') || '[]';
           const codes = JSON.parse(codesStr);
-          const validCode = codes.find(c => c.resourceId === resourceId && c.email.toLowerCase() === email.toLowerCase() && c.code === code);
-          
-          if (!validCode) return new Response(JSON.stringify({ error: 'Sai email hoặc mã bảo vệ' }), { status: 403, headers: corsHeaders });
-          if (validCode.expiresAt && Date.now() > validCode.expiresAt) return new Response(JSON.stringify({ error: 'Mã bảo vệ đã hết hạn' }), { status: 403, headers: corsHeaders });
-          
-          return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+          const validCode = codes.find(c => 
+            c.resourceId === resourceId && 
+            c.email.toLowerCase() === email.toLowerCase() && 
+            c.code === code
+          );
+
+          if (!validCode) {
+            await recordFailedAttempt(env, email, resourceId, ip);
+            const newState = await checkBruteForce(env, email, resourceId);
+            const rem = newState.remaining - 1;
+            await logAccess(env, { resourceId, email, code, success: false, reason: 'WRONG_CODE', ipAddress: ip, userAgent: ua });
+            const errMsg = rem <= 0 
+              ? `Sai email hoặc mã bảo vệ. Tài khoản bị khóa 30 phút.`
+              : `Sai email hoặc mã bảo vệ. Còn ${rem} lần thử.`;
+            return new Response(JSON.stringify({ error: errMsg }), { status: 403, headers: corsHeaders });
+          }
+
+          // 3. Check expiry
+          if (validCode.expiresAt && Date.now() > validCode.expiresAt) {
+            await logAccess(env, { resourceId, email, code, success: false, reason: 'EXPIRED', ipAddress: ip, userAgent: ua });
+            return new Response(JSON.stringify({ error: 'Mã bảo vệ đã hết hạn' }), { status: 403, headers: corsHeaders });
+          }
+
+          // 4. Check usage limit
+          if (validCode.maxUses && validCode.usedCount >= validCode.maxUses) {
+            await logAccess(env, { resourceId, email, code, success: false, reason: 'MAX_USES_REACHED', ipAddress: ip, userAgent: ua });
+            return new Response(JSON.stringify({ error: `Mã bảo vệ đã được sử dụng đủ ${validCode.maxUses} lần` }), { status: 403, headers: corsHeaders });
+          }
+
+          // 5. SUCCESS — increment usage, reset brute-force, log
+          const updatedCodes = codes.map(c => 
+            c.id === validCode.id 
+              ? { ...c, usedCount: (c.usedCount || 0) + 1 }
+              : c
+          );
+          await env.UNIFOLIO_USERS.put('drive_access_codes', JSON.stringify(updatedCodes));
+          await resetFailedAttempts(env, email, resourceId);
+          await logAccess(env, { resourceId, email, code, success: true, reason: 'OK', ipAddress: ip, userAgent: ua });
+
+          // 6. Decrypt and return the actual drive link
+          let driveLink = validCode.encryptedDriveLink 
+            ? xorDecrypt(validCode.encryptedDriveLink, ENCRYPT_KEY)
+            : validCode.driveLink || null;
+
+          return new Response(JSON.stringify({ success: true, driveLink }), { headers: corsHeaders });
         }
 
-        // other endpoints require auth
+        // ── ADMIN-ONLY endpoints ────────────────────────────────────────────
         const authHeader = request.headers.get('Authorization');
         if (!authHeader) return new Response('Unauthorized', { status: 401, headers: corsHeaders });
         const [username, password] = atob(authHeader.split(' ')[1]).split(':');
         const user = await verifyAuth(env, username, password);
         
-        // Ensure user is admin or has 'assets' edit permission (at least)
         if (!user || (user.role !== 'SUPERADMIN' && !(user.permissions?.assets?.edit))) {
           return new Response('Forbidden', { status: 403, headers: corsHeaders });
         }
 
-        if (request.method === 'GET') {
+        // GET: list all codes
+        if (url.pathname === '/api/drive-access' && request.method === 'GET') {
           const codesStr = await env.UNIFOLIO_USERS.get('drive_access_codes') || '[]';
           return new Response(codesStr, { headers: corsHeaders });
         }
 
-        if (request.method === 'POST') {
+        // GET: access logs
+        if (url.pathname === '/api/drive-access/logs' && request.method === 'GET') {
+          const logStr = await env.UNIFOLIO_USERS.get('drive_access_log') || '[]';
+          return new Response(logStr, { headers: corsHeaders });
+        }
+
+        // POST: generate new code
+        if (url.pathname === '/api/drive-access/generate' && request.method === 'POST') {
           const body = await request.json();
-          const { resourceId, email, durationDays, code, resourceName } = body;
-          
+          const { resourceId, email, durationDays, code, resourceName, driveLink, maxUses } = body;
+          const ENCRYPT_KEY = env.DRIVE_ENCRYPT_KEY || 'unifolio-default-key-2024';
+
           const codesStr = await env.UNIFOLIO_USERS.get('drive_access_codes') || '[]';
           let codes = JSON.parse(codesStr);
-          
+
           const newCode = {
             id: Date.now().toString(),
             resourceId,
@@ -164,22 +307,35 @@ export default {
             email,
             code: code || Math.random().toString(36).substring(2, 8).toUpperCase(),
             createdAt: Date.now(),
-            expiresAt: durationDays > 0 ? Date.now() + durationDays * 86400000 : null
+            expiresAt: durationDays > 0 ? Date.now() + durationDays * 86400000 : null,
+            maxUses: maxUses || null,
+            usedCount: 0,
+            encryptedDriveLink: driveLink ? xorEncrypt(driveLink, ENCRYPT_KEY) : null
           };
-          
+
           codes.push(newCode);
           await env.UNIFOLIO_USERS.put('drive_access_codes', JSON.stringify(codes));
-          
-          return new Response(JSON.stringify(codes), { headers: corsHeaders });
+
+          // Return codes but strip encrypted link for safety
+          const safeCodes = codes.map(c => {
+            const { encryptedDriveLink, ...rest } = c;
+            return { ...rest, hasDriveLink: !!encryptedDriveLink };
+          });
+          return new Response(JSON.stringify(safeCodes), { headers: corsHeaders });
         }
 
+        // DELETE: revoke a code
         if (request.method === 'DELETE') {
           const id = url.pathname.split('/').pop();
           const codesStr = await env.UNIFOLIO_USERS.get('drive_access_codes') || '[]';
           let codes = JSON.parse(codesStr);
           codes = codes.filter(c => c.id !== id);
           await env.UNIFOLIO_USERS.put('drive_access_codes', JSON.stringify(codes));
-          return new Response(JSON.stringify(codes), { headers: corsHeaders });
+          const safeCodes = codes.map(c => {
+            const { encryptedDriveLink, ...rest } = c;
+            return { ...rest, hasDriveLink: !!encryptedDriveLink };
+          });
+          return new Response(JSON.stringify(safeCodes), { headers: corsHeaders });
         }
       }
 
@@ -223,12 +379,10 @@ export default {
             try {
               let incomingArray;
               try {
-                // Handle base64 from btoa -> unescape -> encodeURIComponent which is utf8 safe
                 const b64Decoded = atob(content);
                 const utf8Str = decodeURIComponent(escape(b64Decoded));
                 incomingArray = JSON.parse(utf8Str);
               } catch (e) {
-                // fallback standard json parse if not base64
                 incomingArray = JSON.parse(atob(content));
               }
 

@@ -718,7 +718,10 @@ export default function AdminForm() {
 
   const [driveAccessCodes, setDriveAccessCodes] = useState<any[]>([]);
   const [loadingCodes, setLoadingCodes] = useState(false);
-  const [codeFormData, setCodeFormData] = useState({ resourceId: '', email: '', durationDays: 1 });
+  const [codeFormData, setCodeFormData] = useState({ resourceId: '', email: '', durationDays: 1, maxUses: 0, driveLink: '' });
+  const [driveAccessLogs, setDriveAccessLogs] = useState<any[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
+  const [logTabValue, setLogTabValue] = useState(0);
 
   const [categoriesSha, setCategoriesSha] = useState('');
   const [loadingCategories, setLoadingCategories] = useState(false);
@@ -1917,9 +1920,27 @@ export default function AdminForm() {
     }
   };
 
+  const fetchDriveLogs = async () => {
+    setLoadingLogs(true);
+    try {
+      const res = await fetch(`${WORKER_URL}/api/drive-access/logs`, {
+        headers: { 'Authorization': `Basic ${btoa(currentUser.username + ':' + sessionStorage.getItem('unifolio_pass'))}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setDriveAccessLogs(data);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingLogs(false);
+    }
+  };
+
   useEffect(() => {
     if (tabIndex === 14 && currentUser) {
       fetchDriveCodes();
+      fetchDriveLogs();
     }
   }, [tabIndex]);
 
@@ -1927,11 +1948,14 @@ export default function AdminForm() {
     e.preventDefault();
     if (!codeFormData.resourceId || !codeFormData.email) return;
     
-    // Find resource name for better display
+    // Find resource name and driveLink for better display
     let rName = 'N/A';
-    const allAssets = [...projectsList, ...unityAssetsList];
-    const targetAsset = allAssets.find(a => a.id === codeFormData.resourceId);
-    if (targetAsset) rName = targetAsset.name;
+    let rDriveLink = codeFormData.driveLink;
+    const targetAsset = unityAssetsList.find(a => a.id === codeFormData.resourceId);
+    if (targetAsset) {
+      rName = targetAsset.name;
+      if (!rDriveLink && targetAsset.driveLink) rDriveLink = targetAsset.driveLink;
+    }
 
     try {
       const res = await fetch(`${WORKER_URL}/api/drive-access/generate`, {
@@ -1940,13 +1964,20 @@ export default function AdminForm() {
           'Content-Type': 'application/json',
           'Authorization': `Basic ${btoa(currentUser.username + ':' + sessionStorage.getItem('unifolio_pass'))}` 
         },
-        body: JSON.stringify({ ...codeFormData, resourceName: rName })
+        body: JSON.stringify({ 
+          resourceId: codeFormData.resourceId,
+          email: codeFormData.email,
+          durationDays: codeFormData.durationDays,
+          maxUses: codeFormData.maxUses || null,
+          resourceName: rName,
+          driveLink: rDriveLink
+        })
       });
       if (!res.ok) throw new Error('Lỗi tạo mã');
       const data = await res.json();
       setDriveAccessCodes(data);
       setStatus({ type: 'success', message: 'Tạo mã thành công!' });
-      setCodeFormData({ resourceId: '', email: '', durationDays: 1 });
+      setCodeFormData({ resourceId: '', email: '', durationDays: 1, maxUses: 0, driveLink: '' });
     } catch (e: any) {
       setStatus({ type: 'error', message: e.message });
     }
@@ -2417,86 +2448,175 @@ export default function AdminForm() {
             {/* Tab 14: Mã Bảo Vệ Drive */}
             {tabIndex === 14 && (
               <Box>
-                <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Typography variant="h5" sx={{ fontWeight: 800 }}>Quản Lý Mã Bảo Vệ Drive</Typography>
-                  <Button variant="contained" onClick={fetchDriveCodes} disabled={loadingCodes} startIcon={loadingCodes ? <CircularProgress size={20} /> : <AutoAwesomeIcon />}>Làm Mới</Button>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button variant="outlined" onClick={() => { fetchDriveLogs(); }} disabled={loadingLogs} sx={{ borderRadius: 2, fontWeight: 600 }}>Làm mới Log</Button>
+                    <Button variant="contained" onClick={() => { fetchDriveCodes(); fetchDriveLogs(); }} disabled={loadingCodes} startIcon={loadingCodes ? <CircularProgress size={20} /> : <AutoAwesomeIcon />} sx={{ borderRadius: 2, fontWeight: 700 }}>Làm Mới</Button>
+                  </Box>
                 </Box>
-                
-                <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 4, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
-                  <Typography variant="h6" sx={{ mb: 3, fontWeight: 700 }}>Cấp mã mới</Typography>
-                  <form onSubmit={handleGenerateCode}>
-                    <Grid container spacing={3}>
-                      <Grid size={{ xs: 12, md: 6 }}>
-                        <Autocomplete
-                          options={unityAssetsList.filter(a => a.driveLink)}
-                          getOptionLabel={(option) => option.name}
-                          onChange={(_, val) => setCodeFormData({...codeFormData, resourceId: val ? val.id : ''})}
-                          renderInput={(params) => <TextField {...params} label="Chọn tài nguyên" required />}
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, md: 3 }}>
-                        <TextField fullWidth label="Email người nhận" type="email" value={codeFormData.email} onChange={e => setCodeFormData({...codeFormData, email: e.target.value})} required />
-                      </Grid>
-                      <Grid size={{ xs: 12, md: 3 }}>
-                        <FormControl fullWidth>
-                          <InputLabel>Thời hạn</InputLabel>
-                          <Select value={codeFormData.durationDays} label="Thời hạn" onChange={e => setCodeFormData({...codeFormData, durationDays: Number(e.target.value)})}>
-                            <MenuItem value={1}>24 giờ (1 ngày)</MenuItem>
-                            <MenuItem value={2}>48 giờ (2 ngày)</MenuItem>
-                            <MenuItem value={3}>3 ngày</MenuItem>
-                            <MenuItem value={7}>7 ngày</MenuItem>
-                            <MenuItem value={30}>30 ngày</MenuItem>
-                            <MenuItem value={0}>Vĩnh viễn (0)</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      <Grid size={{ xs: 12 }}>
-                        <Button type="submit" variant="contained" color="primary" sx={{ px: 4, py: 1.5, borderRadius: 2, fontWeight: 700 }}>Tạo Mã Bảo Vệ</Button>
-                      </Grid>
-                    </Grid>
-                  </form>
-                </Paper>
 
-                <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4 }}>
-                  <Table>
-                    <TableHead sx={{ bgcolor: 'action.hover' }}>
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: 700 }}>Tài Nguyên</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>Email</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>Mã Bảo Vệ</TableCell>
-                        <TableCell sx={{ fontWeight: 700 }}>Hết Hạn</TableCell>
-                        <TableCell sx={{ fontWeight: 700, width: 80 }} align="center">Xóa</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {loadingCodes ? (
-                         <TableRow><TableCell colSpan={5} align="center" sx={{ py: 3 }}><CircularProgress /></TableCell></TableRow>
-                      ) : driveAccessCodes.length === 0 ? (
-                         <TableRow><TableCell colSpan={5} align="center" sx={{ py: 3, color: 'text.secondary' }}>Chưa có mã bảo vệ nào.</TableCell></TableRow>
-                      ) : (
-                        driveAccessCodes.map((codeItem) => (
-                          <TableRow key={codeItem.id}>
-                            <TableCell><Typography variant="body2" sx={{ fontWeight: 600 }}>{codeItem.resourceName}</Typography><Typography variant="caption" color="text.secondary">ID: {codeItem.resourceId}</Typography></TableCell>
-                            <TableCell>{codeItem.email}</TableCell>
-                            <TableCell><Chip label={codeItem.code} color="primary" variant="outlined" size="small" sx={{ fontWeight: 800, letterSpacing: 1 }} /></TableCell>
-                            <TableCell>
-                              {codeItem.expiresAt ? (
-                                <Typography variant="body2" color={Date.now() > codeItem.expiresAt ? 'error' : 'text.primary'}>
-                                  {new Date(codeItem.expiresAt).toLocaleString('vi-VN')} {Date.now() > codeItem.expiresAt && '(Đã hết hạn)'}
-                                </Typography>
-                              ) : <Typography variant="body2" color="success.main">Vĩnh viễn</Typography>}
-                            </TableCell>
-                            <TableCell align="center">
-                              <IconButton color="error" size="small" onClick={() => handleDeleteCode(codeItem.id)}><DeleteIcon fontSize="small" /></IconButton>
-                            </TableCell>
+                {/* Tabs: Danh sách mã / Log truy cập */}
+                <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+                  <Box sx={{ display: 'flex', gap: 0 }}>
+                    {['Danh sách mã bảo vệ', 'Lịch sử truy cập'].map((label, idx) => (
+                      <Button key={idx} onClick={() => setLogTabValue(idx)} variant={logTabValue === idx ? 'contained' : 'text'} sx={{ borderRadius: 0, borderBottom: logTabValue === idx ? '2px solid' : '2px solid transparent', fontWeight: logTabValue === idx ? 700 : 500, px: 3 }}>{label}</Button>
+                    ))}
+                  </Box>
+                </Box>
+
+                {logTabValue === 0 && (
+                  <Box>
+                    {/* Form cấp mã mới */}
+                    <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 4, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+                      <Typography variant="h6" sx={{ mb: 3, fontWeight: 700 }}>Cấp mã mới</Typography>
+                      <form onSubmit={handleGenerateCode}>
+                        <Grid container spacing={2}>
+                          <Grid size={{ xs: 12, md: 5 }}>
+                            <Autocomplete
+                              options={unityAssetsList.filter(a => a.driveLink)}
+                              getOptionLabel={(option) => option.name}
+                              onChange={(_, val) => setCodeFormData({...codeFormData, resourceId: val ? val.id : '', driveLink: val?.driveLink || ''})}
+                              renderInput={(params) => <TextField {...params} label="Chọn tài nguyên" required />}
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, md: 4 }}>
+                            <TextField fullWidth label="Email người nhận" type="email" value={codeFormData.email} onChange={e => setCodeFormData({...codeFormData, email: e.target.value})} required />
+                          </Grid>
+                          <Grid size={{ xs: 6, md: 2 }}>
+                            <FormControl fullWidth>
+                              <InputLabel>Thời hạn</InputLabel>
+                              <Select value={codeFormData.durationDays} label="Thời hạn" onChange={e => setCodeFormData({...codeFormData, durationDays: Number(e.target.value)})}>
+                                <MenuItem value={1}>24 giờ</MenuItem>
+                                <MenuItem value={2}>2 ngày</MenuItem>
+                                <MenuItem value={3}>3 ngày</MenuItem>
+                                <MenuItem value={7}>7 ngày</MenuItem>
+                                <MenuItem value={30}>30 ngày</MenuItem>
+                                <MenuItem value={0}>Vĩnh viễn</MenuItem>
+                              </Select>
+                            </FormControl>
+                          </Grid>
+                          <Grid size={{ xs: 6, md: 1 }}>
+                            <TextField fullWidth label="Số lượt" type="number" helperText="0 = ∞" value={codeFormData.maxUses} onChange={e => setCodeFormData({...codeFormData, maxUses: Number(e.target.value)})} slotProps={{ htmlInput: { min: 0 } }} />
+                          </Grid>
+                          <Grid size={{ xs: 12 }}>
+                            <Button type="submit" variant="contained" color="primary" sx={{ px: 5, py: 1.5, borderRadius: 2, fontWeight: 700 }}>Tạo Mã Bảo Vệ</Button>
+                          </Grid>
+                        </Grid>
+                      </form>
+                    </Paper>
+
+                    {/* Bảng danh sách mã */}
+                    <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4 }}>
+                      <Table>
+                        <TableHead sx={{ bgcolor: 'action.hover' }}>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 700 }}>Tài Nguyên</TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>Email</TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>Mã Bảo Vệ</TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>Thời hạn</TableCell>
+                            <TableCell sx={{ fontWeight: 700 }} align="center">Đã dùng / Giới hạn</TableCell>
+                            <TableCell sx={{ fontWeight: 700 }} align="center">Link</TableCell>
+                            <TableCell sx={{ fontWeight: 700, width: 60 }} align="center">Xóa</TableCell>
                           </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                        </TableHead>
+                        <TableBody>
+                          {loadingCodes ? (
+                            <TableRow><TableCell colSpan={7} align="center" sx={{ py: 3 }}><CircularProgress /></TableCell></TableRow>
+                          ) : driveAccessCodes.length === 0 ? (
+                            <TableRow><TableCell colSpan={7} align="center" sx={{ py: 3, color: 'text.secondary' }}>Chưa có mã bảo vệ nào.</TableCell></TableRow>
+                          ) : (
+                            driveAccessCodes.map((codeItem) => {
+                              const isExpired = codeItem.expiresAt && Date.now() > codeItem.expiresAt;
+                              const isMaxed = codeItem.maxUses && codeItem.usedCount >= codeItem.maxUses;
+                              return (
+                                <TableRow key={codeItem.id} sx={{ bgcolor: isExpired || isMaxed ? 'rgba(239,68,68,0.04)' : 'inherit' }}>
+                                  <TableCell>
+                                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{codeItem.resourceName}</Typography>
+                                    <Typography variant="caption" color="text.secondary">ID: {codeItem.resourceId}</Typography>
+                                  </TableCell>
+                                  <TableCell><Typography variant="body2">{codeItem.email}</Typography></TableCell>
+                                  <TableCell>
+                                    <Chip label={codeItem.code} color={isExpired || isMaxed ? 'error' : 'primary'} variant="outlined" size="small" sx={{ fontWeight: 800, letterSpacing: 1 }} />
+                                  </TableCell>
+                                  <TableCell>
+                                    {codeItem.expiresAt ? (
+                                      <Typography variant="body2" color={isExpired ? 'error' : 'text.primary'} sx={{ fontSize: '0.8rem' }}>
+                                        {new Date(codeItem.expiresAt).toLocaleString('vi-VN')}
+                                        {isExpired && <Chip label="Hết hạn" color="error" size="small" sx={{ ml: 0.5, height: 18, fontSize: '0.65rem' }} />}
+                                      </Typography>
+                                    ) : <Chip label="Vĩnh viễn" color="success" variant="outlined" size="small" />}
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    <Typography variant="body2" color={isMaxed ? 'error' : 'text.primary'} sx={{ fontWeight: 700 }}>
+                                      {codeItem.usedCount || 0} / {codeItem.maxUses || '∞'}
+                                    </Typography>
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    {codeItem.hasDriveLink ? <Chip label="Có" color="success" size="small" /> : <Chip label="Không" size="small" variant="outlined" />}
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    <IconButton color="error" size="small" onClick={() => handleDeleteCode(codeItem.id)}><DeleteIcon fontSize="small" /></IconButton>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })
+                          )}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Box>
+                )}
+
+                {logTabValue === 1 && (
+                  <Box>
+                    <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4 }}>
+                      <Table size="small">
+                        <TableHead sx={{ bgcolor: 'action.hover' }}>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 700 }}>Thời gian</TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>Email</TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>Tài nguyên ID</TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>Mã (ẩn)</TableCell>
+                            <TableCell sx={{ fontWeight: 700 }} align="center">Kết quả</TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>Lý do</TableCell>
+                            <TableCell sx={{ fontWeight: 700 }}>IP</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {loadingLogs ? (
+                            <TableRow><TableCell colSpan={7} align="center" sx={{ py: 3 }}><CircularProgress /></TableCell></TableRow>
+                          ) : driveAccessLogs.length === 0 ? (
+                            <TableRow><TableCell colSpan={7} align="center" sx={{ py: 3, color: 'text.secondary' }}>Chưa có lịch sử nào.</TableCell></TableRow>
+                          ) : (
+                            driveAccessLogs.map((log) => (
+                              <TableRow key={log.id}>
+                                <TableCell sx={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{new Date(log.time).toLocaleString('vi-VN')}</TableCell>
+                                <TableCell sx={{ fontSize: '0.8rem' }}>{log.email}</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>{log.resourceId}</TableCell>
+                                <TableCell><code style={{ fontSize: '0.8rem' }}>{log.code}</code></TableCell>
+                                <TableCell align="center">
+                                  <Chip label={log.success ? 'Thành công' : 'Thất bại'} color={log.success ? 'success' : 'error'} size="small" />
+                                </TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem' }}>
+                                  {log.reason === 'OK' && 'Đúng mã'}
+                                  {log.reason === 'WRONG_CODE' && 'Sai mã/email'}
+                                  {log.reason === 'EXPIRED' && 'Hết hạn'}
+                                  {log.reason === 'LOCKED' && '🔒 Bị khóa'}
+                                  {log.reason === 'MAX_USES_REACHED' && 'Hết lượt dùng'}
+                                </TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontFamily: 'monospace' }}>{log.ip}</TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </Box>
+                )}
               </Box>
             )}
+
 
             {/* Tab 8: AI Settings */}
             {tabIndex === 8 && (

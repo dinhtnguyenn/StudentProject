@@ -132,7 +132,8 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
       if (!res.ok) throw new Error(data.error || 'Lỗi xác thực');
       
       setVerificationOpen(false);
-      window.open(driveLink, '_blank');
+      // Use server-decrypted link if available, otherwise fall back to local link
+      window.open(data.driveLink || driveLink, '_blank');
     } catch (e: any) {
       setVerifyError(e.message);
     } finally {
