@@ -1,4 +1,4 @@
-const CACHE_NAME = 'unifolio-images-6849f92';
+const CACHE_NAME = 'unifolio-images-2ecb5c3';
 const SAME_ORIGIN_PREFIXES = ['/assets/', '/images/'];
 const EXTERNAL_IMAGE_HOSTS = new Set(['i.ytimg.com', 'img.youtube.com']);
 

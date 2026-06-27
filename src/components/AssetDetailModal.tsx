@@ -145,20 +145,23 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
     setIsSubmitting(true);
     setSubmitStatus('idle');
 
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzczlHzPEtPko7GC6g1gl1JTfXdglZI6MfTScjkW49LdZdFVYyRcZr7DqtmdYYohpBf1g/exec";
-
     try {
-      const response = await fetch(GAS_URL, {
+      const response = await fetch(`${WORKER_URL}/api/drive-access/request`, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
-          message: `--- YÊU CẦU CẤP QUYỀN TÀI NGUYÊN ---\n\n📌 Tài Nguyên: ${asset.name}\n🏷 Loại: ${asset.assetTypeName || (asset.assetType === 'ACCOUNT' ? 'Unity Account' : 'Google Drive')}\n\n👤 Thông tin người yêu cầu:\n- Họ và Tên: ${formData.name}\n- Mã Sinh Viên: ${formData.studentId}\n- Trường: ${formData.school}\n- Email: ${formData.email}\n\n📝 Lý do / Mục đích:\n${formData.message}`
+          studentId: formData.studentId,
+          school: formData.school,
+          message: formData.message,
+          resourceId: asset.id,
+          resourceName: asset.name,
+          assetType: asset.assetTypeName || (asset.assetType === 'ACCOUNT' ? 'Unity Account' : 'Google Drive')
         })
       });
 
-      if (response.status === 200) {
+      if (response.ok) {
         setSubmitStatus('success');
       } else {
         setSubmitStatus('error');

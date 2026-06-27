@@ -42,6 +42,7 @@ import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import CategoryIcon from '@mui/icons-material/Category';
 import StorageIcon from '@mui/icons-material/Storage';
+import SendIcon from '@mui/icons-material/Send';
 import { motion } from 'framer-motion';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
@@ -723,6 +724,11 @@ export default function AdminForm() {
   const [driveAccessLogs, setDriveAccessLogs] = useState<any[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [logTabValue, setLogTabValue] = useState(0);
+
+  const [driveAccessRequests, setDriveAccessRequests] = useState<any[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
+  const [approveFormData, setApproveFormData] = useState({ id: '', resourceId: '', durationDays: 1, maxUses: 0, open: false });
+
 
   const [categoriesSha, setCategoriesSha] = useState('');
   const [loadingCategories, setLoadingCategories] = useState(false);
@@ -1943,6 +1949,72 @@ export default function AdminForm() {
     }
   };
 
+  const fetchDriveRequests = async () => {
+    setLoadingRequests(true);
+    try {
+      const res = await fetch(`${WORKER_URL}/api/drive-access/requests`, {
+        headers: { 'Authorization': `Basic ${btoa(currentUser.username + ':' + sessionStorage.getItem('unifolio_pass'))}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setDriveAccessRequests(data);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
+  const handleApproveRequest = async () => {
+    try {
+      const asset = unityAssetsList.find(a => a.id === approveFormData.resourceId);
+      if (!asset) {
+        setStatus({ type: 'error', message: 'Không tìm thấy tài nguyên' });
+        return;
+      }
+      const res = await fetch(`${WORKER_URL}/api/drive-access/requests/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Basic ${btoa(currentUser.username + ':' + sessionStorage.getItem('unifolio_pass'))}` },
+        body: JSON.stringify({
+          id: approveFormData.id,
+          durationDays: approveFormData.durationDays,
+          maxUses: approveFormData.maxUses,
+          driveLink: asset.driveLink
+        })
+      });
+      if (res.ok) {
+        setStatus({ type: 'success', message: 'Đã duyệt yêu cầu và gửi mã bảo vệ thành công' });
+        setApproveFormData({ ...approveFormData, open: false });
+        fetchDriveRequests();
+        fetchDriveCodes();
+      } else {
+        setStatus({ type: 'error', message: 'Lỗi khi duyệt yêu cầu' });
+      }
+    } catch (e) {
+      setStatus({ type: 'error', message: 'Lỗi mạng' });
+    }
+  };
+
+  const handleRejectRequest = async (id: string) => {
+    if (!window.confirm('Bạn có chắc chắn muốn từ chối yêu cầu này?')) return;
+    try {
+      const res = await fetch(`${WORKER_URL}/api/drive-access/requests/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Basic ${btoa(currentUser.username + ':' + sessionStorage.getItem('unifolio_pass'))}` },
+        body: JSON.stringify({ id })
+      });
+      if (res.ok) {
+        setStatus({ type: 'info', message: 'Đã từ chối yêu cầu và thông báo cho sinh viên' });
+        fetchDriveRequests();
+      } else {
+        setStatus({ type: 'error', message: 'Lỗi khi từ chối yêu cầu' });
+      }
+    } catch (e) {
+      setStatus({ type: 'error', message: 'Lỗi mạng' });
+    }
+  };
+
   const fetchDriveLogs = async () => {
     setLoadingLogs(true);
     try {
@@ -2224,9 +2296,13 @@ export default function AdminForm() {
               <ListSubheader sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'success.main', fontSize: '0.75rem', letterSpacing: '0.05em', mt: 1 }}>
                 <AutoAwesomeIcon fontSize="small" /> TÀI NGUYÊN (ASSETS)
               </ListSubheader>
-              <ListItemButton selected={tabIndex === 14} onClick={() => setTabIndex(14)} sx={{ mt: 1, mb: 1, bgcolor: tabIndex === 14 ? 'primary.main' : 'rgba(168, 85, 247, 0.05)', borderRadius: 3, '&:hover': { bgcolor: tabIndex === 14 ? 'primary.dark' : 'rgba(168, 85, 247, 0.15)' } }}>
+              <ListItemButton selected={tabIndex === 14} onClick={() => { setTabIndex(14); fetchDriveCodes(); fetchDriveLogs(); }} sx={{ mt: 1, mb: 1, bgcolor: tabIndex === 14 ? 'primary.main' : 'rgba(168, 85, 247, 0.05)', borderRadius: 3, '&:hover': { bgcolor: tabIndex === 14 ? 'primary.dark' : 'rgba(168, 85, 247, 0.15)' } }}>
                 <ListItemIcon sx={{ minWidth: 32 }}><VpnKeyIcon fontSize="small" sx={{ color: tabIndex === 14 ? '#fff' : '#A855F7' }} /></ListItemIcon>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 14 ? 700 : 500, fontSize: '0.9rem', color: tabIndex === 14 ? '#fff' : 'inherit' }}>Mã Bảo Vệ Drive</Typography>} />
+              </ListItemButton>
+              <ListItemButton selected={tabIndex === 15} onClick={() => { setTabIndex(15); fetchDriveRequests(); }} sx={{ mb: 1, bgcolor: tabIndex === 15 ? 'warning.main' : 'rgba(245, 158, 11, 0.05)', borderRadius: 3, '&:hover': { bgcolor: tabIndex === 15 ? 'warning.dark' : 'rgba(245, 158, 11, 0.15)' } }}>
+                <ListItemIcon sx={{ minWidth: 32 }}><SendIcon fontSize="small" sx={{ color: tabIndex === 15 ? '#fff' : '#F59E0B' }} /></ListItemIcon>
+                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 15 ? 700 : 500, fontSize: '0.9rem', color: tabIndex === 15 ? '#fff' : 'inherit' }}>Quản Lý Yêu Cầu {driveAccessRequests.length > 0 && <span style={{ background: '#fff', color: '#F59E0B', borderRadius: '50%', padding: '2px 8px', marginLeft: 8, fontSize: '0.8rem', fontWeight: 900 }}>{driveAccessRequests.length}</span>}</Typography>} />
               </ListItemButton>
               <ListItemButton selected={tabIndex === 9} onClick={() => setTabIndex(9)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 9 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Tài Nguyên</Typography>} />
@@ -2641,7 +2717,84 @@ export default function AdminForm() {
             )}
 
 
-            {/* Tab 8: AI Settings */}
+            {/* Tab 15: Quản Lý Yêu Cầu */}
+          {tabIndex === 15 && (
+            <Box sx={{ animation: 'fadeIn 0.3s ease-in-out' }}>
+              <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, color: '#1e293b' }}>Quản Lý Yêu Cầu Truy Cập</Typography>
+              <Typography color="text.secondary" sx={{ mb: 4 }}>Duyệt hoặc từ chối các yêu cầu xin mã bảo vệ từ sinh viên.</Typography>
+              
+              <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4 }}>
+                <Table>
+                  <TableHead sx={{ bgcolor: 'action.hover' }}>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 700 }}>Sinh Viên</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>Tài Nguyên</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>Lý Do</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>Thời Gian</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }} align="center">Thao Tác</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {loadingRequests ? (
+                      <TableRow><TableCell colSpan={5} align="center" sx={{ py: 3 }}><CircularProgress /></TableCell></TableRow>
+                    ) : driveAccessRequests.length === 0 ? (
+                      <TableRow><TableCell colSpan={5} align="center" sx={{ py: 4, color: 'text.secondary' }}>Không có yêu cầu nào đang chờ duyệt.</TableCell></TableRow>
+                    ) : (
+                      driveAccessRequests.map(req => (
+                        <TableRow key={req.id} hover>
+                          <TableCell>
+                            <Typography sx={{ fontWeight: 700, fontSize: '0.9rem' }}>{req.name}</Typography>
+                            <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>{req.studentId} - {req.school}</Typography>
+                            <Typography sx={{ fontSize: '0.75rem', color: 'primary.main', fontWeight: 600 }}>{req.email}</Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{req.resourceName}</Typography>
+                            <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>{req.assetType}</Typography>
+                          </TableCell>
+                          <TableCell sx={{ maxWidth: 250 }}>
+                            <Typography sx={{ fontSize: '0.8rem', whiteSpace: 'pre-wrap' }}>{req.message}</Typography>
+                          </TableCell>
+                          <TableCell sx={{ fontSize: '0.8rem' }}>{new Date(req.createdAt).toLocaleString('vi-VN')}</TableCell>
+                          <TableCell align="center">
+                            <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                              <Button size="small" variant="contained" color="success" onClick={() => setApproveFormData({ id: req.id, resourceId: req.resourceId, durationDays: 1, maxUses: 0, open: true })} sx={{ borderRadius: 10, textTransform: 'none', fontWeight: 700 }}>
+                                Duyệt
+                              </Button>
+                              <Button size="small" variant="outlined" color="error" onClick={() => handleRejectRequest(req.id)} sx={{ borderRadius: 10, textTransform: 'none', fontWeight: 700 }}>
+                                Từ chối
+                              </Button>
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+
+              {/* Approve Modal */}
+              <Dialog open={approveFormData.open} onClose={() => setApproveFormData({ ...approveFormData, open: false })} maxWidth="sm" fullWidth>
+                <DialogTitle sx={{ fontWeight: 900 }}>Duyệt Yêu Cầu</DialogTitle>
+                <DialogContent>
+                  <Typography variant="body2" sx={{ mb: 3 }}>Hệ thống sẽ tự sinh mã bảo vệ ngẫu nhiên và gửi thẳng vào email của sinh viên.</Typography>
+                  <Grid container spacing={2}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <TextField fullWidth type="number" label="Số ngày hiệu lực" value={approveFormData.durationDays} onChange={e => setApproveFormData({ ...approveFormData, durationDays: Number(e.target.value) })} helperText="0 = Vĩnh viễn" sx={{ mb: 2 }} />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <TextField fullWidth type="number" label="Số lần sử dụng (Max Uses)" value={approveFormData.maxUses} onChange={e => setApproveFormData({ ...approveFormData, maxUses: Number(e.target.value) })} helperText="0 = Không giới hạn" />
+                    </Grid>
+                  </Grid>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 3 }}>
+                  <Button onClick={() => setApproveFormData({ ...approveFormData, open: false })} variant="outlined" sx={{ borderRadius: 10 }}>Huỷ</Button>
+                  <Button onClick={handleApproveRequest} variant="contained" color="success" sx={{ borderRadius: 10, fontWeight: 700 }}>Xác nhận & Gửi Mail</Button>
+                </DialogActions>
+              </Dialog>
+            </Box>
+          )}
+
+          {/* Tab 8: AI Settings */}
             {tabIndex === 8 && (
               <Box sx={{ maxWidth: 800, mx: 'auto', py: 2 }}>
                 <Paper elevation={0} sx={{ p: 4, borderRadius: 4, background: 'linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)', border: '1px solid', borderColor: '#E9D5FF' }}>

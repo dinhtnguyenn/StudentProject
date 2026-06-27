@@ -203,6 +203,47 @@ export default {
       // ═══════════════════════════════════════════════════════════════════════
       if (url.pathname.startsWith('/api/drive-access')) {
 
+        // ── PUBLIC: request access ───────────────────────────────────────────
+        if (url.pathname === '/api/drive-access/request' && request.method === 'POST') {
+          const body = await request.json();
+          const reqsStr = await env.UNIFOLIO_USERS.get('drive_access_requests') || '[]';
+          let reqs = JSON.parse(reqsStr);
+          const newReq = {
+             id: Date.now().toString(),
+             ...body, 
+             createdAt: Date.now(),
+             status: 'pending'
+          };
+          reqs.push(newReq);
+          await env.UNIFOLIO_USERS.put('drive_access_requests', JSON.stringify(reqs));
+
+          // Send notification email to admin
+          const GAS_URL = "https://script.google.com/macros/s/AKfycbzczlHzPEtPko7GC6g1gl1JTfXdglZI6MfTScjkW49LdZdFVYyRcZr7DqtmdYYohpBf1g/exec";
+          const GAS_TOKEN = "unifolio-secret-999";
+          const clientOrigin = request.headers.get('Origin') || 'https://www.unifolio.io.vn';
+          const htmlBody = `
+            <h2>Có yêu cầu cấp quyền mới</h2>
+            <p><strong>Người gửi:</strong> ${newReq.name} (${newReq.studentId})</p>
+            <p><strong>Email:</strong> ${newReq.email}</p>
+            <p><strong>Tài nguyên:</strong> ${newReq.resourceName}</p>
+            <p><strong>Lý do:</strong> ${newReq.message}</p>
+            <p><a href="${clientOrigin}/admin">Vào Admin để duyệt</a></p>
+          `;
+          try {
+            await fetch(GAS_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify({
+                token: GAS_TOKEN,
+                subject: `[Yêu cầu cấp quyền] ${newReq.resourceName} - ${newReq.studentId}`,
+                htmlBody: htmlBody
+              })
+            });
+          } catch(e) { console.error(e); }
+
+          return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+        }
+
         // ── PUBLIC: verify ──────────────────────────────────────────────────
         if (url.pathname === '/api/drive-access/verify' && request.method === 'POST') {
           const { resourceId, email, code } = await request.json();
@@ -277,6 +318,130 @@ export default {
         
         if (!user || (user.role !== 'SUPERADMIN' && !(user.permissions?.assets?.edit))) {
           return new Response('Forbidden', { status: 403, headers: corsHeaders });
+        }
+
+        // GET: list access requests
+        if (url.pathname === '/api/drive-access/requests' && request.method === 'GET') {
+          const reqsStr = await env.UNIFOLIO_USERS.get('drive_access_requests') || '[]';
+          return new Response(reqsStr, { headers: corsHeaders });
+        }
+
+        // POST: approve access request
+        if (url.pathname === '/api/drive-access/requests/approve' && request.method === 'POST') {
+          const { id, durationDays, maxUses, driveLink } = await request.json();
+          const reqsStr = await env.UNIFOLIO_USERS.get('drive_access_requests') || '[]';
+          let reqs = JSON.parse(reqsStr);
+          const reqIndex = reqs.findIndex(r => r.id === id);
+          if (reqIndex === -1) return new Response('Not found', { status: 404, headers: corsHeaders });
+          const reqData = reqs[reqIndex];
+
+          const ENCRYPT_KEY = env.DRIVE_ENCRYPT_KEY || 'unifolio-default-key-2024';
+          const codesStr = await env.UNIFOLIO_USERS.get('drive_access_codes') || '[]';
+          let codes = JSON.parse(codesStr);
+
+          const codeStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+          const newCode = {
+            id: Date.now().toString(),
+            resourceId: reqData.resourceId,
+            resourceName: reqData.resourceName || 'N/A',
+            email: reqData.email,
+            code: codeStr,
+            createdAt: Date.now(),
+            expiresAt: durationDays > 0 ? Date.now() + durationDays * 86400000 : null,
+            maxUses: maxUses || null,
+            usedCount: 0,
+            encryptedDriveLink: driveLink ? xorEncrypt(driveLink, ENCRYPT_KEY) : null
+          };
+          codes.push(newCode);
+          await env.UNIFOLIO_USERS.put('drive_access_codes', JSON.stringify(codes));
+
+          reqs.splice(reqIndex, 1);
+          await env.UNIFOLIO_USERS.put('drive_access_requests', JSON.stringify(reqs));
+
+          const GAS_URL = "https://script.google.com/macros/s/AKfycbzczlHzPEtPko7GC6g1gl1JTfXdglZI6MfTScjkW49LdZdFVYyRcZr7DqtmdYYohpBf1g/exec";
+          const GAS_TOKEN = "unifolio-secret-999";
+          const expireText = durationDays > 0 ? `${durationDays} ngày` : 'Vĩnh viễn';
+          const usesText = maxUses > 0 ? `${maxUses} lần` : 'Không giới hạn';
+          const htmlBody = `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+              <div style="background-color: #2563EB; color: white; padding: 24px; text-align: center;">
+                <h1 style="margin: 0; font-size: 24px;">Truy Cập Tài Nguyên</h1>
+              </div>
+              <div style="padding: 24px; background-color: #f9fafb;">
+                <p>Chào <strong>${reqData.name}</strong>,</p>
+                <p>Yêu cầu truy cập tài nguyên của bạn đã được <strong>chấp nhận</strong>.</p>
+                
+                <div style="background-color: white; border-radius: 8px; padding: 16px; margin: 20px 0; border: 1px solid #e5e7eb;">
+                  <p style="margin: 0 0 10px 0;"><strong>Tài nguyên:</strong> ${reqData.resourceName}</p>
+                  <p style="margin: 0 0 10px 0;"><strong>Mã bảo vệ:</strong> <span style="background: #eff6ff; color: #1d4ed8; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-family: monospace; font-size: 18px;">${codeStr}</span></p>
+                  <p style="margin: 0 0 10px 0;"><strong>Thời hạn:</strong> ${expireText}</p>
+                  <p style="margin: 0;"><strong>Số lượt dùng:</strong> ${usesText}</p>
+                </div>
+                
+                <p>Hãy truy cập lại trang tài nguyên, sử dụng email <strong>${reqData.email}</strong> và Mã bảo vệ trên để mở khoá tài nguyên nhé.</p>
+                <p style="margin-top: 30px; color: #6b7280; font-size: 14px;">Trân trọng,<br>Unifolio Team</p>
+              </div>
+            </div>
+          `;
+
+          try {
+            await fetch(GAS_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify({
+                token: GAS_TOKEN,
+                toAddress: reqData.email,
+                subject: `[Unifolio] Mã bảo vệ tài nguyên: ${reqData.resourceName}`,
+                htmlBody: htmlBody
+              })
+            });
+          } catch(e) { console.error(e); }
+
+          return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+        }
+
+        // POST: reject access request
+        if (url.pathname === '/api/drive-access/requests/reject' && request.method === 'POST') {
+          const { id } = await request.json();
+          const reqsStr = await env.UNIFOLIO_USERS.get('drive_access_requests') || '[]';
+          let reqs = JSON.parse(reqsStr);
+          const reqIndex = reqs.findIndex(r => r.id === id);
+          if (reqIndex === -1) return new Response('Not found', { status: 404, headers: corsHeaders });
+          const reqData = reqs[reqIndex];
+          
+          reqs.splice(reqIndex, 1);
+          await env.UNIFOLIO_USERS.put('drive_access_requests', JSON.stringify(reqs));
+
+          const GAS_URL = "https://script.google.com/macros/s/AKfycbzczlHzPEtPko7GC6g1gl1JTfXdglZI6MfTScjkW49LdZdFVYyRcZr7DqtmdYYohpBf1g/exec";
+          const GAS_TOKEN = "unifolio-secret-999";
+          const htmlBody = `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+              <div style="background-color: #EF4444; color: white; padding: 24px; text-align: center;">
+                <h1 style="margin: 0; font-size: 24px;">Từ Chối Cấp Quyền</h1>
+              </div>
+              <div style="padding: 24px; background-color: #f9fafb;">
+                <p>Chào <strong>${reqData.name}</strong>,</p>
+                <p>Yêu cầu truy cập tài nguyên <strong>${reqData.resourceName}</strong> của bạn đã bị từ chối.</p>
+                <p>Lý do có thể là thông tin bạn cung cấp chưa đủ để Unifolio phê duyệt, hoặc tài nguyên này hiện đang bị hạn chế.</p>
+                <p style="margin-top: 30px; color: #6b7280; font-size: 14px;">Trân trọng,<br>Unifolio Team</p>
+              </div>
+            </div>
+          `;
+
+          try {
+            await fetch(GAS_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify({
+                token: GAS_TOKEN,
+                toAddress: reqData.email,
+                subject: `[Unifolio] Yêu cầu truy cập bị từ chối: ${reqData.resourceName}`,
+                htmlBody: htmlBody
+              })
+            });
+          } catch(e) { console.error(e); }
+
+          return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
         }
 
         // GET: list all codes
