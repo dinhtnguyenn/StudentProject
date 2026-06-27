@@ -239,6 +239,32 @@ export default {
                 htmlBody: htmlBody
               })
             });
+
+            // Send notification email to student
+            const studentHtmlBody = `
+              <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+                <div style="background-color: #10B981; color: white; padding: 24px; text-align: center;">
+                  <h1 style="margin: 0; font-size: 24px;">Yêu Cầu Đã Được Tiếp Nhận</h1>
+                </div>
+                <div style="padding: 24px; background-color: #f9fafb;">
+                  <p>Chào <strong>${newReq.name}</strong>,</p>
+                  <p>Hệ thống đã ghi nhận yêu cầu xin cấp quyền truy cập tài nguyên của bạn.</p>
+                  <p><strong>Tài nguyên:</strong> ${newReq.resourceName}</p>
+                  <p>Unifolio sẽ xem xét và phản hồi qua email này trong thời gian sớm nhất.</p>
+                  <p style="margin-top: 30px; color: #6b7280; font-size: 14px;">Trân trọng,<br>Unifolio Team</p>
+                </div>
+              </div>
+            `;
+            await fetch(GAS_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify({
+                token: GAS_TOKEN,
+                toAddress: newReq.email,
+                subject: `[Unifolio] Đã tiếp nhận yêu cầu: ${newReq.resourceName}`,
+                htmlBody: studentHtmlBody
+              })
+            });
           } catch(e) { console.error(e); }
 
           return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
@@ -355,13 +381,15 @@ export default {
           codes.push(newCode);
           await env.UNIFOLIO_USERS.put('drive_access_codes', JSON.stringify(codes));
 
-          reqs.splice(reqIndex, 1);
+          reqs[reqIndex].status = 'approved';
+          reqs[reqIndex].processedAt = Date.now();
           await env.UNIFOLIO_USERS.put('drive_access_requests', JSON.stringify(reqs));
 
           const GAS_URL = "https://script.google.com/macros/s/AKfycbzczlHzPEtPko7GC6g1gl1JTfXdglZI6MfTScjkW49LdZdFVYyRcZr7DqtmdYYohpBf1g/exec";
           const GAS_TOKEN = "unifolio-secret-999";
           const expireText = durationDays > 0 ? `${durationDays} ngày` : 'Vĩnh viễn';
           const usesText = maxUses > 0 ? `${maxUses} lần` : 'Không giới hạn';
+          const clientOrigin = request.headers.get('Origin') || 'https://www.unifolio.io.vn';
           const htmlBody = `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
               <div style="background-color: #2563EB; color: white; padding: 24px; text-align: center;">
@@ -372,13 +400,13 @@ export default {
                 <p>Yêu cầu truy cập tài nguyên của bạn đã được <strong>chấp nhận</strong>.</p>
                 
                 <div style="background-color: white; border-radius: 8px; padding: 16px; margin: 20px 0; border: 1px solid #e5e7eb;">
-                  <p style="margin: 0 0 10px 0;"><strong>Tài nguyên:</strong> ${reqData.resourceName}</p>
+                  <p style="margin: 0 0 10px 0;"><strong>Tài nguyên:</strong> <a href="${clientOrigin}/asset/${reqData.resourceId}" style="color: #2563EB; text-decoration: none; font-weight: bold;">${reqData.resourceName}</a></p>
                   <p style="margin: 0 0 10px 0;"><strong>Mã bảo vệ:</strong> <span style="background: #eff6ff; color: #1d4ed8; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-family: monospace; font-size: 18px;">${codeStr}</span></p>
                   <p style="margin: 0 0 10px 0;"><strong>Thời hạn:</strong> ${expireText}</p>
                   <p style="margin: 0;"><strong>Số lượt dùng:</strong> ${usesText}</p>
                 </div>
                 
-                <p>Hãy truy cập lại trang tài nguyên, sử dụng email <strong>${reqData.email}</strong> và Mã bảo vệ trên để mở khoá tài nguyên nhé.</p>
+                <p>Hãy <a href="${clientOrigin}/asset/${reqData.resourceId}" style="color: #2563EB; font-weight: bold; text-decoration: underline;">bấm vào đây</a> để truy cập tài nguyên, sử dụng email <strong>${reqData.email}</strong> và Mã bảo vệ trên để mở khoá nhé.</p>
                 <p style="margin-top: 30px; color: #6b7280; font-size: 14px;">Trân trọng,<br>Unifolio Team</p>
               </div>
             </div>
@@ -409,7 +437,8 @@ export default {
           if (reqIndex === -1) return new Response('Not found', { status: 404, headers: corsHeaders });
           const reqData = reqs[reqIndex];
           
-          reqs.splice(reqIndex, 1);
+          reqs[reqIndex].status = 'rejected';
+          reqs[reqIndex].processedAt = Date.now();
           await env.UNIFOLIO_USERS.put('drive_access_requests', JSON.stringify(reqs));
 
           const GAS_URL = "https://script.google.com/macros/s/AKfycbzczlHzPEtPko7GC6g1gl1JTfXdglZI6MfTScjkW49LdZdFVYyRcZr7DqtmdYYohpBf1g/exec";

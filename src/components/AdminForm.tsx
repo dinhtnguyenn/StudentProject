@@ -728,6 +728,7 @@ export default function AdminForm() {
   const [driveAccessRequests, setDriveAccessRequests] = useState<any[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
   const [approveFormData, setApproveFormData] = useState({ id: '', resourceId: '', durationDays: 1, maxUses: 0, open: false });
+  const [reqTabValue, setReqTabValue] = useState(0);
 
 
   const [categoriesSha, setCategoriesSha] = useState('');
@@ -2302,7 +2303,7 @@ export default function AdminForm() {
               </ListItemButton>
               <ListItemButton selected={tabIndex === 15} onClick={() => { setTabIndex(15); fetchDriveRequests(); }} sx={{ mb: 1, bgcolor: tabIndex === 15 ? 'warning.main' : 'rgba(245, 158, 11, 0.05)', borderRadius: 3, '&:hover': { bgcolor: tabIndex === 15 ? 'warning.dark' : 'rgba(245, 158, 11, 0.15)' } }}>
                 <ListItemIcon sx={{ minWidth: 32 }}><SendIcon fontSize="small" sx={{ color: tabIndex === 15 ? '#fff' : '#F59E0B' }} /></ListItemIcon>
-                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 15 ? 700 : 500, fontSize: '0.9rem', color: tabIndex === 15 ? '#fff' : 'inherit' }}>Quản Lý Yêu Cầu {driveAccessRequests.length > 0 && <span style={{ background: '#fff', color: '#F59E0B', borderRadius: '50%', padding: '2px 8px', marginLeft: 8, fontSize: '0.8rem', fontWeight: 900 }}>{driveAccessRequests.length}</span>}</Typography>} />
+                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 15 ? 700 : 500, fontSize: '0.9rem', color: tabIndex === 15 ? '#fff' : 'inherit' }}>Quản Lý Yêu Cầu {driveAccessRequests.filter(r => r.status === 'pending').length > 0 && <span style={{ background: '#fff', color: '#F59E0B', borderRadius: '50%', padding: '2px 8px', marginLeft: 8, fontSize: '0.8rem', fontWeight: 900 }}>{driveAccessRequests.filter(r => r.status === 'pending').length}</span>}</Typography>} />
               </ListItemButton>
               <ListItemButton selected={tabIndex === 9} onClick={() => setTabIndex(9)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 9 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Tài Nguyên</Typography>} />
@@ -2720,8 +2721,16 @@ export default function AdminForm() {
             {/* Tab 15: Quản Lý Yêu Cầu */}
           {tabIndex === 15 && (
             <Box sx={{ animation: 'fadeIn 0.3s ease-in-out' }}>
-              <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, color: '#1e293b' }}>Quản Lý Yêu Cầu Truy Cập</Typography>
-              <Typography color="text.secondary" sx={{ mb: 4 }}>Duyệt hoặc từ chối các yêu cầu xin mã bảo vệ từ sinh viên.</Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+                <Box>
+                  <Typography variant="h5" sx={{ fontWeight: 900, mb: 1, color: '#1e293b' }}>Quản Lý Yêu Cầu Truy Cập</Typography>
+                  <Typography color="text.secondary">Duyệt hoặc từ chối các yêu cầu xin mã bảo vệ từ sinh viên.</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden' }}>
+                  <Button onClick={() => setReqTabValue(0)} variant={reqTabValue === 0 ? 'contained' : 'text'} color="warning" sx={{ borderRadius: 0, px: 3, fontWeight: reqTabValue === 0 ? 700 : 500 }}>Chờ duyệt</Button>
+                  <Button onClick={() => setReqTabValue(1)} variant={reqTabValue === 1 ? 'contained' : 'text'} color="inherit" sx={{ borderRadius: 0, px: 3, fontWeight: reqTabValue === 1 ? 700 : 500, bgcolor: reqTabValue === 1 ? 'action.selected' : 'transparent' }}>Lịch sử</Button>
+                </Box>
+              </Box>
               
               <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4 }}>
                 <Table>
@@ -2731,16 +2740,16 @@ export default function AdminForm() {
                       <TableCell sx={{ fontWeight: 700 }}>Tài Nguyên</TableCell>
                       <TableCell sx={{ fontWeight: 700 }}>Lý Do</TableCell>
                       <TableCell sx={{ fontWeight: 700 }}>Thời Gian</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }} align="center">Thao Tác</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }} align="center">{reqTabValue === 0 ? 'Thao Tác' : 'Trạng Thái'}</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {loadingRequests ? (
                       <TableRow><TableCell colSpan={5} align="center" sx={{ py: 3 }}><CircularProgress /></TableCell></TableRow>
-                    ) : driveAccessRequests.length === 0 ? (
-                      <TableRow><TableCell colSpan={5} align="center" sx={{ py: 4, color: 'text.secondary' }}>Không có yêu cầu nào đang chờ duyệt.</TableCell></TableRow>
+                    ) : (reqTabValue === 0 ? driveAccessRequests.filter(r => r.status === 'pending') : driveAccessRequests.filter(r => r.status !== 'pending').sort((a, b) => (b.processedAt || 0) - (a.processedAt || 0))).length === 0 ? (
+                      <TableRow><TableCell colSpan={5} align="center" sx={{ py: 4, color: 'text.secondary' }}>{reqTabValue === 0 ? 'Không có yêu cầu nào đang chờ duyệt.' : 'Chưa có lịch sử nào.'}</TableCell></TableRow>
                     ) : (
-                      driveAccessRequests.map(req => (
+                      (reqTabValue === 0 ? driveAccessRequests.filter(r => r.status === 'pending') : driveAccessRequests.filter(r => r.status !== 'pending').sort((a, b) => (b.processedAt || 0) - (a.processedAt || 0))).map(req => (
                         <TableRow key={req.id} hover>
                           <TableCell>
                             <Typography sx={{ fontWeight: 700, fontSize: '0.9rem' }}>{req.name}</Typography>
@@ -2754,16 +2763,29 @@ export default function AdminForm() {
                           <TableCell sx={{ maxWidth: 250 }}>
                             <Typography sx={{ fontSize: '0.8rem', whiteSpace: 'pre-wrap' }}>{req.message}</Typography>
                           </TableCell>
-                          <TableCell sx={{ fontSize: '0.8rem' }}>{new Date(req.createdAt).toLocaleString('vi-VN')}</TableCell>
-                          <TableCell align="center">
-                            <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-                              <Button size="small" variant="contained" color="success" onClick={() => setApproveFormData({ id: req.id, resourceId: req.resourceId, durationDays: 1, maxUses: 0, open: true })} sx={{ borderRadius: 10, textTransform: 'none', fontWeight: 700 }}>
-                                Duyệt
-                              </Button>
-                              <Button size="small" variant="outlined" color="error" onClick={() => handleRejectRequest(req.id)} sx={{ borderRadius: 10, textTransform: 'none', fontWeight: 700 }}>
-                                Từ chối
-                              </Button>
+                          <TableCell sx={{ fontSize: '0.8rem' }}>
+                            <Box>
+                              Gửi: {new Date(req.createdAt).toLocaleString('vi-VN')}
                             </Box>
+                            {req.processedAt && (
+                              <Box sx={{ color: 'text.secondary', fontSize: '0.75rem', mt: 0.5 }}>
+                                Xử lý: {new Date(req.processedAt).toLocaleString('vi-VN')}
+                              </Box>
+                            )}
+                          </TableCell>
+                          <TableCell align="center">
+                            {reqTabValue === 0 ? (
+                              <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                                <Button size="small" variant="contained" color="success" onClick={() => setApproveFormData({ id: req.id, resourceId: req.resourceId, durationDays: 1, maxUses: 0, open: true })} sx={{ borderRadius: 10, textTransform: 'none', fontWeight: 700 }}>
+                                  Duyệt
+                                </Button>
+                                <Button size="small" variant="outlined" color="error" onClick={() => handleRejectRequest(req.id)} sx={{ borderRadius: 10, textTransform: 'none', fontWeight: 700 }}>
+                                  Từ chối
+                                </Button>
+                              </Box>
+                            ) : (
+                              <Chip label={req.status === 'approved' ? 'Đã duyệt' : 'Từ chối'} color={req.status === 'approved' ? 'success' : 'error'} size="small" sx={{ fontWeight: 700 }} />
+                            )}
                           </TableCell>
                         </TableRow>
                       ))
