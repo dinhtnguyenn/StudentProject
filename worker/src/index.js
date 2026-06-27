@@ -292,7 +292,7 @@ export default {
         }
         
         // POST: decrypt assets array for Admin UI
-        if (url.pathname === '/api/admin/decrypt-assets' && request.method === 'POST') {
+        if (url.pathname === '/api/drive-access/decrypt-assets' && request.method === 'POST') {
           const items = await request.json();
           const ENCRYPT_KEY = env.DRIVE_ENCRYPT_KEY || 'unifolio-default-key-2024';
           const decrypted = items.map(item => {

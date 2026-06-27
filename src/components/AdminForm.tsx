@@ -885,7 +885,7 @@ export default function AdminForm() {
             const user = sessionStorage.getItem('unifolio_user');
             const pass = sessionStorage.getItem('unifolio_pass');
             if (user && pass) {
-              const decryptRes = await fetch(`${WORKER_URL}/api/admin/decrypt-assets`, {
+              const decryptRes = await fetch(`${WORKER_URL}/api/drive-access/decrypt-assets`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
