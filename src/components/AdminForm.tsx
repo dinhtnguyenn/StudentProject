@@ -2473,8 +2473,8 @@ export default function AdminForm() {
                     </Paper>
                   </Grid>
 
-                  {/* Row 2: 3 Other Categorizations */}
-                  <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column' }}>
+                  {/* Row 2: Categories and Article Types */}
+                  <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column' }}>
                     <Typography variant="h6" sx={{ fontWeight: 800, mb: 2, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}><CategoryIcon color="info" /> Phân Loại Dự Án</Typography>
                     <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid', borderColor: 'divider', flexGrow: 1 }}>
                       {categoriesList.length === 0 ? <Typography color="text.secondary">Chưa có phân loại dự án.</Typography> : (
@@ -2497,7 +2497,7 @@ export default function AdminForm() {
                     </Paper>
                   </Grid>
 
-                  <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column' }}>
+                  <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column' }}>
                     <Typography variant="h6" sx={{ fontWeight: 800, mb: 2, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}><ArticleIcon color="secondary" /> Loại Bài Viết</Typography>
                     <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid', borderColor: 'divider', flexGrow: 1 }}>
                       {articleTypesList.length === 0 ? <Typography color="text.secondary">Chưa có loại bài viết.</Typography> : (
@@ -2520,7 +2520,8 @@ export default function AdminForm() {
                     </Paper>
                   </Grid>
 
-                  <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column' }}>
+                  {/* Row 3: Unity Assets */}
+                  <Grid size={{ xs: 12 }} sx={{ display: 'flex', flexDirection: 'column' }}>
                     <Typography variant="h6" sx={{ fontWeight: 800, mb: 2, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}><StorageIcon color="success" /> Cơ Cấu Tài Nguyên</Typography>
                     <Paper elevation={0} sx={{ p: 3, borderRadius: 4, border: '1px solid', borderColor: 'divider', flexGrow: 1 }}>
                       <Grid container spacing={2}>
