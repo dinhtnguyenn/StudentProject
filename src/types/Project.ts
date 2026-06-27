@@ -10,4 +10,5 @@ export interface Project {
   major?: string;
   techTags?: string[];
   isGoldenTicket?: boolean;
+  userCreate?: string;
 }

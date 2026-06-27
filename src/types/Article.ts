@@ -10,4 +10,5 @@ export interface Article {
   majorBg?: string;
   majorText?: string;
   year?: string;
+  userCreate?: string;
 }

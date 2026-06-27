@@ -13,4 +13,5 @@ export interface UnityAsset {
   assetTypeBg?: string;
   assetTypeText?: string;
   createdAt?: number;
+  userCreate?: string;
 }
