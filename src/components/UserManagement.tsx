@@ -18,7 +18,8 @@ const MODULES = [
   { id: 'majors', label: 'Chuyên Ngành' },
   { id: 'assets', label: 'Tài Nguyên' },
   { id: 'assetSources', label: 'Nguồn Tài Nguyên' },
-  { id: 'assetTypes', label: 'Loại Tài Nguyên' }
+  { id: 'assetTypes', label: 'Loại Tài Nguyên' },
+  { id: 'driveAccess', label: 'Quản Lý Mã/Yêu Cầu Drive' }
 ];
 
 export default function UserManagement({ workerUrl, currentUser }: { workerUrl: string, currentUser: any }) {

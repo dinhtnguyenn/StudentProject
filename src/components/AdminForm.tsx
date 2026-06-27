@@ -2297,14 +2297,14 @@ export default function AdminForm() {
               <ListSubheader sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'success.main', fontSize: '0.75rem', letterSpacing: '0.05em', mt: 1 }}>
                 <AutoAwesomeIcon fontSize="small" /> TÀI NGUYÊN (ASSETS)
               </ListSubheader>
-              <ListItemButton selected={tabIndex === 14} onClick={() => { setTabIndex(14); fetchDriveCodes(); fetchDriveLogs(); }} sx={{ mt: 1, mb: 1, bgcolor: tabIndex === 14 ? 'primary.main' : 'rgba(168, 85, 247, 0.05)', borderRadius: 3, '&:hover': { bgcolor: tabIndex === 14 ? 'primary.dark' : 'rgba(168, 85, 247, 0.15)' } }}>
+              {hasPerm('driveAccess', 'view') && <ListItemButton selected={tabIndex === 14} onClick={() => { setTabIndex(14); fetchDriveCodes(); fetchDriveLogs(); }} sx={{ mt: 1, mb: 1, bgcolor: tabIndex === 14 ? 'primary.main' : 'rgba(168, 85, 247, 0.05)', borderRadius: 3, '&:hover': { bgcolor: tabIndex === 14 ? 'primary.dark' : 'rgba(168, 85, 247, 0.15)' } }}>
                 <ListItemIcon sx={{ minWidth: 32 }}><VpnKeyIcon fontSize="small" sx={{ color: tabIndex === 14 ? '#fff' : '#A855F7' }} /></ListItemIcon>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 14 ? 700 : 500, fontSize: '0.9rem', color: tabIndex === 14 ? '#fff' : 'inherit' }}>Mã Bảo Vệ Drive</Typography>} />
-              </ListItemButton>
-              <ListItemButton selected={tabIndex === 15} onClick={() => { setTabIndex(15); fetchDriveRequests(); }} sx={{ mb: 1, bgcolor: tabIndex === 15 ? 'warning.main' : 'rgba(245, 158, 11, 0.05)', borderRadius: 3, '&:hover': { bgcolor: tabIndex === 15 ? 'warning.dark' : 'rgba(245, 158, 11, 0.15)' } }}>
+              </ListItemButton>}
+              {hasPerm('driveAccess', 'view') && <ListItemButton selected={tabIndex === 15} onClick={() => { setTabIndex(15); fetchDriveRequests(); }} sx={{ mb: 1, bgcolor: tabIndex === 15 ? 'warning.main' : 'rgba(245, 158, 11, 0.05)', borderRadius: 3, '&:hover': { bgcolor: tabIndex === 15 ? 'warning.dark' : 'rgba(245, 158, 11, 0.15)' } }}>
                 <ListItemIcon sx={{ minWidth: 32 }}><SendIcon fontSize="small" sx={{ color: tabIndex === 15 ? '#fff' : '#F59E0B' }} /></ListItemIcon>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 15 ? 700 : 500, fontSize: '0.9rem', color: tabIndex === 15 ? '#fff' : 'inherit' }}>Quản Lý Yêu Cầu {driveAccessRequests.filter(r => r.status === 'pending').length > 0 && <span style={{ background: '#fff', color: '#F59E0B', borderRadius: '50%', padding: '2px 8px', marginLeft: 8, fontSize: '0.8rem', fontWeight: 900 }}>{driveAccessRequests.filter(r => r.status === 'pending').length}</span>}</Typography>} />
-              </ListItemButton>
+              </ListItemButton>}
               <ListItemButton selected={tabIndex === 9} onClick={() => setTabIndex(9)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 9 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Tài Nguyên</Typography>} />
               </ListItemButton>
@@ -2568,8 +2568,9 @@ export default function AdminForm() {
                 {logTabValue === 0 && (
                   <Box>
                     {/* Form cấp mã mới */}
-                    <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 4, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
-                      <Typography variant="h6" sx={{ mb: 3, fontWeight: 700 }}>Cấp mã mới</Typography>
+                    {hasPerm('driveAccess', 'add') && (
+                      <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 4, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+                        <Typography variant="h6" sx={{ mb: 3, fontWeight: 700 }}>Cấp mã mới</Typography>
                       <form onSubmit={handleGenerateCode}>
                         <Grid container spacing={3}>
                           <Grid size={{ xs: 12, md: 6 }}>
@@ -2605,6 +2606,7 @@ export default function AdminForm() {
                         </Grid>
                       </form>
                     </Paper>
+                    )}
 
                     {/* Bảng danh sách mã */}
                     <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, overflowX: 'auto' }}>
@@ -2617,14 +2619,14 @@ export default function AdminForm() {
                             <TableCell sx={{ fontWeight: 700 }}>Thời hạn</TableCell>
                             <TableCell sx={{ fontWeight: 700 }} align="center">Đã dùng / Giới hạn</TableCell>
                             <TableCell sx={{ fontWeight: 700 }} align="center">Link</TableCell>
-                            <TableCell sx={{ fontWeight: 700, width: 60 }} align="center">Xóa</TableCell>
+                            {hasPerm('driveAccess', 'delete') && <TableCell sx={{ fontWeight: 700, width: 60 }} align="center">Xóa</TableCell>}
                           </TableRow>
                         </TableHead>
                         <TableBody>
                           {loadingCodes ? (
-                            <TableRow><TableCell colSpan={7} align="center" sx={{ py: 3 }}><CircularProgress /></TableCell></TableRow>
+                            <TableRow><TableCell colSpan={hasPerm('driveAccess', 'delete') ? 7 : 6} align="center" sx={{ py: 3 }}><CircularProgress /></TableCell></TableRow>
                           ) : driveAccessCodes.length === 0 ? (
-                            <TableRow><TableCell colSpan={7} align="center" sx={{ py: 3, color: 'text.secondary' }}>Chưa có mã bảo vệ nào.</TableCell></TableRow>
+                            <TableRow><TableCell colSpan={hasPerm('driveAccess', 'delete') ? 7 : 6} align="center" sx={{ py: 3, color: 'text.secondary' }}>Chưa có mã bảo vệ nào.</TableCell></TableRow>
                           ) : (
                             driveAccessCodes.map((codeItem) => {
                               const isExpired = codeItem.expiresAt && Date.now() > codeItem.expiresAt;
@@ -2655,9 +2657,11 @@ export default function AdminForm() {
                                   <TableCell align="center">
                                     {codeItem.hasDriveLink ? <Chip label="Có" color="success" size="small" /> : <Chip label="Không" size="small" variant="outlined" />}
                                   </TableCell>
-                                  <TableCell align="center">
-                                    <IconButton color="error" size="small" onClick={() => handleDeleteCode(codeItem.id)}><DeleteIcon fontSize="small" /></IconButton>
-                                  </TableCell>
+                                  {hasPerm('driveAccess', 'delete') && (
+                                    <TableCell align="center">
+                                      <IconButton color="error" size="small" onClick={() => handleDeleteCode(codeItem.id)}><DeleteIcon fontSize="small" /></IconButton>
+                                    </TableCell>
+                                  )}
                                 </TableRow>
                               );
                             })
@@ -2775,14 +2779,18 @@ export default function AdminForm() {
                           </TableCell>
                           <TableCell align="center">
                             {reqTabValue === 0 ? (
-                              <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-                                <Button size="small" variant="contained" color="success" onClick={() => setApproveFormData({ id: req.id, resourceId: req.resourceId, durationDays: 1, maxUses: 0, open: true })} sx={{ borderRadius: 10, textTransform: 'none', fontWeight: 700 }}>
-                                  Duyệt
-                                </Button>
-                                <Button size="small" variant="outlined" color="error" onClick={() => handleRejectRequest(req.id)} sx={{ borderRadius: 10, textTransform: 'none', fontWeight: 700 }}>
-                                  Từ chối
-                                </Button>
-                              </Box>
+                              hasPerm('driveAccess', 'edit') ? (
+                                <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                                  <Button size="small" variant="contained" color="success" onClick={() => setApproveFormData({ id: req.id, resourceId: req.resourceId, durationDays: 1, maxUses: 0, open: true })} sx={{ borderRadius: 10, textTransform: 'none', fontWeight: 700 }}>
+                                    Duyệt
+                                  </Button>
+                                  <Button size="small" variant="outlined" color="error" onClick={() => handleRejectRequest(req.id)} sx={{ borderRadius: 10, textTransform: 'none', fontWeight: 700 }}>
+                                    Từ chối
+                                  </Button>
+                                </Box>
+                              ) : (
+                                <Typography variant="caption" color="text.secondary">Không có quyền thao tác</Typography>
+                              )
                             ) : (
                               <Chip label={req.status === 'approved' ? 'Đã duyệt' : 'Từ chối'} color={req.status === 'approved' ? 'success' : 'error'} size="small" sx={{ fontWeight: 700 }} />
                             )}
