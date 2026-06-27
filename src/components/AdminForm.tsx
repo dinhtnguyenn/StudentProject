@@ -576,6 +576,8 @@ export default function AdminForm() {
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [forceProfileOpen, setForceProfileOpen] = useState(false);
+  const [profileEmail, setProfileEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
@@ -627,8 +629,10 @@ export default function AdminForm() {
       setGeminiApiKey(geminiKey);
       if (user && pass) {
         setIsAuthenticated(true);
-        setCurrentUser(JSON.parse(user));
+        const parsedUser = JSON.parse(user);
+        setCurrentUser(parsedUser);
         setLoginPassword(pass);
+        if (parsedUser.mustChangePassword || !parsedUser.email) setForceProfileOpen(true);
       }
       setIsAuthenticating(false);
     };
@@ -650,6 +654,7 @@ export default function AdminForm() {
       sessionStorage.setItem('unifolio_user', JSON.stringify(user));
       sessionStorage.setItem('unifolio_pass', loginPassword);
       setIsAuthenticated(true);
+      if (user.mustChangePassword || !user.email) setForceProfileOpen(true);
       setStatus({ type: 'success', message: 'Đăng nhập thành công!' });
     } catch (err: any) {
       setLoginError(err.message);
@@ -675,21 +680,53 @@ export default function AdminForm() {
   const [fetching, setFetching] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
-  const handleChangePassword = async () => {
-    if (newPassword.length < 6) { setStatus({ type: 'error', message: 'Mật khẩu phải từ 6 ký tự trở lên' }); return; }
-    if (newPassword !== confirmNewPassword) { setStatus({ type: 'error', message: 'Mật khẩu xác nhận không khớp' }); return; }
+  const handleSaveProfile = async (isForced = false) => {
+    if (!profileEmail) { setStatus({ type: 'error', message: 'Vui lòng nhập Email' }); return; }
+    
+    // Only validate password if the user typed one, or if they are strictly required to change it
+    if (newPassword || currentUser?.mustChangePassword) {
+      if (newPassword.length < 6) { setStatus({ type: 'error', message: 'Mật khẩu phải từ 6 ký tự trở lên' }); return; }
+      if (newPassword !== confirmNewPassword) { setStatus({ type: 'error', message: 'Mật khẩu xác nhận không khớp' }); return; }
+    }
+    
     setChangingPassword(true);
     try {
-      const res = await fetch(`${WORKER_URL}/api/change-password`, {
+      const basicAuth = `Basic ${btoa(currentUser.username + ':' + sessionStorage.getItem('unifolio_pass'))}`;
+      
+      // Update email
+      const resProfile = await fetch(`${WORKER_URL}/api/users/profile`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Basic ${btoa(currentUser.username + ':' + sessionStorage.getItem('unifolio_pass'))}` },
-        body: JSON.stringify({ newPassword })
+        headers: { 'Content-Type': 'application/json', 'Authorization': basicAuth },
+        body: JSON.stringify({ email: profileEmail })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Có lỗi xảy ra');
-      setStatus({ type: 'success', message: 'Đổi mật khẩu thành công!' });
-      setChangePasswordOpen(false);
-      setTimeout(() => handleLogout(), 2000);
+      if (!resProfile.ok) throw new Error('Có lỗi xảy ra khi cập nhật email');
+      
+      let updatedUser = { ...currentUser, email: profileEmail };
+      
+      // Update password if provided
+      let changedPass = false;
+      if (newPassword) {
+        const resPass = await fetch(`${WORKER_URL}/api/change-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': basicAuth },
+          body: JSON.stringify({ newPassword })
+        });
+        if (!resPass.ok) throw new Error('Có lỗi xảy ra khi đổi mật khẩu');
+        changedPass = true;
+      }
+      
+      updatedUser.mustChangePassword = false;
+      setCurrentUser(updatedUser);
+      sessionStorage.setItem('unifolio_user', JSON.stringify(updatedUser));
+      
+      setStatus({ type: 'success', message: changedPass ? 'Cập nhật thành công! Vui lòng đăng nhập lại.' : 'Cập nhật hồ sơ thành công!' });
+      
+      if (isForced) setForceProfileOpen(false);
+      else setChangePasswordOpen(false);
+      
+      if (changedPass) {
+        setTimeout(() => handleLogout(), 2000);
+      }
     } catch (err: any) { setStatus({ type: 'error', message: err.message }); }
     finally { setChangingPassword(false); }
   };
@@ -2236,11 +2273,9 @@ export default function AdminForm() {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'background.paper', px: 2, py: 1, borderRadius: 100, border: '1px solid', borderColor: 'divider' }}>
               <Typography variant="body2" sx={{ fontWeight: 600 }}>Xin chào, <span style={{ color: '#2563EB', fontWeight: 800 }}>{currentUser?.username}</span></Typography>
             </Box>
-            {currentUser?.role === 'MOD' && (
-              <Button variant="outlined" color="primary" onClick={() => { setChangePasswordOpen(true); setNewPassword(''); setConfirmNewPassword(''); }} sx={{ borderRadius: 100, fontWeight: 700, px: 2 }}>
-                Đổi Mật Khẩu
-              </Button>
-            )}
+            <Button variant="outlined" color="primary" onClick={() => { setChangePasswordOpen(true); setProfileEmail(currentUser?.email || ''); setNewPassword(''); setConfirmNewPassword(''); }} sx={{ borderRadius: 100, fontWeight: 700, px: 2 }}>
+              Hồ Sơ Của Tôi
+            </Button>
             <Button variant="outlined" color="info" onClick={handleManualBuild} disabled={isTriggeringBuild || isSavingAll || !!fetchError} startIcon={isTriggeringBuild ? <CircularProgress size={16} color="inherit" /> : <AutoAwesomeIcon />} sx={{ borderRadius: 100, fontWeight: 700, px: 2 }}>
               Cập Nhật Sitemap
             </Button>
@@ -3957,15 +3992,38 @@ export default function AdminForm() {
         </DialogActions>
       </Dialog>
       <Dialog open={changePasswordOpen} onClose={() => setChangePasswordOpen(false)} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontWeight: 800 }}>Đổi Mật Khẩu</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800 }}>Hồ Sơ Của Tôi</DialogTitle>
         <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
+          <TextField label="Email nhận thông báo" type="email" fullWidth value={profileEmail} onChange={e => setProfileEmail(e.target.value)} required />
+          <Typography variant="caption" color="text.secondary">Để trống 2 ô dưới nếu không muốn đổi mật khẩu</Typography>
           <TextField label="Mật khẩu mới" type="password" fullWidth value={newPassword} onChange={e => setNewPassword(e.target.value)} />
           <TextField label="Xác nhận mật khẩu mới" type="password" fullWidth value={confirmNewPassword} onChange={e => setConfirmNewPassword(e.target.value)} />
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setChangePasswordOpen(false)} color="inherit" sx={{ fontWeight: 600 }}>Huỷ</Button>
-          <Button onClick={handleChangePassword} variant="contained" disabled={changingPassword} sx={{ fontWeight: 700, borderRadius: 2 }}>
-            {changingPassword ? <CircularProgress size={24} color="inherit" /> : 'Xác Nhận Đổi'}
+          <Button onClick={() => setChangePasswordOpen(false)} color="inherit" sx={{ fontWeight: 600 }}>Đóng</Button>
+          <Button onClick={() => handleSaveProfile(false)} variant="contained" disabled={changingPassword} sx={{ fontWeight: 700 }}>
+            {changingPassword ? <CircularProgress size={24} /> : 'Cập Nhật'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* Force Profile Dialog */}
+      <Dialog open={forceProfileOpen} fullWidth maxWidth="xs" sx={{ zIndex: 9999 }}>
+        <DialogTitle sx={{ fontWeight: 800, color: 'error.main' }}>Cập Nhật Bắt Buộc</DialogTitle>
+        <DialogContent dividers sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
+          <Typography variant="body2" sx={{ mb: 1 }}>Bạn cần hoàn thiện thông tin trước khi sử dụng hệ thống.</Typography>
+          <TextField label="Email nhận thông báo" type="email" fullWidth value={profileEmail} onChange={e => setProfileEmail(e.target.value)} required />
+          {currentUser?.mustChangePassword && (
+            <>
+              <TextField label="Mật khẩu mới" type="password" fullWidth value={newPassword} onChange={e => setNewPassword(e.target.value)} required />
+              <TextField label="Xác nhận mật khẩu mới" type="password" fullWidth value={confirmNewPassword} onChange={e => setConfirmNewPassword(e.target.value)} required />
+            </>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => handleLogout()} color="inherit" sx={{ fontWeight: 600 }}>Đăng Xuất</Button>
+          <Button onClick={() => handleSaveProfile(true)} variant="contained" disabled={changingPassword} sx={{ fontWeight: 700 }}>
+            {changingPassword ? <CircularProgress size={24} /> : 'Cập Nhật'}
           </Button>
         </DialogActions>
       </Dialog>

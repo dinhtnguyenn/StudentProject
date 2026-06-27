@@ -50,10 +50,16 @@ async function fetchFromGithub(env, path) {
 }
 
 async function verifyAuth(env, username, password) {
+  const usersStr = await env.UNIFOLIO_USERS.get('users');
+  let users = [];
+  if (usersStr) users = JSON.parse(usersStr);
+
   if (username === 'admin' && password === env.ADMIN_PASSWORD) {
+    const adminSaved = users.find(u => u.username === 'admin');
     return {
       username: 'admin',
       role: 'SUPERADMIN',
+      email: adminSaved ? adminSaved.email : null,
       permissions: {
         projects: { view: true, add: true, edit: 'ALL', delete: 'ALL' },
         articles: { view: true, add: true, edit: 'ALL', delete: 'ALL' },
@@ -66,11 +72,7 @@ async function verifyAuth(env, username, password) {
       }
     };
   }
-
-  const usersStr = await env.UNIFOLIO_USERS.get('users');
-  if (!usersStr) return null;
   
-  const users = JSON.parse(usersStr);
   const user = users.find(u => u.username === username && u.password === password);
   return user || null;
 }
@@ -172,7 +174,33 @@ export default {
         return new Response(JSON.stringify(safeUser), { status: 200, headers: corsHeaders });
       }
 
-      if (url.pathname.startsWith('/api/users')) {
+      if (url.pathname === '/api/users/profile' && request.method === 'POST') {
+        const authHeader = request.headers.get('Authorization');
+        if (!authHeader) return new Response('Unauthorized', { status: 401, headers: corsHeaders });
+        const [authUsername, authPassword] = atob(authHeader.split(' ')[1]).split(':');
+        const user = await verifyAuth(env, authUsername, authPassword);
+        if (!user) return new Response('Forbidden', { status: 403, headers: corsHeaders });
+
+        const body = await request.json();
+        const usersStr = await env.UNIFOLIO_USERS.get('users') || '[]';
+        let users = JSON.parse(usersStr);
+        const idx = users.findIndex(u => u.username === authUsername);
+        
+        if (idx !== -1) {
+          users[idx].email = body.email;
+          await env.UNIFOLIO_USERS.put('users', JSON.stringify(users));
+          return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+        } else if (authUsername === 'admin') {
+          // Admin doesn't exist in KV yet, push a placeholder to save the email
+          users.push({ username: 'admin', role: 'SUPERADMIN', email: body.email });
+          await env.UNIFOLIO_USERS.put('users', JSON.stringify(users));
+          return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+        }
+        
+        return new Response(JSON.stringify({ error: 'User not found' }), { status: 404, headers: corsHeaders });
+      }
+
+      if (url.pathname.startsWith('/api/users') && !url.pathname.startsWith('/api/users/profile')) {
         const authHeader = request.headers.get('Authorization');
         if (!authHeader) return new Response('Unauthorized', { status: 401, headers: corsHeaders });
         const [authUsername, authPassword] = atob(authHeader.split(' ')[1]).split(':');
@@ -246,10 +274,27 @@ export default {
           reqs.push(newReq);
           await env.UNIFOLIO_USERS.put('drive_access_requests', JSON.stringify(reqs));
 
-          // Send notification email to admin
+          // Send notification email to admin and MOD
           const GAS_URL = "https://script.google.com/macros/s/AKfycbzczlHzPEtPko7GC6g1gl1JTfXdglZI6MfTScjkW49LdZdFVYyRcZr7DqtmdYYohpBf1g/exec";
           const GAS_TOKEN = "unifolio-secret-999";
           const clientOrigin = request.headers.get('Origin') || 'https://www.unifolio.io.vn';
+          
+          // Get emails
+          const usersStr = await env.UNIFOLIO_USERS.get('users') || '[]';
+          const users = JSON.parse(usersStr);
+          let adminEmails = ['dinhtnguyenn@gmail.com'];
+          const adminUser = users.find(u => u.role === 'SUPERADMIN' && u.email);
+          if (adminUser) adminEmails.push(adminUser.email);
+          
+          let modEmail = null;
+          if (newReq.resourceOwner) {
+             const modUser = users.find(u => u.username === newReq.resourceOwner);
+             if (modUser && modUser.email) modEmail = modUser.email;
+          }
+          
+          const allEmailsToNotify = [...new Set([...adminEmails, modEmail].filter(Boolean))];
+          const toAddress = allEmailsToNotify.join(',');
+
           const htmlBody = `
             <h2>Có yêu cầu cấp quyền mới</h2>
             <p><strong>Người gửi:</strong> ${newReq.name} (${newReq.studentId})</p>
@@ -264,6 +309,7 @@ export default {
               headers: { 'Content-Type': 'text/plain;charset=utf-8' },
               body: JSON.stringify({
                 token: GAS_TOKEN,
+                toAddress: toAddress,
                 subject: `[Yêu cầu cấp quyền] ${newReq.resourceName} - ${newReq.studentId}`,
                 htmlBody: htmlBody
               })
