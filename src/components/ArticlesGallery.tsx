@@ -101,37 +101,12 @@ export default function ArticlesGallery() {
     const localTypesUrl = `${import.meta.env.BASE_URL}data/articleTypes.json?t=${Date.now()}`;
     const localMajorsUrl = `${import.meta.env.BASE_URL}data/majors.json?t=${Date.now()}`;
 
-    const fetchWithFallback = async (apiUrl: string, localUrl: string) => {
-      try {
-        const res = await fetch(apiUrl);
-        if (!res.ok) throw new Error('API limit reached or error');
-        const json = await res.json();
-        const decoded = decodeURIComponent(escape(atob(json.content)));
-        return JSON.parse(decoded);
-      } catch {
-        const localRes = await fetch(localUrl);
-        if (!localRes.ok) return [];
-        return localRes.json();
-      }
-    };
 
-    let pPromise: Promise<any>;
-    let tPromise: Promise<any>;
-    let mPromise: Promise<any>;
 
-    const githubOwner = 'dinhtnguyenn';
-    const githubRepo = 'StudentProject';
 
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      pPromise = fetch(localArticlesUrl).then(res => res.json());
-      tPromise = fetch(localTypesUrl).then(res => res.json()).catch(() => []);
-      mPromise = fetch(localMajorsUrl).then(res => res.json()).catch(() => []);
-    } else {
-      const ref = `?ref=main&t=${Date.now()}`;
-      pPromise = fetchWithFallback(`https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/articles.json${ref}`, localArticlesUrl);
-      tPromise = fetchWithFallback(`https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/articleTypes.json${ref}`, localTypesUrl);
-      mPromise = fetchWithFallback(`https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/majors.json${ref}`, localMajorsUrl);
-    }
+    const pPromise = fetch(localArticlesUrl).then(res => res.ok ? res.json() : []);
+    const tPromise = fetch(localTypesUrl).then(res => res.ok ? res.json() : []);
+    const mPromise = fetch(localMajorsUrl).then(res => res.ok ? res.json() : []);
 
     Promise.all([pPromise, tPromise, mPromise])
       .then(([artData, typesData, majorsData]) => {

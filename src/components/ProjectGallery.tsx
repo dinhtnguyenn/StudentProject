@@ -144,37 +144,12 @@ export default function ProjectGallery() {
     const localCategoriesUrl = `${import.meta.env.BASE_URL}data/categories.json?t=${Date.now()}`;
     const localMajorsUrl = `${import.meta.env.BASE_URL}data/majors.json?t=${Date.now()}`;
 
-    const fetchWithFallback = async (apiUrl: string, localUrl: string) => {
-      try {
-        const res = await fetch(apiUrl);
-        if (!res.ok) throw new Error('API limit reached or error');
-        const json = await res.json();
-        const decoded = decodeURIComponent(escape(atob(json.content)));
-        return JSON.parse(decoded);
-      } catch {
-        const localRes = await fetch(localUrl);
-        if (!localRes.ok) return [];
-        return localRes.json();
-      }
-    };
 
-    let pPromise: Promise<any>;
-    let cPromise: Promise<any>;
-    let mPromise: Promise<any>;
 
-    const githubOwner = 'dinhtnguyenn';
-    const githubRepo = 'StudentProject';
 
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      pPromise = fetch(localProjectsUrl).then(res => res.json());
-      cPromise = fetch(localCategoriesUrl).then(res => res.json()).catch(() => []);
-      mPromise = fetch(localMajorsUrl).then(res => res.json()).catch(() => []);
-    } else {
-      const ref = `?ref=main&t=${Date.now()}`;
-      pPromise = fetchWithFallback(`https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/projects.json${ref}`, localProjectsUrl);
-      cPromise = fetchWithFallback(`https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/categories.json${ref}`, localCategoriesUrl);
-      mPromise = fetchWithFallback(`https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/majors.json${ref}`, localMajorsUrl);
-    }
+    const pPromise = fetch(localProjectsUrl).then(res => res.ok ? res.json() : []);
+    const cPromise = fetch(localCategoriesUrl).then(res => res.ok ? res.json() : []);
+    const mPromise = fetch(localMajorsUrl).then(res => res.ok ? res.json() : []);
 
     Promise.all([pPromise, cPromise, mPromise])
       .then(([projData, catData, majData]) => {

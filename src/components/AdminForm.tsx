@@ -593,9 +593,6 @@ export default function AdminForm() {
   const itemsPerPage = 20;
 
   // Fake constants to prevent breaking existing GitHub API URL builders
-  const githubOwner = 'dinhtnguyenn';
-  const githubRepo = 'StudentProject';
-  const githubToken = '';
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(true);
@@ -837,22 +834,17 @@ export default function AdminForm() {
   const [selectedUnityAssets, setSelectedUnityAssets] = useState<string[]>([]);
   const [bulkDeleteUnityAssetsConfirm, setBulkDeleteUnityAssetsConfirm] = useState(false);
 
-  const getProjectsApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/projects.json`;
-  const getCategoriesApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/categories.json`;
-  const getArticlesApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/articles.json`;
-  const getMajorsApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/majors.json`;
-  const getArticleTypesApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/articleTypes.json`;
-  const getUnityAssetsApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/unity-assets.json`;
-  const getAssetSourcesApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/asset-sources.json`;
-  const getAssetTypesApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/asset-types.json`;
-  const getTriggerApiUrl = () => `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/public/data/trigger.json`;
+  const getProjectsApiUrl = () => "public/data/projects.json";
+  const getCategoriesApiUrl = () => "public/data/categories.json";
+  const getArticlesApiUrl = () => "public/data/articles.json";
+  const getMajorsApiUrl = () => "public/data/majors.json";
+  const getArticleTypesApiUrl = () => "public/data/articleTypes.json";
+  const getUnityAssetsApiUrl = () => "public/data/unity-assets.json";
+  const getAssetSourcesApiUrl = () => "public/data/asset-sources.json";
+  const getAssetTypesApiUrl = () => "public/data/asset-types.json";
+  const getTriggerApiUrl = () => "public/data/trigger.json";
 
-  const fetchFile = async (url: string) => {
-    let path = url;
-    if (url.includes('api.github.com')) {
-      const match = url.match(/contents\/(.*)$/);
-      if (match) path = match[1];
-    }
+  const fetchFile = async (path: string) => {
     const getRes = await fetch(`${WORKER_URL}/api/content?path=${encodeURIComponent(path)}`);
     if (!getRes.ok) {
       if (getRes.status === 404) return { data: [], sha: '' };
@@ -864,12 +856,7 @@ export default function AdminForm() {
     return { data: JSON.parse(decoded), sha: fileData.sha };
   };
 
-  const commitFile = async (url: string, newContentArray: any[], sha: string, message: string) => {
-    let path = url;
-    if (url.includes('api.github.com')) {
-      const match = url.match(/contents\/(.*)$/);
-      if (match) path = match[1];
-    }
+  const commitFile = async (path: string, newContentArray: any[], sha: string, message: string) => {
     const newContent = btoa(unescape(encodeURIComponent(JSON.stringify(newContentArray, null, 2))));
     const putRes = await fetch(`${WORKER_URL}/api/content`, {
       method: 'POST',
@@ -959,7 +946,7 @@ export default function AdminForm() {
         .then(res => { setAssetTypesList(res.data); setOriginalAssetTypes(res.data); setAssetTypesSha(res.sha); })
         .catch(err => { console.error(err); setFetchError('Lỗi tải danh mục Loại Asset. Vui lòng không lưu!'); });
     }
-  }, [isAuthenticated, githubToken, githubOwner, githubRepo]);
+  }, [isAuthenticated]);
 
   // Prevent closing tab if unsaved changes exist
   useEffect(() => {
