@@ -2607,8 +2607,8 @@ export default function AdminForm() {
                     </Paper>
 
                     {/* Bảng danh sách mã */}
-                    <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4 }}>
-                      <Table>
+                    <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, overflowX: 'auto' }}>
+                      <Table sx={{ minWidth: 1000 }}>
                         <TableHead sx={{ bgcolor: 'action.hover' }}>
                           <TableRow>
                             <TableCell sx={{ fontWeight: 700 }}>Tài Nguyên</TableCell>
@@ -2670,8 +2670,8 @@ export default function AdminForm() {
 
                 {logTabValue === 1 && (
                   <Box>
-                    <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4 }}>
-                      <Table size="small">
+                    <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, overflowX: 'auto' }}>
+                      <Table size="small" sx={{ minWidth: 1000 }}>
                         <TableHead sx={{ bgcolor: 'action.hover' }}>
                           <TableRow>
                             <TableCell sx={{ fontWeight: 700 }}>Thời gian</TableCell>
@@ -2732,8 +2732,8 @@ export default function AdminForm() {
                 </Box>
               </Box>
               
-              <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4 }}>
-                <Table>
+              <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 4, overflowX: 'auto' }}>
+                <Table sx={{ minWidth: 1000 }}>
                   <TableHead sx={{ bgcolor: 'action.hover' }}>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 700 }}>Sinh Viên</TableCell>
@@ -2756,14 +2756,14 @@ export default function AdminForm() {
                             <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>{req.studentId} - {req.school}</Typography>
                             <Typography sx={{ fontSize: '0.75rem', color: 'primary.main', fontWeight: 600 }}>{req.email}</Typography>
                           </TableCell>
-                          <TableCell>
+                          <TableCell sx={{ minWidth: 180 }}>
                             <Typography sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{req.resourceName}</Typography>
                             <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>{req.assetType}</Typography>
                           </TableCell>
-                          <TableCell sx={{ maxWidth: 250 }}>
+                          <TableCell sx={{ minWidth: 200, maxWidth: 350 }}>
                             <Typography sx={{ fontSize: '0.8rem', whiteSpace: 'pre-wrap' }}>{req.message}</Typography>
                           </TableCell>
-                          <TableCell sx={{ fontSize: '0.8rem' }}>
+                          <TableCell sx={{ fontSize: '0.8rem', minWidth: 150 }}>
                             <Box>
                               Gửi: {new Date(req.createdAt).toLocaleString('vi-VN')}
                             </Box>
