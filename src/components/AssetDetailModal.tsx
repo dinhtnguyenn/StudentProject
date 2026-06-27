@@ -157,6 +157,7 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
           message: formData.message,
           resourceId: asset.id,
           resourceName: asset.name,
+          resourceOwner: asset.userCreate,
           assetType: asset.assetTypeName || (asset.assetType === 'ACCOUNT' ? 'Unity Account' : 'Google Drive')
         })
       });

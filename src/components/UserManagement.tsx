@@ -63,6 +63,9 @@ export default function UserManagement({ workerUrl, currentUser }: { workerUrl: 
       alert('Tên đăng nhập không được để trống');
       return;
     }
+    if (!isNew && editUser.password) {
+      editUser.mustChangePassword = true;
+    }
     setIsSaving(true);
     try {
       const method = users.find(u => u.username === editUser.username) ? 'PUT' : 'POST';
@@ -105,7 +108,7 @@ export default function UserManagement({ workerUrl, currentUser }: { workerUrl: 
     MODULES.forEach(m => {
       defaultPerms[m.id] = { view: false, add: false, edit: 'NONE', delete: 'NONE' };
     });
-    setEditUser({ username: '', password: '', role: 'MOD', permissions: defaultPerms });
+    setEditUser({ username: '', password: '', email: '', role: 'MOD', mustChangePassword: true, permissions: defaultPerms });
   };
 
   if (loading) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
@@ -123,6 +126,7 @@ export default function UserManagement({ workerUrl, currentUser }: { workerUrl: 
           <TableHead>
             <TableRow sx={{ bgcolor: 'action.hover' }}>
               <TableCell sx={{ fontWeight: 700 }}>Tài Khoản</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Email</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Mật Khẩu</TableCell>
               <TableCell sx={{ fontWeight: 700 }}>Vai Trò</TableCell>
               <TableCell align="right" sx={{ fontWeight: 700 }}>Thao Tác</TableCell>
@@ -131,7 +135,14 @@ export default function UserManagement({ workerUrl, currentUser }: { workerUrl: 
           <TableBody>
             {users.map(u => (
               <TableRow key={u.username}>
-                <TableCell sx={{ fontWeight: 600 }}>{u.username}</TableCell>
+                <TableCell>
+                  <Typography sx={{ fontWeight: 600 }}>{u.username}</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography sx={{ color: u.email ? 'text.primary' : 'text.secondary', fontSize: '0.9rem' }}>
+                    {u.email || 'Chưa cập nhật'}
+                  </Typography>
+                </TableCell>
                 <TableCell>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
@@ -171,6 +182,12 @@ export default function UserManagement({ workerUrl, currentUser }: { workerUrl: 
                   value={editUser.username} 
                   disabled={users.some(u => u.username === editUser.username)}
                   onChange={e => setEditUser({...editUser, username: e.target.value})} 
+                  sx={{ mb: 2 }}
+                />
+                <TextField 
+                  fullWidth label="Email nhận thông báo" 
+                  value={editUser.email || ''} 
+                  onChange={e => setEditUser({...editUser, email: e.target.value})} 
                   sx={{ mb: 2 }}
                 />
                 <TextField 
