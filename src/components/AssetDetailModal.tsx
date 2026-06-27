@@ -145,28 +145,16 @@ export default function AssetDetailModal({ asset, open, onClose }: Props) {
     setIsSubmitting(true);
     setSubmitStatus('idle');
 
-    const accessKey = "a5b2c357-ae00-48e5-9f59-2945167199be";
-    if (!accessKey) {
-      alert("Hệ thống chưa được cấu hình API Key gửi Email. Vui lòng liên hệ Unifolio.");
-      setIsSubmitting(false);
-      return;
-    }
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzczlHzPEtPko7GC6g1gl1JTfXdglZI6MfTScjkW49LdZdFVYyRcZr7DqtmdYYohpBf1g/exec";
 
     try {
-      const response = await fetch('https://api.web3forms.com/submit', {
+      const response = await fetch(GAS_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({
-          access_key: accessKey,
-          subject: `[Yêu cầu cấp quyền Tài Nguyên] ${asset.name} - ${formData.studentId}`,
-          from_name: formData.name,
-          Tài_Nguyên: asset.name,
-          Loại: asset.assetTypeName || (asset.assetType === 'ACCOUNT' ? 'Unity Account' : 'Google Drive'),
-          Họ_Và_Tên: formData.name,
-          MSSV: formData.studentId,
-          Trường: formData.school,
-          Email_Liên_Hệ: formData.email,
-          Mục_Đích_Sử_Dụng: formData.message,
+          name: formData.name,
+          email: formData.email,
+          message: `--- YÊU CẦU CẤP QUYỀN TÀI NGUYÊN ---\n\n📌 Tài Nguyên: ${asset.name}\n🏷 Loại: ${asset.assetTypeName || (asset.assetType === 'ACCOUNT' ? 'Unity Account' : 'Google Drive')}\n\n👤 Thông tin người yêu cầu:\n- Họ và Tên: ${formData.name}\n- Mã Sinh Viên: ${formData.studentId}\n- Trường: ${formData.school}\n- Email: ${formData.email}\n\n📝 Lý do / Mục đích:\n${formData.message}`
         })
       });
 

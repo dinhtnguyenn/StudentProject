@@ -2224,6 +2224,10 @@ export default function AdminForm() {
               <ListSubheader sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'success.main', fontSize: '0.75rem', letterSpacing: '0.05em', mt: 1 }}>
                 <AutoAwesomeIcon fontSize="small" /> TÀI NGUYÊN (ASSETS)
               </ListSubheader>
+              <ListItemButton selected={tabIndex === 14} onClick={() => setTabIndex(14)} sx={{ mt: 1, mb: 1, bgcolor: tabIndex === 14 ? 'primary.main' : 'rgba(168, 85, 247, 0.05)', borderRadius: 3, '&:hover': { bgcolor: tabIndex === 14 ? 'primary.dark' : 'rgba(168, 85, 247, 0.15)' } }}>
+                <ListItemIcon sx={{ minWidth: 32 }}><VpnKeyIcon fontSize="small" sx={{ color: tabIndex === 14 ? '#fff' : '#A855F7' }} /></ListItemIcon>
+                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 14 ? 700 : 500, fontSize: '0.9rem', color: tabIndex === 14 ? '#fff' : 'inherit' }}>Mã Bảo Vệ Drive</Typography>} />
+              </ListItemButton>
               <ListItemButton selected={tabIndex === 9} onClick={() => setTabIndex(9)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 9 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Tài Nguyên</Typography>} />
               </ListItemButton>
@@ -2241,10 +2245,6 @@ export default function AdminForm() {
               <ListSubheader sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'transparent', lineHeight: '36px', fontWeight: 800, color: 'info.main', fontSize: '0.75rem', letterSpacing: '0.05em', mt: 1 }}>
                 <SettingsIcon fontSize="small" /> QUẢN LÝ CHUNG
               </ListSubheader>
-              <ListItemButton selected={tabIndex === 14} onClick={() => setTabIndex(14)} sx={{ mt: 1, bgcolor: tabIndex === 14 ? 'primary.main' : 'rgba(168, 85, 247, 0.05)', borderRadius: 3, '&:hover': { bgcolor: tabIndex === 14 ? 'primary.dark' : 'rgba(168, 85, 247, 0.15)' } }}>
-                <ListItemIcon sx={{ minWidth: 32 }}><VpnKeyIcon fontSize="small" sx={{ color: tabIndex === 14 ? '#fff' : '#A855F7' }} /></ListItemIcon>
-                <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 14 ? 700 : 500, fontSize: '0.9rem', color: tabIndex === 14 ? '#fff' : 'inherit' }}>Mã Bảo Vệ Drive</Typography>} />
-              </ListItemButton>
 
               <ListItemButton selected={tabIndex === 5} onClick={() => setTabIndex(5)}>
                 <ListItemText primary={<Typography sx={{ fontWeight: tabIndex === 5 ? 700 : 500, fontSize: '0.9rem' }}>Quản Lý Chuyên Ngành</Typography>} />
@@ -2274,7 +2274,7 @@ export default function AdminForm() {
                 
                 {/* 1. Summary Cards */}
                 <Grid container spacing={3} sx={{ mb: 4 }}>
-                  <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
                       <Paper elevation={0} sx={{ p: 3, borderRadius: 4, background: 'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)', color: '#1E3A8A', display: 'flex', flexDirection: 'column', gap: 1, position: 'relative', overflow: 'hidden', boxShadow: '0 10px 25px -5px rgba(37, 99, 235, 0.15)', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-4px)' } }}>
                         <FolderIcon sx={{ position: 'absolute', right: -16, bottom: -16, fontSize: 120, opacity: 0.08, transform: 'rotate(-15deg)' }} />
@@ -2287,7 +2287,7 @@ export default function AdminForm() {
                     </motion.div>
                   </Grid>
 
-                  <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}>
                       <Paper elevation={0} sx={{ p: 3, borderRadius: 4, background: 'linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%)', color: '#6B21A8', display: 'flex', flexDirection: 'column', gap: 1, position: 'relative', overflow: 'hidden', boxShadow: '0 10px 25px -5px rgba(168, 85, 247, 0.15)', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-4px)' } }}>
                         <ArticleIcon sx={{ position: 'absolute', right: -16, bottom: -16, fontSize: 120, opacity: 0.08, transform: 'rotate(-15deg)' }} />
@@ -2300,7 +2300,7 @@ export default function AdminForm() {
                     </motion.div>
                   </Grid>
 
-                  <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }}>
                       <Paper elevation={0} sx={{ p: 3, borderRadius: 4, background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)', color: '#065F46', display: 'flex', flexDirection: 'column', gap: 1, position: 'relative', overflow: 'hidden', boxShadow: '0 10px 25px -5px rgba(16, 185, 129, 0.15)', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-4px)' } }}>
                         <AutoAwesomeIcon sx={{ position: 'absolute', right: -16, bottom: -16, fontSize: 120, opacity: 0.08, transform: 'rotate(-15deg)' }} />
@@ -2313,7 +2313,7 @@ export default function AdminForm() {
                     </motion.div>
                   </Grid>
 
-                  <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                  <Grid size={{ xs: 12, md: 6 }}>
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.4 }}>
                       <Paper elevation={0} sx={{ p: 3, borderRadius: 4, background: 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)', color: '#92400E', display: 'flex', flexDirection: 'column', gap: 1, position: 'relative', overflow: 'hidden', boxShadow: '0 10px 25px -5px rgba(245, 158, 11, 0.15)', transition: 'transform 0.2s', '&:hover': { transform: 'translateY(-4px)' } }}>
                         <WorkspacePremiumIcon sx={{ position: 'absolute', right: -16, bottom: -16, fontSize: 120, opacity: 0.08, transform: 'rotate(-15deg)' }} />
@@ -2494,8 +2494,8 @@ export default function AdminForm() {
                     <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 4, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
                       <Typography variant="h6" sx={{ mb: 3, fontWeight: 700 }}>Cấp mã mới</Typography>
                       <form onSubmit={handleGenerateCode}>
-                        <Grid container spacing={2}>
-                          <Grid size={{ xs: 12, md: 5 }}>
+                        <Grid container spacing={3}>
+                          <Grid size={{ xs: 12, md: 6 }}>
                             <Autocomplete
                               options={unityAssetsList.filter(a => a.driveLink)}
                               getOptionLabel={(option) => option.name}
@@ -2503,10 +2503,10 @@ export default function AdminForm() {
                               renderInput={(params) => <TextField {...params} label="Chọn tài nguyên" required />}
                             />
                           </Grid>
-                          <Grid size={{ xs: 12, md: 4 }}>
+                          <Grid size={{ xs: 12, md: 6 }}>
                             <TextField fullWidth label="Email người nhận" type="email" value={codeFormData.email} onChange={e => setCodeFormData({...codeFormData, email: e.target.value})} required />
                           </Grid>
-                          <Grid size={{ xs: 6, md: 2 }}>
+                          <Grid size={{ xs: 12, md: 6 }}>
                             <FormControl fullWidth>
                               <InputLabel>Thời hạn</InputLabel>
                               <Select value={codeFormData.durationDays} label="Thời hạn" onChange={e => setCodeFormData({...codeFormData, durationDays: Number(e.target.value)})}>
@@ -2519,11 +2519,11 @@ export default function AdminForm() {
                               </Select>
                             </FormControl>
                           </Grid>
-                          <Grid size={{ xs: 6, md: 1 }}>
-                            <TextField fullWidth label="Số lượt" type="number" helperText="0 = ∞" value={codeFormData.maxUses} onChange={e => setCodeFormData({...codeFormData, maxUses: Number(e.target.value)})} slotProps={{ htmlInput: { min: 0 } }} />
+                          <Grid size={{ xs: 12, md: 6 }}>
+                            <TextField fullWidth label="Số lượt" type="number" helperText="0 = Không giới hạn" value={codeFormData.maxUses} onChange={e => setCodeFormData({...codeFormData, maxUses: Number(e.target.value)})} slotProps={{ htmlInput: { min: 0 } }} />
                           </Grid>
                           <Grid size={{ xs: 12 }}>
-                            <Button type="submit" variant="contained" color="primary" sx={{ px: 5, py: 1.5, borderRadius: 2, fontWeight: 700 }}>Tạo Mã Bảo Vệ</Button>
+                            <Button type="submit" fullWidth variant="contained" color="primary" sx={{ py: 1.5, borderRadius: 2, fontWeight: 700 }}>Tạo Mã Bảo Vệ Link Drive</Button>
                           </Grid>
                         </Grid>
                       </form>
