@@ -27,7 +27,7 @@ export default function UIEasterEggs() {
     if (document.readyState !== 'complete') return false;
     const images = document.querySelectorAll('img');
     for (let i = 0; i < images.length; i++) {
-      if (!images[i].complete) return false;
+      if (images[i].getAttribute('loading') !== 'lazy' && !images[i].complete) return false;
     }
     return true;
   };
