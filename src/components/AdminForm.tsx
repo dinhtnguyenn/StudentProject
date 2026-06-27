@@ -586,6 +586,7 @@ export default function AdminForm() {
   const [articlesSearch, setArticlesSearch] = useState('');
   const [unityAssetsPage, setUnityAssetsPage] = useState(1);
   const [unityAssetsSearch, setUnityAssetsSearch] = useState('');
+  const [unityAssetsDriveFilter, setUnityAssetsDriveFilter] = useState(false);
   const itemsPerPage = 20;
 
   // Fake constants to prevent breaking existing GitHub API URL builders
@@ -2702,8 +2703,13 @@ export default function AdminForm() {
                     <Box sx={{ p: 6, textAlign: 'center' }}><Typography color="text.secondary">Chưa có tài nguyên nào.</Typography></Box>
                   ) : (
                     <>
-                      <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+                      <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', display: 'flex', gap: 2, alignItems: 'center' }}>
                         <TextField fullWidth size="small" placeholder="Tìm kiếm tài nguyên..." value={unityAssetsSearch} onChange={(e) => { setUnityAssetsSearch(e.target.value); setUnityAssetsPage(1); }} slotProps={{ input: { startAdornment: <InputAdornment position="start"><AutoAwesomeIcon fontSize="small" /></InputAdornment> } }} />
+                        <FormControlLabel
+                          control={<Checkbox checked={unityAssetsDriveFilter} onChange={(e) => { setUnityAssetsDriveFilter(e.target.checked); setUnityAssetsPage(1); }} size="small" />}
+                          label={<Typography variant="body2" sx={{ whiteSpace: 'nowrap' }}>Chỉ hiện có link Drive</Typography>}
+                          sx={{ m: 0 }}
+                        />
                       </Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
                         <FormControlLabel
@@ -2716,7 +2722,11 @@ export default function AdminForm() {
                         <SortableContext items={unityAssetsList.map(a => a.id)} strategy={verticalListSortingStrategy}>
                           <List sx={{ p: 0 }}>
                             {(()=>{
-                              const filtered = unityAssetsList.filter(a => a.name.toLowerCase().includes(unityAssetsSearch.toLowerCase()));
+                              const filtered = unityAssetsList.filter(a => {
+                                if (unityAssetsSearch && !a.name.toLowerCase().includes(unityAssetsSearch.toLowerCase())) return false;
+                                if (unityAssetsDriveFilter && !a.driveLink) return false;
+                                return true;
+                              });
                               const paginated = filtered.slice((unityAssetsPage - 1) * itemsPerPage, unityAssetsPage * itemsPerPage);
                               return paginated;
                             })().map((asset) => (
@@ -2741,7 +2751,11 @@ export default function AdminForm() {
                         </SortableContext>
                       </DndContext>
                       <Box sx={{ display: 'flex', justifyContent: 'center', p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-                        <Pagination count={Math.ceil(unityAssetsList.filter(a => a.name.toLowerCase().includes(unityAssetsSearch.toLowerCase())).length / itemsPerPage)} page={unityAssetsPage} onChange={(_, v) => setUnityAssetsPage(v)} color="primary" />
+                        <Pagination count={Math.ceil(unityAssetsList.filter(a => {
+                                if (unityAssetsSearch && !a.name.toLowerCase().includes(unityAssetsSearch.toLowerCase())) return false;
+                                if (unityAssetsDriveFilter && !a.driveLink) return false;
+                                return true;
+                              }).length / itemsPerPage)} page={unityAssetsPage} onChange={(_, v) => setUnityAssetsPage(v)} color="primary" />
                       </Box>
                       {visibleUnityAssetsCount < unityAssetsList.length && (
                         <Box sx={{ textAlign: 'center', mt: 3, pb: 3 }}>
