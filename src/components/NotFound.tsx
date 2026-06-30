@@ -85,7 +85,7 @@ export default function NotFound() {
               }
             }}
           >
-            Về Trang Chủ
+            Về trang chủ
           </Button>
 
           <Button 
@@ -106,7 +106,7 @@ export default function NotFound() {
               }
             }}
           >
-            Xem Bài Viết
+            Xem bài viết
           </Button>
         </Box>
       </Box>
