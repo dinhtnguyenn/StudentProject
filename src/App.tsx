@@ -5,6 +5,7 @@ import SeasonalEffects from './components/SeasonalEffects';
 import ArticlesGallery from './components/ArticlesGallery';
 import AssetsGallery from './components/AssetsGallery';
 import DailyMessage from './components/DailyMessage';
+import NotFound from './components/NotFound';
 import { getCurrentSeason } from './lib/seasonalEngine';
 import AdminForm from './components/AdminForm';
 import { AppBar, Toolbar, Typography, Button, Container, Box, IconButton, useTheme, Menu, MenuItem } from '@mui/material';
@@ -255,6 +256,7 @@ function App() {
             <Route path="/assets" element={<AssetsGallery />} />
             <Route path="/asset/:assetId" element={<AssetsGallery />} />
             <Route path="/admin" element={<AdminForm />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Container>
       </Box>
