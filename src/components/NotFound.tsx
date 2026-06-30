@@ -47,7 +47,7 @@ export default function NotFound() {
           sx={{ 
             fontSize: { xs: '6rem', md: '10rem' }, 
             fontWeight: 900,
-            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.1))',
