@@ -61,5 +61,12 @@
     "bg": "hsl(144, 80%, 92%)",
     "text": "hsl(144, 85%, 35%)",
     "userCreate": "admin"
+  },
+  {
+    "id": "1782824908006",
+    "name": "Game 3D Nâng cao",
+    "userCreate": "admin",
+    "bg": "hsl(339, 80%, 92%)",
+    "text": "hsl(339, 85%, 35%)"
   }
 ]
